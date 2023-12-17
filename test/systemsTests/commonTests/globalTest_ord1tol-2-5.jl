@@ -15,7 +15,8 @@ function test(case,solvr)
          du[1] = -20.0*u[1]-80.0*u[2]+1600.0
          du[2] =1.24*u[1]-0.01*u[2]+0.2
      end  
-     u1, u2 = -8.73522174738572, -7.385745994549763
+     @show odeprob.prname
+  #=    u1, u2 = -8.73522174738572, -7.385745994549763
      λ1, λ2 = -10.841674966758294, -9.168325033241706
      c1, c2 = 121.14809142478035, -143.14809142478035
      xp1, xp2 = 0.0, 20.0
@@ -36,7 +37,7 @@ function test(case,solvr)
    # timenmliqss=@belapsed solve($odeprob,$solvr,abstol=$absTol,saveat=0.01,reltol=$relTol,tspan#= ,maxErr=1000*$relTol =#)
      resnmliqss1E_2= ("$(solnmliqss.algName)",relTol,(er1+er2)/2,solnmliqss.totalSteps,solnmliqss.simulStepCount,timenmliqss)
      @show resnmliqss1E_2
-
+ =#
     
 #=     
 #  BSON.@load "qss/ref_bson/solVect_Tyson_Rodas5Pe-12.bson" solRodas5PVectorTyson
