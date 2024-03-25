@@ -9,14 +9,11 @@ struct LightSol{T,O}<:Sol{T,O}
   sysName::String
   absQ::Float64
   totalSteps::Int
-  #stepsaftersimul::Int
   simulStepCount::Int
   evCount::Int
   numSteps ::Vector{Int}
   ft::Float64
 end
-
-
 struct HeavySol{T,O}<:Sol{T,O}
   size::Val{T}
   order::Val{O}
@@ -28,7 +25,6 @@ struct HeavySol{T,O}<:Sol{T,O}
   sysName::String
   absQ::Float64
   totalSteps::Int
-  #stepsaftersimul::Int
   simulStepCount::Int
   evCount::Int
   numSteps ::Vector{Int}

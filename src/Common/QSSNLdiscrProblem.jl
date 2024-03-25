@@ -170,21 +170,22 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Ve
             if negEvExp.args[1] != :nothing
                
                 for j = 1:length(negEvExp.args)  # j coressponds the number of statements under one negEvent
-                    !(negEvExp.args[j]  isa Expr &&  negEvExp.args[j].head == :(=))  && error("event should be A=B")
+                   # !(negEvExp.args[j]  isa Expr &&  negEvExp.args[j].head == :(=))  && error("event should be A=B")
                     neglhs=negEvExp.args[j].args[1];negrhs=negEvExp.args[j].args[1]
-                    !(neglhs  isa Expr &&  neglhs.head == :ref && (neglhs.args[1]==:q || neglhs.args[1]==:d)) && error("lhs of events must be a continuous or a discrete variable")
-                    if neglhs.args[1]==:q
-                        push!(negEv_conArrLHS,neglhs.args[2])
-                    else # lhs is a disc var 
-                        push!(negEv_disArrLHS,neglhs.args[2])
-                    end
-                    postwalk(negrhs) do a   #
-                        if a isa Expr && a.head == :ref && a.args[1]==:q# 
-                            push!(negEv_conArrRHS,  (a.args[2]))  #                    
+                 #   !(neglhs  isa Expr &&  neglhs.head == :ref && (neglhs.args[1]==:q || neglhs.args[1]==:d)) && error("lhs of events must be a continuous or a discrete variable")
+                    if (neglhs  isa Expr &&  neglhs.head == :ref && (neglhs.args[1]==:q || neglhs.args[1]==:d))    
+                        if neglhs.args[1]==:q
+                            push!(negEv_conArrLHS,neglhs.args[2])
+                        else # lhs is a disc var 
+                            push!(negEv_disArrLHS,neglhs.args[2])
                         end
-                        return a 
+                        postwalk(negrhs) do a   #
+                            if a isa Expr && a.head == :ref && a.args[1]==:q# 
+                                push!(negEv_conArrRHS,  (a.args[2]))  #                    
+                            end
+                            return a 
+                        end
                     end
-            
                 end
             end 
             structposEvent = EventDependencyStruct(indexPosEv, posEv_conArrLHS, posEv_disArrLHS,posEv_conArrRHS) # right now posEv_conArr is vect of ...

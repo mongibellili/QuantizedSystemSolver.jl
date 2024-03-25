@@ -1,4 +1,4 @@
-using qss
+using QuantizedSystemSolver
 using BenchmarkTools
 
 
@@ -81,7 +81,8 @@ function test()
     tspan=(0.0,0.0005)
     println("start solving")
    sol= solve(odeprob,nmliqss2(),abstol=1e-4,reltol=1e-3,tspan)
-   save_Sol(sol,note="ItersDelta,detect:2-100-cancel0.8_dxi_q=xRecomOK_h0OK")          
+   save_Sol(sol)    
+  # save_Sol(sol,note="ItersDelta_detect_2-100-cancel0.8_dxi_q=xRecomOK_h0OK")          
  #=  save_Sol(sol,1,note="1")
   save_Sol(sol,5,note="5")
   save_Sol(sol,9,note="9")

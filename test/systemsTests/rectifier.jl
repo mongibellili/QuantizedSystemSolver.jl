@@ -1,4 +1,4 @@
-using qss
+using QuantizedSystemSolver
 using BenchmarkTools
 #= using Plots;
 gr(); =#
@@ -33,8 +33,8 @@ function test()
         end =#
            
     end
-    tspan=(0.0,0.01)
-   sol= solve(odeprob,qss2(),abstol=1e-4,reltol=1e-3,tspan)
+    tspan=(0.0,0.1)
+   sol= solve(odeprob,nmliqss2(),abstol=1e-4,reltol=1e-3,tspan)
   # @show sol
  # @show 5
   save_Sol(sol)

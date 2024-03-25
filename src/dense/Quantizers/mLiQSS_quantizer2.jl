@@ -1,10 +1,10 @@
 
 
-function nmisCycle_and_simulUpdate(cacheRootsi::Vector{Float64},cacheRootsj::Vector{Float64},acceptedi::Vector{Vector{Float64}},acceptedj::Vector{Vector{Float64}},aij::Float64,aji::Float64,respp::Ptr{Float64}, pp::Ptr{NTuple{2,Float64}},trackSimul,::Val{2},index::Int,j::Int,dirI::Float64,firstguessH::Float64, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64},exacteA::Function,d::Vector{Float64},cacheA::MVector{1,Float64},dxaux::Vector{MVector{2,Float64}},qaux::Vector{MVector{2,Float64}},tx::Vector{Float64},tq::Vector{Float64},simt::Float64,ft::Float64)
+function nmisCycle_and_simulUpdate(cacheRootsi::Vector{Float64},cacheRootsj::Vector{Float64},acceptedi::Vector{Vector{Float64}},acceptedj::Vector{Vector{Float64}},aij::Float64,aji::Float64,respp::Ptr{Float64}, pp::Ptr{NTuple{2,Float64}},trackSimul,::Val{2},index::Int,j::Int,dirI::Float64,firstguessH::Float64, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64},exactA::Function,d::Vector{Float64},cacheA::MVector{1,Float64},dxaux::Vector{MVector{2,Float64}},qaux::Vector{MVector{2,Float64}},tx::Vector{Float64},tq::Vector{Float64},simt::Float64,ft::Float64)
 
-  cacheA[1]=0.0;exacteA(q,d,cacheA,index,index)
+  cacheA[1]=0.0;exactA(q,d,cacheA,index,index,simt)
    aii=cacheA[1]
-   cacheA[1]=0.0; exacteA(q,d,cacheA,j,j)
+   cacheA[1]=0.0; exactA(q,d,cacheA,j,j,simt)
    ajj=cacheA[1]
 
 
@@ -84,7 +84,7 @@ function nmisCycle_and_simulUpdate(cacheRootsi::Vector{Float64},cacheRootsj::Vec
       βidth=dxithrow+hi*ddxithrow/2
       αidir=xi1+hi*xi2/2
       βj=xj1+hj*xj2/2
-########condition:Union 
+  ########condition:Union 
   #=   if (abs(dxj-xj1)>(abs(dxj+xj1)/2) || abs(ddxj-xj2)>(abs(ddxj+xj2)/2))  || dqjplus*newDiff<0.0 #(dqjplus*qj1)<=0.0 with dir is better since when dir =0 we do not enter
     
       if (abs(dxi-xi1)>(abs(dxi+xi1)/2) || abs(ddxi-xi2)>(abs(ddxi+xi2)/2)) || βidir*dirI<0.0
@@ -116,30 +116,30 @@ function nmisCycle_and_simulUpdate(cacheRootsi::Vector{Float64},cacheRootsj::Vec
    end
 
 
-if (ddxithrow>0 && dxithrow<0 && qi1>0) || (ddxithrow<0 && dxithrow>0 && qi1<0)
-  xmin=xi-dxithrow*dxithrow/ddxithrow
-  if abs(xmin-xi)/abs(qi-xi)>0.8 # xmin is close to q and a change in q  might flip its sign of dq
-    iscycle=false #
-  end
-end
-
-
-#= if (ddxi>0 && dxi<0 && qi1>0) || (ddxi<0 && dxi>0 && qi1<0)
-  xmin=xi-dxi*dxi/ddxi
-  if abs(xmin-xi)/abs(qi-xi)>0.8 # xmin is close to q and a change in q  might flip its sign of dq
-  
-    iscycle=false #
-  end
-
-end =#
-
-########condition:kinda signif alone i
-  #=   if (abs(dxj-xj1)>(abs(dxj+xj1)/2) || abs(ddxj-xj2)>(abs(ddxj+xj2)/2)) # || dqjplus*newDiff<0.0 
-    
-      if (abs(dxi-dxithrow)>(abs(dxi+dxithrow)/2) || abs(ddxi-ddxithrow)>(abs(ddxi+ddxithrow)/2)) #|| βidir*dirI<0.0
-        iscycle=true
+    if (ddxithrow>0 && dxithrow<0 && qi1>0) || (ddxithrow<0 && dxithrow>0 && qi1<0)
+      xmin=xi-dxithrow*dxithrow/ddxithrow
+      if abs(xmin-xi)/abs(qi-xi)>0.8 # xmin is close to q and a change in q  might flip its sign of dq
+        iscycle=false #
       end
+    end
+
+
+    #= if (ddxi>0 && dxi<0 && qi1>0) || (ddxi<0 && dxi>0 && qi1<0)
+      xmin=xi-dxi*dxi/ddxi
+      if abs(xmin-xi)/abs(qi-xi)>0.8 # xmin is close to q and a change in q  might flip its sign of dq
+      
+        iscycle=false #
+      end
+
     end =#
+
+    ########condition:kinda signif alone i
+      #=   if (abs(dxj-xj1)>(abs(dxj+xj1)/2) || abs(ddxj-xj2)>(abs(ddxj+xj2)/2)) # || dqjplus*newDiff<0.0 
+        
+          if (abs(dxi-dxithrow)>(abs(dxi+dxithrow)/2) || abs(ddxi-ddxithrow)>(abs(ddxi+ddxithrow)/2)) #|| βidir*dirI<0.0
+            iscycle=true
+          end
+        end =#
 
      ########condition:cond1 
       #=    if  dqjplus*newDiff<0.0 #= || (dqjplus==0.0 && newDiff!=0.0)  =##(dqjplus*qj1)<=0.0 with dir is better since when dir =0 we do not enter
@@ -290,12 +290,12 @@ end =#
         q[index][1]=((1-h*ajj)/Δ1)*q1parti+(h*aij/Δ1)*q1partj# store back helper vars
         q[j][1]=(h*aji/Δ1)*q1parti+((1-h*aii)/Δ1)*q1partj
         trackSimul[1]+=1 # do not have to recomputeNext if qi never changed
-        if abs(qi-xi)<quani/1000 && abs(qj-xj)<quanj/1000 && simt<5.0
+       #=  if abs(qi-xi)<quani/1000 && abs(qj-xj)<quanj/1000 && simt<5.0
         #if quani/1000<abs(qi-xi)<quani/10 && quanj/1000<abs(qj-xj)<quanj/10
           println("end of simul: qi & qj thrown both very close")
           @show abs(qi-xi),quani , abs(qj-xj),quanj
           @show simt
-        end
+        end =#
 
 
 
@@ -693,11 +693,11 @@ function isCycle_and_simulUpdate(::Val{2},index::Int,j::Int,#= direction::Vector
   return iscycle
 end
 #= 
-function updateQ(::Val{2},i::Int, xv::Vector{Taylor0},qv::Vector{Taylor0}, quantum::Vector{Float64}#= ,av::Vector{Vector{Float64}} =#,exacteA::Function,cacheA::MVector{1,Float64},dxaux::Vector{MVector{O,Float64}},qaux::Vector{MVector{O,Float64}},olddx::Vector{MVector{O,Float64}},tx::Vector{Float64},tq::Vector{Float64},simt::Float64,ft::Float64, nextTime::Vector{Float64})where{O}
+function updateQ(::Val{2},i::Int, xv::Vector{Taylor0},qv::Vector{Taylor0}, quantum::Vector{Float64}#= ,av::Vector{Vector{Float64}} =#,exactA::Function,cacheA::MVector{1,Float64},dxaux::Vector{MVector{O,Float64}},qaux::Vector{MVector{O,Float64}},olddx::Vector{MVector{O,Float64}},tx::Vector{Float64},tq::Vector{Float64},simt::Float64,ft::Float64, nextTime::Vector{Float64})where{O}
       #a=getA(Val(Sparsity),cacheA,av,i,i,map)
       #a=av[i][i]
       
-     cacheA[1]=0.0; exacteA(qv,cacheA,i,i)
+     cacheA[1]=0.0; exactA(qv,cacheA,i,i)
     
         a=cacheA[1]
     # @show a,i

@@ -1,29 +1,85 @@
-#= 
-setprecision(BigFloat,100)
+using Symbolics, LinearAlgebra
 
-aii, aij, aji, ajj, h, xi, xjaux, uij, uij2, uji, uji2 = BigFloat(-1.0e6), BigFloat(1000.0), BigFloat(1.0e6), BigFloat(-1000.0157261488598), BigFloat(8.858170228361118), BigFloat(0.0009738922631926892), BigFloat(0.9538344383858633), BigFloat(0.024830940874835505), BigFloat(-0.02117642588838642), BigFloat(-5.135234459885396e-10), BigFloat(0.00014385727589605324)
+@show 2
+@variables x,il1,il2,il3,rd1,rd2,rd3,rr,rpr,v,is1,is2,is3,I
+A=[5.1e-6+4.2e-9+0.453e-6*x 4.2e-9+0.453e-6*x  4.2e-9+0.453e-6*x  ;4.2e-9+0.453e-6*x  5.1e-6+4.2e-9+0.453e-6*x  4.2e-9+0.453e-6*x ;4.2e-9+0.453e-6*x  4.2e-9+0.453e-6*x  5.1e-6+4.2e-9+0.453e-6*x ]
+B=(inv(A))
+display(B)
+#= B = [(-((4.2e-9 + 4.53e-7x)^2) + (5.1042e-6 + 4.53e-7x)^2) / ((4.2e-9 + 4.53e-7x)*((4.2e-9 + 4.53e-7x)^2 - (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x)) + (5.1042e-6 + 4.53e-7x)*(-((4.2e-9 + 4.53e-7x)^2) + (5.1042e-6 + 4.53e-7x)^2) + (-5.1042e-6 - 4.53e-7x)*(-((4.2e-9 + 4.53e-7x)^2) + (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x))) ((4.2e-9 + 4.53e-7x)^2 - ((5.1042e-6 + 4.53e-7x)^2)) / ((4.2e-9 + 4.53e-7x)*((4.2e-9 + 4.53e-7x)^2 - (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x)) + (5.1042e-6 + 4.53e-7x)*(-((4.2e-9 + 4.53e-7x)^2) + (5.1042e-6 + 4.53e-7x)^2) + (-5.1042e-6 - 4.53e-7x)*(-((4.2e-9 + 4.53e-7x)^2) + (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x))) 0; ((4.2e-9 + 4.53e-7x)^2 - (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x)) / ((4.2e-9 + 4.53e-7x)*((4.2e-9 + 4.53e-7x)^2 - (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x)) + (5.1042e-6 + 4.53e-7x)*(-((4.2e-9 + 4.53e-7x)^2) + (5.1042e-6 + 4.53e-7x)^2) + (-5.1042e-6 - 4.53e-7x)*(-((4.2e-9 + 4.53e-7x)^2) + (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x))) (-((4.2e-9 + 4.53e-7x)^2) + (5.1042e-6 + 4.53e-7x)^2) / ((4.2e-9 + 4.53e-7x)*((4.2e-9 + 4.53e-7x)^2 - (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x)) + (5.1042e-6 + 4.53e-7x)*(-((4.2e-9 + 4.53e-7x)^2) + (5.1042e-6 + 4.53e-7x)^2) + (-5.1042e-6 - 4.53e-7x)*(-((4.2e-9 + 4.53e-7x)^2) + (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x))) ((4.2e-9 + 4.53e-7x)^2 - (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x)) / ((4.2e-9 + 4.53e-7x)*((4.2e-9 + 4.53e-7x)^2 - (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x)) + (5.1042e-6 + 4.53e-7x)*(-((4.2e-9 + 4.53e-7x)^2) + (5.1042e-6 + 4.53e-7x)^2) + (-5.1042e-6 - 4.53e-7x)*(-((4.2e-9 + 4.53e-7x)^2) + (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x))); ((4.2e-9 + 4.53e-7x)^2 - (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x)) / ((4.2e-9 + 4.53e-7x)*((4.2e-9 + 4.53e-7x)^2 - (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x)) + (5.1042e-6 + 4.53e-7x)*(-((4.2e-9 + 4.53e-7x)^2) + (5.1042e-6 + 4.53e-7x)^2) + (-5.1042e-6 - 4.53e-7x)*(-((4.2e-9 + 4.53e-7x)^2) + (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x))) 0 ((5.1042e-6 + 4.53e-7x)^2 - (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x)) / ((4.2e-9 + 4.53e-7x)*((4.2e-9 + 4.53e-7x)^2 - (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x)) + (5.1042e-6 + 4.53e-7x)*(-((4.2e-9 + 4.53e-7x)^2) + (5.1042e-6 + 4.53e-7x)^2) + (-5.1042e-6 - 4.53e-7x)*(-((4.2e-9 + 4.53e-7x)^2) + (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x)))]
+@show B[1,1] =#
+#= g111=(-(4.2e-9 + 4.53e-7x)^2) + (5.1042e-6 + 4.53e-7x)^2
+B111=simplify(g111, expand=true)
+@show B11 #2.60528404e-11 + 4.6206e-12x =#
+#= g112=((4.2e-9 + 4.53e-7x)*((4.2e-9 + 4.53e-7x)^2 - (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x)) + (5.1042e-6 + 4.53e-7x)*(-((4.2e-9 + 4.53e-7x)^2) + (5.1042e-6 + 4.53e-7x)^2) + (-5.1042e-6 - 4.53e-7x)*(-((4.2e-9 + 4.53e-7x)^2) + (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x))) 
+B112=simplify(g112, expand=true)
+@show B11 #1.3286948405e-16 + 2.35650602e-17x - 3.851859888774472e-34(x^2) =#
 
-#aii, aij, aji, ajj, h, xi, xjaux, uij, uij2, uji, uji2 = -1.0e6, 1000.0, 1.0e6, -1000.0157261488598, 8.858170228361118, 0.0009738922631926892, 0.9538344383858633, 0.024830940874835505, -0.02117642588838642, -5.135234459885396e-10, 0.00014385727589605324
-h_2=h*h;h_3=h_2*h;h_4=h_3*h;h_5=h_4*h;h_6=h_5*h
-aiijj=aii+ajj
-aiijj_=aij*aji-aii*ajj
-#Δ1=(1-h*aii)*(1-h*ajj)-h*h*aij*aji
-Δ1=1.0-h*(aiijj)-h_2*(aiijj_)
-if abs(Δ1)==0.0
-  Δ1=1e-30
-  @show Δ1
-end
+#= g12=((4.2e-9 + 4.53e-7x)^2 - ((5.1042e-6 + 4.53e-7x)^2))
+B112=simplify(g12, expand=true)
+@show B112 #-2.60528404e-11 - 4.6206e-12x =#
 
-#=  qpar2=(h_2*aij*aiijj+h_3*aij*aiijj_)*(xjaux-h*xjaux*aiijj-0.5*h_2*(ajj*uji+aji*uij+uji2+2.0*xjaux*aiijj_)+0.5*h_3*(aii*uji2-uji*aiijj_-aji*uij2))
- qpar21=(h_2*aij*aiijj)*(xjaux-h*xjaux*aiijj-0.5*h_2*(ajj*uji+aji*uij+uji2+2.0*xjaux*aiijj_)+0.5*h_3*(aii*uji2-uji*aiijj_-aji*uij2))
- qpar22=(h_3*aij*aiijj_)*(xjaux-h*xjaux*aiijj-0.5*h_2*(ajj*uji+aji*uij+uji2+2.0*xjaux*aiijj_)+0.5*h_3*(aii*uji2-uji*aiijj_-aji*uij2))
- qpar_2=h_2*aij*aiijj*xjaux-h_3*aij*aiijj*aiijj*xjaux-0.5*h_4*aij*aiijj*(ajj*uji+aji*uij+uji2+2.0*xjaux*aiijj_)+0.5*h_5*aij*aiijj*(aii*uji2-uji*aiijj_-aji*uij2)+h_3*aij*aiijj_*xjaux-h_4*aij*aiijj_*xjaux*aiijj-0.5*h_5*aii*aiijj_*(ajj*uji+aji*uij+uji2+2.0*xjaux*aiijj_)+0.5*h_6*aij*aiijj_*(aii*uji2-uji*aiijj_-aji*uij2)
- qpar_21=h_2*aij*aiijj*xjaux-h_3*aij*aiijj*aiijj*xjaux-0.5*h_4*aij*aiijj*(ajj*uji+aji*uij+uji2+2.0*xjaux*aiijj_)+0.5*h_5*aij*aiijj*(aii*uji2-uji*aiijj_-aji*uij2)
-  =#
- 
- qpar22=(h_3*aij*aiijj_)*(xjaux-h*xjaux*aiijj-0.5*h_2*(ajj*uji+aji*uij+uji2+2.0*xjaux*aiijj_)+0.5*h_3*(aii*uji2-uji*aiijj_-aji*uij2))
- qpar221=(h_3*aij*aiijj_)*(xjaux-h*xjaux*aiijj-0.5*h_2*(ajj*uji+aji*uij+uji2+2.0*xjaux*aiijj_))
- #qpar222=(h_3*aij*aiijj_)*(xjaux-h*xjaux*aiijj-0.5*h_2*(ajj*uji+aji*uij+uji2+2.0*xjaux*aiijj_)+0.5*h_3*(aii*uji2-uji*aiijj_-aji*uij2))
- qpar_22=h_3*aij*aiijj_*xjaux-h_4*aij*aiijj_*xjaux*aiijj-0.5*h_5*aii*aiijj_*(ajj*uji+aji*uij+uji2+2.0*xjaux*aiijj_)+0.5*h_6*aij*aiijj_*(aii*uji2-uji*aiijj_-aji*uij2)
- qpar_221=h_3*aij*aiijj_*xjaux-h_4*aij*aiijj_*xjaux*aiijj-0.5*h_5*aij*aiijj_*(ajj*uji+aji*uij+uji2+2.0*xjaux*aiijj_)
- @show qpar221,qpar_221 =#
+#= g122=((4.2e-9 + 4.53e-7x)*((4.2e-9 + 4.53e-7x)^2 - (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x)) + (5.1042e-6 + 4.53e-7x)*(-((4.2e-9 + 4.53e-7x)^2) + (5.1042e-6 + 4.53e-7x)^2) + (-5.1042e-6 - 4.53e-7x)*(-((4.2e-9 + 4.53e-7x)^2) + (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x))) 
+B112=simplify(g122, expand=true)
+@show B112 #1.3286948405e-16 + 2.35650602e-17x - 3.851859888774472e-34(x^2) =#
+
+
+#= g21=((4.2e-9 + 4.53e-7x)^2 - (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x))
+B21=simplify(g21, expand=true)
+@show B21 #-2.14205e-14 - 2.3103004e-12x =#
+
+#= g22=(-((4.2e-9 + 4.53e-7x)^2) + (5.1042e-6 + 4.53e-7x)^2)
+B22=simplify(g22, expand=true)
+@show B22#2.60528404e-11 + 4.6206e-12x =#
+
+#= g23=((4.2e-9 + 4.53e-7x)^2 - (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x))
+B23=simplify(g23, expand=true)
+@show B23#-2.14205e-14 - 2.3103004e-12x           ---------> =B31 =#
+
+
+#= g33=((5.1042e-6 + 4.53e-7x)^2 - (4.2e-9 + 4.53e-7x)*(5.1042e-6 + 4.53e-7x))
+B33=simplify(g33, expand=true)
+@show B33#2.60314205e-11 + 2.3103e-12x =#
+
+
+#= B1=[2.605284e-11+4.6206e-12*x  -2.605284e-11-4.6206e-12x  0;-2.142e-14-2.3103e-12x  2.605284e-11+4.6206e-12x -2.142e-14-2.3103e-12x ;-2.142e-14-2.3103e-12x 0 2.60314205e-11+2.3103e-12x]
+B=B1/(1.32869484e-16 + 2.356506e-17x - 3.85185988e-34(x^2))
+#c=-4.2e-9/0.453e-6
+#display(B1);println()
+C=[-(rd1+3.88e-3)*il1-(rr+rpr+0.453e-6*v)*I+rd1*is1;-(rd2+3.88e-3)*il2-(rr+rpr+0.453e-6*v)*I+rd2*is2;-(rd3+3.88e-3)*il3-(rr+rpr+0.453e-6*v)*I+rd3*is3]
+
+#display(C)
+D=B1*C
+#display(D)
+D1=simplify(D[1], expand=true)
+display(D1);println()
+D2=simplify(D[2], expand=true)
+display(D2);println()
+D3=simplify(D[3], expand=true)
+display(D3);println() =#
+
+#= D=[5.1e-6 0 0;0 5.1e-6 0;0 0 5.1e-6]
+E=inv(D)
+display(E) =#
+#= C=substitute.(B, (Dict(x=> c),))
+display(C) =#
+
+
+#= 1/(1.32869484e-16 + 2.356506e-17x - 3.85185988e-34(x^2)){
+
+-1.0108501e-13il1*rd1 + 1.01085e-13il2*rd2 + 2.605284e-11is1*rd1 - 2.605284e-11is2*rd2 - 1.79279e-14il1*rd1*x + 1.7927928e-14il2*rd2*x + 4.6206e-12is1*rd1*x - 4.6206e-12is2*rd2*x
+
+-2.6010e-11I*(rpr + rr) - 1.178253e-17I*v + 8.31096e-17il1*rd1 - 1.010850e-13il2*rd2 + 8.31096e-17il3*rd3 - 2.142e-14is1*rd1 + 2.605284e-11is2*rd2 - 2.142e-14is3*rd3 + 8.963964e-15il1*rd1*x - 1.79279e-14il2*rd2*x + 8.963964e-15il3*rd3*x - 2.3103e-12is1*rd1*x + 4.6206e-12is2*rd2*x - 2.3103e-12is3*rd3*x
+
+-2.6010e-11I*(rpr + rr) - 1.17825e-17I*v + 8.31096e-17il1*rd1 - 1.01001e-13il3*rd3 - 2.142e-14is1*rd1 + 2.60314e-11is3*rd3 + 8.963e-15il1*rd1*x - 8.96396e-15il3*rd3*x - 2.3103e-12is1*rd1*x + 2.3103e-12is3*rd3*x
+
+}
+
+1/(1.32869484e-16 + 2.356506e-17x - 3.85185988e-34(x^2)){
+
+(-1.0108501e-13- 1.79279e-14x)il1*rd1 + (1.01085e-13+1.7927928e-14x)il2*rd2 + (2.605284e-11+4.6206e-12x)is1*rd1 - (2.605284e-11 + 4.6206e-12x)*is2*rd2
+
+-I*(2.6010e-11*(rpr + rr)+1.178253e-17v) + 8.31096e-17il1*rd1 - 1.010850e-13il2*rd2 + 8.31096e-17il3*rd3 - 2.142e-14is1*rd1 + 2.605284e-11is2*rd2 - 2.142e-14is3*rd3 + 8.963964e-15il1*rd1*x - 1.79279e-14il2*rd2*x + 8.963964e-15il3*rd3*x - 2.3103e-12is1*rd1*x + 4.6206e-12is2*rd2*x - 2.3103e-12is3*rd3*x
+
+-I*(2.6010e-11*(rpr + rr)+1.178253e-17v) + 8.31096e-17il1*rd1 - 1.01001e-13il3*rd3 - 2.142e-14is1*rd1 + 2.60314e-11is3*rd3 + 8.963e-15il1*rd1*x - 8.96396e-15il3*rd3*x - 2.3103e-12is1*rd1*x + 2.3103e-12is3*rd3*x
+
+} =#

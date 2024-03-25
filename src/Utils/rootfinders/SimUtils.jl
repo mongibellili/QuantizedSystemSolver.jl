@@ -506,7 +506,7 @@ function constructIntrval4(cache::Vector{Vector{Float64}},t1::Float64,t2::Float6
   return nothing
 
 end
-
+#order1
 @inline function constructIntrval(cache::Vector{Vector{Float64}},res1::Float64,res2::Float64,res3::Float64,res4::Float64)
   #= vec1=(1.2,3.3)
   vec2=() =#
@@ -551,10 +551,10 @@ end
   end
   return nothing
 end
-
+#order2 bigfloat
 function constructIntrval(accepted::Vector{Vector{BigFloat}},cacheRoots::Vector{BigFloat})
   enterFlag=true
-  foundStart=false
+  foundStart=false #nonzero entry found?
   acceptedCounter=1
   len=length(cacheRoots)
   for i=1:len

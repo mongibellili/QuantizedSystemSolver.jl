@@ -1,5 +1,5 @@
 
-function integrate(Al::QSSAlgorithm{:nmliqss,O},CommonqssData::CommonQSS_data{0},liqssdata::LiQSS_data{O,false},specialLiqssData::SpecialLiqssQSS_data, odep::NLODEProblem{PRTYPE,T,0,0,CS},f::Function,jac::Function,SD::Function,exacteA::Function) where {PRTYPE,CS,O,T}
+function integrate(Al::QSSAlgorithm{:nmliqss,O},CommonqssData::CommonQSS_data{0},liqssdata::LiQSS_data{O,false},specialLiqssData::SpecialLiqssQSS_data, odep::NLODEProblem{PRTYPE,T,0,0,CS},f::Function,jac::Function,SD::Function,exactA::Function) where {PRTYPE,CS,O,T}
   cacheA=specialLiqssData.cacheA
   #direction=specialLiqssData.direction
   #qminus= specialLiqssData.qminus
@@ -45,7 +45,7 @@ for i =1:4*O-1 #3
   acceptedi[i]=[0.0,0.0]#zeros(2)
   acceptedj[i]=[0.0,0.0]#zeros(2)
 end
-  exacteA(q,d,cacheA,1,1)
+  exactA(q,d,cacheA,1,1,initTime+1e-9)
   trackSimul = Vector{Int}(undef, 1)
   numSteps = Vector{Int}(undef, T)
  #@show f
@@ -70,7 +70,7 @@ end
     #push!(savedVarsQ[i],q[i][0])
      push!(savedTimes[i],0.0)
      quantum[i] = relQ * abs(x[i].coeffs[1]) ;quantum[i]=quantum[i] < absQ ? absQ : quantum[i];quantum[i]=quantum[i] > maxErr ? maxErr : quantum[i] 
-    updateQ(Val(O),i,x,q,quantum,exacteA,d,cacheA,dxaux,qaux,tx,tq,initTime,ft,nextStateTime) 
+    updateQ(Val(O),i,x,q,quantum,exactA,d,cacheA,dxaux,qaux,tx,tq,initTime,ft,nextStateTime) 
   end
  # for i = 1:T
     # clearCache(taylorOpsCache,Val(CS),Val(O));f(i,q,t,taylorOpsCache);
@@ -122,7 +122,7 @@ printonce=0
           elapsedq = simt - tq[b] ;
           if elapsedq>0 integrateState(Val(O-1),q[b],elapsedq);tq[b]=simt end
         end
-        firstguess=updateQ(Val(O),index,x,q,quantum,exacteA,d,cacheA,dxaux,qaux,tx,tq,simt,ft,nextStateTime) ;tq[index] = simt   
+        firstguess=updateQ(Val(O),index,x,q,quantum,exactA,d,cacheA,dxaux,qaux,tx,tq,simt,ft,nextStateTime) ;tq[index] = simt   
         #----------------------------------------------------check dependecy cycles---------------------------------------------   
         trackSimul[1]=0 
         #= for i =1:5
@@ -133,15 +133,15 @@ printonce=0
             elapsedq = simt - tq[b] ;
             if elapsedq>0  integrateState(Val(O-1),q[b],elapsedq); tq[b]=simt  end
           end
-          cacheA[1]=0.0;exacteA(q,d,cacheA,index,j);aij=cacheA[1]# 
-          cacheA[1]=0.0;exacteA(q,d,cacheA,j,index);aji=cacheA[1]
+          cacheA[1]=0.0;exactA(q,d,cacheA,index,j,simt);aij=cacheA[1]# 
+          cacheA[1]=0.0;exactA(q,d,cacheA,j,index,simt);aji=cacheA[1]
          
         
         
           if j!=index && aij*aji!=0.0
           
              
-              if nmisCycle_and_simulUpdate(cacheRootsi,cacheRootsj,acceptedi,acceptedj,aij,aji,respp,pp,trackSimul,Val(O),index,j,dirI,firstguess,x,q,quantum,exacteA,d,cacheA,dxaux,qaux,tx,tq,simt,ft)
+              if nmisCycle_and_simulUpdate(cacheRootsi,cacheRootsj,acceptedi,acceptedj,aij,aji,respp,pp,trackSimul,Val(O),index,j,dirI,firstguess,x,q,quantum,exactA,d,cacheA,dxaux,qaux,tx,tq,simt,ft)
                 simulStepCount+=1
                clearCache(taylorOpsCache,Val(CS),Val(O));f(index,q,t,taylorOpsCache);computeDerivative(Val(O), x[index], taylorOpsCache[1])
              
@@ -200,7 +200,7 @@ printonce=0
       
       quantum[index] = relQ * abs(x[index].coeffs[1]) ;quantum[index]=quantum[index] < absQ ? absQ : quantum[index];quantum[index]=quantum[index] > maxErr ? maxErr : quantum[index]   
       #for k = 1:O q[index].coeffs[k] = x[index].coeffs[k] end; tq[index] = simt 
-        notneeded=updateQ(Val(O),index,x,q,quantum,exacteA,cacheA,dxaux,qaux,tx,tq,simt,ft,nextStateTime) ;tq[index] = simt 
+        notneeded=updateQ(Val(O),index,x,q,quantum,exactA,cacheA,dxaux,qaux,tx,tq,simt,ft,nextStateTime) ;tq[index] = simt 
         for b in jac(index) 
           elapsedq = simt - tq[b];if elapsedq>0 integrateState(Val(O-1),q[b],elapsedq);tq[b]=simt end
         end

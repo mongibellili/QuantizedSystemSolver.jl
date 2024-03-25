@@ -1,6 +1,46 @@
 
 
 #if you want to put a note and lims in the graph
+function plot_SolSum(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}
+  p1=plot()
+ 
+  #= if sol.algName=="nmliqss1"
+    mycolor=:green
+    stle=:dash
+  else
+    mycolor=:blue
+  end =#
+  if xvars!=()
+
+    solInterp=solInterpolated(sol,0.0001) # for now interpl all
+    sumV=solInterp.savedVars[xvars[1]]
+    sumT=solInterp.savedTimes[xvars[1]]# 
+    numPoints=length(sumT)
+    for i=1:numPoints
+        for k=2: length(xvars)
+          sumV[i]+=solInterp.savedVars[xvars[k]][i]
+        end
+    end
+     # p1=plot!(p1,sol.savedTimes[k], sol.savedVarsQ[k],line=(1,mycolor,:dash),marker=(:star),label="q$k $(sol.algName)")
+     # p1=plot!(p1,sol.savedTimes[k], sol.savedVars[k]#= ,marker=(:circle) =#,markersize=2,label="x$k ",legend=:bottomright)
+      p1=plot!(p1,sumT, sumV,marker=(:circle),#= ,legend=:right =#)
+    
+  else
+    println("pick vars to plot their sum")
+  end
+  if xlims!=(0.0,0.0) && ylims!=(0.0,0.0) 
+    p1=plot!(p1,title="$(sol.sysName)_$(sol.algName)_$(sol.absQ)_$(sol.totalSteps)_$(sol.simulStepCount)_$(sol.evCount) \n $note", xlims=xlims ,ylims=ylims)
+  elseif xlims!=(0.0,0.0) && ylims==(0.0,0.0) 
+    p1=plot!(p1,title="$(sol.sysName)_$(sol.algName)_$(sol.absQ)_$(sol.totalSteps)_$(sol.simulStepCount)_$(sol.evCount)  \n $note", xlims=xlims #= ,ylims=ylims =#)
+  elseif xlims==(0.0,0.0) && ylims!=(0.0,0.0) 
+    p1=plot!(p1,title="$(sol.sysName)_$(sol.algName)_$(sol.absQ)_$(sol.totalSteps)_$(sol.simulStepCount)_$(sol.evCount)  \n $note"#= , xlims=xlims  =#,ylims=ylims)
+  else
+    p1=plot!(p1, title="$(sol.sysName)_$(sol.algName)_$(sol.absQ)_$(sol.totalSteps)_$(sol.simulStepCount)_$(sol.evCount)  \n $note",legend=legend)
+  end
+  p1
+  #savefig(p1, "plot_$(sol.sysName)_$(sol.algName)_$(sol.absQ)_$(note)_ft_$(sol.ft)_$(timestamp).png")
+end
+
 function plot_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}
   p1=plot()
  
@@ -66,7 +106,13 @@ function save_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::
   timestamp=(string(year(mydate),"_",month(mydate),"_",day(mydate),"_",hour(mydate),"_",minute(mydate),"_",second(mydate)))
   savefig(p1, "plot_$(sol.sysName)_$(sol.algName)_$(xvars)_$(sol.absQ)_$(note)_ft_$(sol.ft)_$(timestamp).png")
 end
-
+function save_SolSum(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}
+  
+  p1= plot_SolSum(sol,xvars...;note=note,xlims=xlims,ylims=ylims,legend=legend)
+  mydate=now()
+  timestamp=(string(year(mydate),"_",month(mydate),"_",day(mydate),"_",hour(mydate),"_",minute(mydate),"_",second(mydate)))
+  savefig(p1, "plot_$(sol.sysName)_$(sol.algName)_$(xvars)_$(sol.absQ)_$(note)_ft_$(sol.ft)_$(timestamp).png")
+end
 #for debug to be deleted later: simultaneous steps plot
 function save_SimulSol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64}) where{T,O}
   p1=plot()

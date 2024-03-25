@@ -1,5 +1,5 @@
 #using TimerOutputs
-function integrate(Al::QSSAlgorithm{:nmliqss,O},CommonqssData::CommonQSS_data{Z},liqssdata::LiQSS_data{O,false},specialLiqssData::SpecialLiqssQSS_data, odep::NLODEProblem{PRTYPE,T,Z,D,CS},f::Function,jac::Function,SD::Function,exacteA::Function) where {PRTYPE,O,T,Z,D,CS}
+function integrate(Al::QSSAlgorithm{:nmliqss,O},CommonqssData::CommonQSS_data{Z},liqssdata::LiQSS_data{O,false},specialLiqssData::SpecialLiqssQSS_data, odep::NLODEProblem{PRTYPE,T,Z,D,CS},f::Function,jac::Function,SD::Function,exactA::Function) where {PRTYPE,O,T,Z,D,CS}
   cacheA=specialLiqssData.cacheA
   ft = CommonqssData.finalTime;initTime = CommonqssData.initialTime;relQ = CommonqssData.dQrel;absQ = CommonqssData.dQmin;maxErr=CommonqssData.maxErr;
 
@@ -50,7 +50,7 @@ for i =1:4*O-1 #3
   acceptedi[i]=[0.0,0.0]#zeros(2)
   acceptedj[i]=[0.0,0.0]#zeros(2)
 end
-  exacteA(q,d,cacheA,1,1)
+  exactA(q,d,cacheA,1,1,initTime+1e-9)
   trackSimul = Vector{Int}(undef, 1)
  # cacheRatio=zeros(5);cacheQ=zeros(5)
   #********************************helper values*******************************  
@@ -78,7 +78,7 @@ for i = 1:T
   
   quantum[i] = relQ * abs(x[i].coeffs[1]) ;quantum[i]=quantum[i] < absQ ? absQ : quantum[i];quantum[i]=quantum[i] > maxErr ? maxErr : quantum[i] 
   
-  updateQ(Val(O),i,x,q,quantum,exacteA,d,cacheA,dxaux,qaux,tx,tq,initTime,ft,nextStateTime) 
+  updateQ(Val(O),i,x,q,quantum,exactA,d,cacheA,dxaux,qaux,tx,tq,initTime+1e-9,ft,nextStateTime) #1e-9 exactAfunc contains 1/t
 end
 #= for i = 1:T
    clearCache(taylorOpsCache,Val(CS),Val(O));f(i,-1,-1,q,d,t,taylorOpsCache);
@@ -141,7 +141,7 @@ while simt< ft && totalSteps < 50000000
       elapsedq = simt - tq[b] ;
       if elapsedq>0 integrateState(Val(O-1),q[b],elapsedq);tq[b]=simt end
     end
-    firstguess=updateQ(Val(O),index,x,q,quantum,exacteA,d,cacheA,dxaux,qaux,tx,tq,simt,ft,nextStateTime) ;tq[index] = simt   
+    firstguess=updateQ(Val(O),index,x,q,quantum,exactA,d,cacheA,dxaux,qaux,tx,tq,simt,ft,nextStateTime) ;tq[index] = simt   
     #----------------------------------------------------check dependecy cycles---------------------------------------------  
    
     trackSimul[1]=0 
@@ -153,8 +153,8 @@ while simt< ft && totalSteps < 50000000
         elapsedq = simt - tq[b] ;
         if elapsedq>0  integrateState(Val(O-1),q[b],elapsedq); tq[b]=simt  end
       end
-      cacheA[1]=0.0; exacteA(q,d,cacheA,index,j);aij=cacheA[1]# can be passed to simul so that i dont call exactfunc again
-      cacheA[1]=0.0;exacteA(q,d,cacheA,j,index);aji=cacheA[1]
+      cacheA[1]=0.0; exactA(q,d,cacheA,index,j,simt);aij=cacheA[1]# can be passed to simul so that i dont call exactfunc again
+      cacheA[1]=0.0;exactA(q,d,cacheA,j,index,simt);aji=cacheA[1]
      
       
     
@@ -168,7 +168,7 @@ while simt< ft && totalSteps < 50000000
             cacherealPosj[i][1]=0.0; cacherealPosj[i][2]=0.0
           end  =#
          # @show aij,aji
-          if nmisCycle_and_simulUpdate(cacheRootsi,cacheRootsj,acceptedi,acceptedj,aij,aji,respp,pp,trackSimul,Val(O),index,j,dirI,firstguess,x,q,quantum,exacteA,d,cacheA,dxaux,qaux,tx,tq,simt,ft)
+          if nmisCycle_and_simulUpdate(cacheRootsi,cacheRootsj,acceptedi,acceptedj,aij,aji,respp,pp,trackSimul,Val(O),index,j,dirI,firstguess,x,q,quantum,exactA,d,cacheA,dxaux,qaux,tx,tq,simt,ft)
             simulStepCount+=1
 
 
@@ -387,7 +387,7 @@ else
                 quantum[i]=10*quantum[i]
               end =#
 
-               firstguess=updateQ(Val(O),i,x,q,quantum,exacteA,d,cacheA,dxaux,qaux,tx,tq,simt,ft,nextStateTime)   
+               firstguess=updateQ(Val(O),i,x,q,quantum,exactA,d,cacheA,dxaux,qaux,tx,tq,simt,ft,nextStateTime)   
               #  computeNextTime(Val(O), i, simt, nextStateTime, x, quantum) 
               tx[i] = simt;tq[i] = simt
               #Liqss_reComputeNextTime(Val(O), i, simt, nextStateTime, x, q, quantum)
@@ -418,7 +418,7 @@ else
 
               clearCache(taylorOpsCache,Val(CS),Val(O));f(j,-1,-1,q,d,t,taylorOpsCache);computeDerivative(Val(O), x[j], taylorOpsCache[1])
  
-              #firstguess=updateQ(Val(O),j,x,q,quantum,exacteA,d,cacheA,dxaux,qaux,tx,tq,simt,ft,nextStateTime)  
+              #firstguess=updateQ(Val(O),j,x,q,quantum,exactA,d,cacheA,dxaux,qaux,tx,tq,simt,ft,nextStateTime)  
               Liqss_reComputeNextTime(Val(O), j, simt, nextStateTime, x, q, quantum)
         
            
@@ -462,7 +462,7 @@ else
       if stepType != :ST_EVENT
       
           push!(savedVars[index],x[index][0])
-          push!(savedDers[index],x[index][0])
+          #push!(savedDers[index],x[index][0])
           push!(savedTimes[index],simt)
     
          #=  for i =1:T 
@@ -476,7 +476,7 @@ else
         for j in (HD[modifiedIndex])
           
           push!(savedVars[j],x[j][0])
-          push!(savedDers[j],x[j][1])
+          #push!(savedDers[j],x[j][1])
           push!(savedTimes[j],simt)
           
         end
@@ -489,9 +489,9 @@ else
 # end
 end#end while
  
-@show countEvents,inputstep,statestep,simulStepCount
+#@show countEvents,inputstep,statestep,simulStepCount
 #@show savedVars
 #createSol(Val(T),Val(O),savedTimes,savedVars, "qss$O",string(nameof(f)),absQ,totalSteps,0)#0 I track simulSteps 
 #createSol(Val(T),Val(O),savedTimes,savedVars, "nmLiqss$O",string(odep.prname),absQ,totalSteps,simulStepCount,countEvents,numSteps,ft)
-createSol(Val(T),Val(O),savedTimes,savedVars,savedDers, "nmLiqss$O",string(odep.prname),absQ,totalSteps,simulStepCount,countEvents,numSteps,ft)
+createSol(Val(T),Val(O),savedTimes,savedVars#= ,savedDers =#, "nmLiqss$O",string(odep.prname),absQ,totalSteps,simulStepCount,countEvents,numSteps,ft)
 end#end integrate

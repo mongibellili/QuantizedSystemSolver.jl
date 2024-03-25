@@ -72,7 +72,7 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{0},::Val{0}, initConditi
         println(io,string(exacteJacfunction)) 
     end =#
 
-    exacteJacfunctionF=@RuntimeGeneratedFunction(exacteJacfunction)
+    exactJacfunctionF=@RuntimeGeneratedFunction(exacteJacfunction)
     
    
     diffEqfunction=createContEqFun(equs,fname)# diff equations before this are stored in a dict:: now we have a giant function that holds all diff equations
@@ -83,7 +83,7 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{0},::Val{0}, initConditi
     diffEqfunctionF=@RuntimeGeneratedFunction(diffEqfunction) # @RuntimeGeneratedFunction changes a fun expression to actual fun without running into world age problems
    # mapFunF=@RuntimeGeneratedFunction(mapFun)
     jacDimFunctionF=@RuntimeGeneratedFunction(jacDimFunction)
-    prob=NLODEContProblem(fname,Val(1),Val(T),Val(0),Val(0),Val(num_cache_equs),initConditions,diffEqfunctionF,jacVect,SDVect,exacteJacfunctionF,jacDimFunctionF)# prtype type 1...prob not saved and struct contains vects
+    prob=NLODEContProblem(fname,Val(1),Val(T),Val(0),Val(0),Val(num_cache_equs),initConditions,diffEqfunctionF,jacVect,SDVect,exactJacfunctionF,jacDimFunctionF)# prtype type 1...prob not saved and struct contains vects
 
 end
 
@@ -212,7 +212,7 @@ function createExactJacFun(jac:: Dict{Expr,Union{Float64,Int,Symbol,Expr}},funNa
     def1=Dict{Symbol,Any}() #any changeto Union{expr,Symbol}  ????
     def1[:head] = :function
     def1[:name] = Symbol(:exactJac,funName)  
-    def1[:args] = [:(q::Vector{Taylor0}),:(d::Vector{Float64}),:(cache::MVector{1,Float64}),:(i::Int),:(j::Int)]
+    def1[:args] = [:(q::Vector{Taylor0}),:(d::Vector{Float64}),:(cache::MVector{1,Float64}),:(i::Int),:(j::Int),:(t::Float64)]
     def1[:body] = myex1
     functioncode1=combinedef(def1)
 end
@@ -240,7 +240,7 @@ function createExactJacDiscreteFun(jac:: Dict{Expr,Union{Float64,Int,Symbol,Expr
     def1=Dict{Symbol,Any}() #any changeto Union{expr,Symbol}  ????
     def1[:head] = :function
     def1[:name] = Symbol(:exactJac,funName)  
-    def1[:args] = [:(q::Vector{Taylor0}),:(d::Vector{Float64}),:(cache::MVector{1,Float64}),:(i::Int),:(j::Int)]
+    def1[:args] = [:(q::Vector{Taylor0}),:(d::Vector{Float64}),:(cache::MVector{1,Float64}),:(i::Int),:(j::Int),:(t::Float64)] # in jac t does not need to be a taylor
     def1[:body] = myex1
     functioncode1=combinedef(def1)
 end
