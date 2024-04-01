@@ -1,5 +1,5 @@
 using QuantizedSystemSolver
-using BenchmarkTools
+#using BenchmarkTools
 
 
 function test()
@@ -80,7 +80,7 @@ function test()
   
     tspan=(0.0,0.0005)
     println("start solving")
-   sol= solve(odeprob,nmliqss2(),abstol=1e-4,reltol=1e-3,tspan)
+   sol= solve(odeprob,nmliqss1(),abstol=1e-4,reltol=1e-3,tspan)
    save_Sol(sol)    
   # save_Sol(sol,note="ItersDelta_detect_2-100-cancel0.8_dxi_q=xRecomOK_h0OK")          
  #=  save_Sol(sol,1,note="1")

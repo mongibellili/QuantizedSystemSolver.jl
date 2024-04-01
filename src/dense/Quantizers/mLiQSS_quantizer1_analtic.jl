@@ -1,9 +1,9 @@
 #analy
 function nmisCycle_and_simulUpdate(cacheRootsi::Vector{Float64},cacheRootsj::Vector{Float64},acceptedi::Vector{Vector{Float64}},acceptedj::Vector{Vector{Float64}},aij::Float64,aji::Float64,respp::Ptr{Float64}, pp::Ptr{NTuple{2,Float64}},trackSimul,::Val{1},index::Int,j::Int,dirI::Float64,dti::Float64, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64},exacteA::Function,d::Vector{Float64},cacheA::MVector{1,Float64},dxaux::Vector{MVector{1,Float64}},qaux::Vector{MVector{1,Float64}},tx::Vector{Float64},tq::Vector{Float64},simt::Float64,ft::Float64)
  
-  cacheA[1]=0.0;exacteA(q,d,cacheA,index,index)
+  cacheA[1]=0.0;exacteA(q,d,cacheA,index,index,simt)
   aii=cacheA[1]
-  cacheA[1]=0.0;exacteA(q,d,cacheA,j,j)
+  cacheA[1]=0.0;exacteA(q,d,cacheA,j,j,simt)
   ajj=cacheA[1]
  #=  exacteA(q,cacheA,index,j)
   aij=cacheA[1]
@@ -56,7 +56,7 @@ function nmisCycle_and_simulUpdate(cacheRootsi::Vector{Float64},cacheRootsj::Vec
     end =#
     ########condition:Union i union
     if (abs(dxj)*3<abs(ẋj) || abs(dxj)>3*abs(ẋj) || (dxj*ẋj)<0.0)
-      cancelCriteria=1e-3*quani
+      cancelCriteria=1e-6*quani
       if abs(dxi)>3*abs(dxithrow) || abs(dxi)*3<abs(dxithrow) ||  (dxi*dxithrow)<0.0  
           iscycle=true
           if abs(dxi)<cancelCriteria && abs(dxithrow)<cancelCriteria #significant change is relative to der values. cancel if all values are small

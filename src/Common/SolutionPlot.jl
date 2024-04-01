@@ -1,6 +1,6 @@
 
 
-#if you want to put a note and lims in the graph
+#plot the sum of variables
 function plot_SolSum(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}
   p1=plot()
  
