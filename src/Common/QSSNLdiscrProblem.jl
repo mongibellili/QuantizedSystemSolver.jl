@@ -60,17 +60,18 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Ve
    evsArr = EventDependencyStruct[]
     num_cache_equs=1#cachesize
     for argI in odeExprs.args
-        #only diff eqs: du[]= number/one ref/call  
+        
         if argI isa Expr &&  argI.head == :(=) && argI.args[1]== :discrete
             discrVars = Vector{Float64}(argI.args[2].args)
+         #only diff eqs: du[]= number/one ref/call  
         elseif argI isa Expr &&  argI.head == :(=)  && argI.args[1] isa Expr && argI.args[1].head == :ref && argI.args[1].args[1]==du#&& ((argI.args[2] isa Expr && (argI.args[2].head ==:ref || argI.args[2].head ==:call ))||argI.args[2] isa Number)
             y=argI.args[1];rhs=argI.args[2]
             varNum=y.args[2] # order of variable
 
-            if rhs isa Number || rhs isa Symbol # rhs of equ =number  
+            if rhs isa Number || rhs isa Symbol # rhs of equ =number  or symbol
                 equs[varNum]=:($((transformFSimplecase(:($(rhs))))))
-            elseif rhs isa Expr && rhs.head==:ref #rhs is only one var
-               # if rhs.args[1]==:q # check not needed
+            elseif rhs isa Expr && rhs.head==:ref && rhs.args[1]==:q #rhs is only one var...#  rhs.args[1]==:q # check not needed?
+               
                 
                 extractJacDepNormal(varNum,rhs,jac,exacteJacExpr ,symDict,dD )
                # end
@@ -79,7 +80,7 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Ve
             else #rhs head==call...to be tested later for  math functions and other possible scenarios or user erros                 
                
                 extractJacDepNormal(varNum,rhs,jac,exacteJacExpr ,symDict,dD )
-                temp=(transformF(:($(rhs),1))).args[2]  #number of caches distibuted   ...no need interpolation and wrap in expr....before was cuz quote....
+                temp=(transformF(:($(rhs),1))).args[2]  #number of caches distibuted   ...no need interpolation and wrap in expr?....before was cuz quote....
                 if num_cache_equs<temp 
                         num_cache_equs=temp
                 end 

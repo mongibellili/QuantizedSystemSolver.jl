@@ -64,6 +64,7 @@ for k = 1:O # compute initial derivatives for x and q (similar to a recursive wa
    for i = 1:T q[i].coeffs[k] = x[i].coeffs[k] end # q computed from x and it is going to be used in the next x
    for i = 1:T
       clearCache(taylorOpsCache,Val(CS),Val(O));f(i,-1,-1,q,d, t ,taylorOpsCache)
+     
       ndifferentiate!(integratorCache,taylorOpsCache[1] , k - 1)
       x[i].coeffs[k+1] = (integratorCache.coeffs[1]) / n # /fact cuz i will store der/fac like the convention...to extract the derivatives (at endof sim) multiply by fac  derderx=coef[3]*fac(2)
     end
@@ -130,13 +131,15 @@ while simt< ft && totalSteps < 50000000
     xitemp=x[index][0]
     numSteps[index]+=1;
     
-    elapsed = simt - tx[index];integrateState(Val(O),x[index],elapsed);tx[index] = simt 
+    elapsed = simt - tx[index];integrateState(Val(O),x[index],elapsed);tx[index] = simt ; 
+    dirI=x[index][0]-xitemp
+    if abs(dirI)>3*quantum[index] x[index][0]= 2*quantum[index] *sign(dirI) end # this is a rare case where dxi gets changed a lot by an event
    
     quantum[index] = relQ * abs(x[index].coeffs[1]) ;quantum[index]=quantum[index] < absQ ? absQ : quantum[index];quantum[index]=quantum[index] > maxErr ? maxErr : quantum[index]   
     #if abs(x[index].coeffs[2])>1e9 quantum[index]=10*quantum[index] end
 
     
-    dirI=x[index][0]-xitemp
+   
     for b in (jac(index)  )    # update Qb : to be used to calculate exacte Aindexb
       elapsedq = simt - tq[b] ;
       if elapsedq>0 integrateState(Val(O-1),q[b],elapsedq);tq[b]=simt end
@@ -177,6 +180,7 @@ while simt< ft && totalSteps < 50000000
           #  clearCache(taylorOpsCache,Val(CS),Val(O));f(j,q,d,t,taylorOpsCache);computeDerivative(Val(O), x[j], taylorOpsCache[1])
           # Liqss_reComputeNextTime(Val(O), index, simt, nextStateTime, x, q, quantum)
           #  Liqss_reComputeNextTime(Val(O), j, simt, nextStateTime, x, q, quantum)
+         
 
             for k in SD(j)  #j influences k
                 if k!=index && k!=j
@@ -187,6 +191,7 @@ while simt< ft && totalSteps < 50000000
                       if elapsedq>0 integrateState(Val(O-1),q[b],elapsedq);tq[b]=simt end
                     end  
                     clearCache(taylorOpsCache,Val(CS),Val(O));f(k,-1,-1,q,d,t,taylorOpsCache);computeDerivative(Val(O), x[k], taylorOpsCache[1])
+                   
                     Liqss_reComputeNextTime(Val(O), k, simt, nextStateTime, x, q, quantum)
                 end#end if k!=0
             end#end for k depend on j     
@@ -236,6 +241,7 @@ while simt< ft && totalSteps < 50000000
           elapsedq = simt - tq[b] ;if elapsedq>0 integrateState(Val(O-1),q[b],elapsedq);tq[b]=simt  end
       end  =#
       clearCache(taylorOpsCache,Val(CS),Val(O)); f(c,-1,-1,q,d,t,taylorOpsCache);computeDerivative(Val(O), x[c], taylorOpsCache[1])
+      
       Liqss_reComputeNextTime(Val(O), c, simt, nextStateTime, x, q, quantum)
     end#end for SD
    #=  if 0.0003>simt>0.00029

@@ -226,8 +226,8 @@ end
 
 ####################mul uses one cache when the original mul has only two elemnts a * b
 function mulT(a::Taylor0, b::T,cache1::Taylor0) where {T<:Number}
-  fill!(cache1.coeffs, b)##fixed broadcast dimension mismatch
-  @__dot__ cache1.coeffs = a.coeffs * cache1.coeffs  ##fixed broadcast dimension mismatch
+  fill!(cache1.coeffs, b)##I fixed broadcast dimension mismatch
+  @__dot__ cache1.coeffs = a.coeffs * cache1.coeffs  ##I fixed broadcast dimension mismatch
   return cache1
 end
 mulT(a::T,b::Taylor0, cache1::Taylor0) where {T<:Number} = mulT(b , a,cache1)
@@ -254,6 +254,8 @@ function mulTT(a::Taylor0, b::T,cache1::Taylor0,cache2::Taylor0) where {T<:Numbe
   @__dot__ cache1.coeffs = a.coeffs * cache2.coeffs  ##fixed broadcast dimension mismatch
   return cache1
 end
+
+
 mulTT(a::T,b::Taylor0, cache1::Taylor0,cache2::Taylor0) where {T<:Number} = mulTT(b , a,cache1,cache2)
 
 function mulTT(a::Taylor0, b::Taylor0,cache1::Taylor0,cache2::Taylor0) #in middle ops: a is the returned cache1 so do not fudge a or cache1 before the end
@@ -339,9 +341,10 @@ end
 
 function clearCache(cache::Vector{Taylor0},::Val{CS},::Val{3}) where {CS}
   for i=1:CS
+    cache[i][0]=0.0
     cache[i][1]=0.0
     cache[i][2]=0.0
-    cache[i][3]=0.0
+    cache[i][3]=0.0 # no need to clean? higher value is empty
   end
 end
 
@@ -356,6 +359,7 @@ end =#
 
 function clearCache(cache::Vector{Taylor0},::Val{CS},::Val{2}) where {CS}
   for i=1:CS
+    cache[i][0]=0.0
     cache[i][1]=0.0
     cache[i][2]=0.0
 
@@ -365,6 +369,7 @@ function clearCache(cache::Vector{Taylor0},::Val{CS},::Val{2}) where {CS}
 end
 function clearCache(cache::Vector{Taylor0},::Val{CS},::Val{1}) where {CS}
   for i=1:CS
+    cache[i][0]=0.0
     cache[i][1]=0.0
   end
 end

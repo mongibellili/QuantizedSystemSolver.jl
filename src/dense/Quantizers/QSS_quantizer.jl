@@ -235,6 +235,8 @@ function computeNextEventTime(::Val{O},j::Int,ZCFun::Taylor0,oldsignValue,simt, 
   if (oldsignValue[j,1] != sign(ZCFun[0])) && abs(oldsignValue[j,2]) >1e-9*absQ #prevent double tapping: when zcf is leaving zero it should be considered an event
     if DEBUG  println("qss quantizer:zcf$j immediate event at simt= $simt oldzcf value= $(oldsignValue[j,2])  newZCF value= $(ZCFun[0])");  end
     nextEventTime[j]=simt 
+  elseif oldsignValue[j,2] ==0.0 && ZCFun[0] ==0.0  # initial value 0 --> do not do anything
+    nextEventTime[j]=Inf
   else # old and new ZCF both pos or both neg
    # coef=@SVector [ZCFun[0],ZCFun[1],ZCFun[2]]
 
