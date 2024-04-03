@@ -1,7 +1,7 @@
 
 
 #plot the sum of variables
-function plot_SolSum(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}
+function plot_SolSum(sol::Sol{T,O},xvars::Int...;interp=0.0001,note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}
   p1=plot()
  
   #= if sol.algName=="nmliqss1"
@@ -12,7 +12,7 @@ function plot_SolSum(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0
   end =#
   if xvars!=()
 
-    solInterp=solInterpolated(sol,0.0001) # for now interpl all
+    solInterp=solInterpolated(sol,interp) # for now interpl all
     sumV=solInterp.savedVars[xvars[1]]
     sumT=solInterp.savedTimes[xvars[1]]# 
     numPoints=length(sumT)
@@ -106,9 +106,9 @@ function save_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::
   timestamp=(string(year(mydate),"_",month(mydate),"_",day(mydate),"_",hour(mydate),"_",minute(mydate),"_",second(mydate)))
   savefig(p1, "plot_$(sol.sysName)_$(sol.algName)_$(xvars)_$(sol.absQ)_$(note)_ft_$(sol.ft)_$(timestamp).png")
 end
-function save_SolSum(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}
+function save_SolSum(sol::Sol{T,O},xvars::Int...;interp=0.0001,note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}
   
-  p1= plot_SolSum(sol,xvars...;note=note,xlims=xlims,ylims=ylims,legend=legend)
+  p1= plot_SolSum(sol,xvars...;interp=interp,note=note,xlims=xlims,ylims=ylims,legend=legend)
   mydate=now()
   timestamp=(string(year(mydate),"_",month(mydate),"_",day(mydate),"_",hour(mydate),"_",minute(mydate),"_",second(mydate)))
   savefig(p1, "plot_$(sol.sysName)_$(sol.algName)_$(xvars)_$(sol.absQ)_$(note)_ft_$(sol.ft)_$(timestamp).png")

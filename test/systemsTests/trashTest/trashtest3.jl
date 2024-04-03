@@ -123,6 +123,27 @@ end  =#
 #40.80630971014806897771247, 178.48731823943597794466468, 0.0001425406365094045, BigFloat[-0.00057016254603761695740615778, -1140.3250641304001419575054, -8.5524376124873223589469262e+08, -2.8508122708869649897226691e+14, 1.7114669426922051413515583e+13, 1.0474193043858423245087585e+18, -2.5668078295588949092296481e+16]
 
 
-
+#= 
 ex=:(0*(t/6))
-dump(ex)
+dump(ex) =#
+rrpp=(rpr + rr + 4.53e-7v) 
+x1=(132.97872599999997 + 35.34758999999999x)
+x2=(-0.10924199999999998 - 11.782529999999998x)
+x3=678.7486367999996 + 240.3636119999999x - 8.881784197001252e-16(x^2)
+rd11=(-0.00388 - rd1);rd22=(-0.00388 - rd2);rd33=(-0.00388 - rd3);rd44=(-0.00388 - rd4)
+#= ((-I*rrpp+ il2*rd22 + is2*rd2)*x2  + (-I*rrpp+ il1*rd11 + is1*rd1)*x1  + (-I*rrpp+ il3*rd33 + is3*rd3)*x2 + (-I*rrpp+ il4*rd44 + is4*rd4)*x2) / x3
+
+ ((-I*rrpp+ il3*rd33 + is3*rd3)*x2 + (-I*rrpp+ il1*rd11 + is1*rd1)*x2  + (-I*rrpp+ il2*rd22 + is2*rd2)*x1 + (-I*rrpp+ il4*rd44 + is4*rd4)*x2) / x3
+
+ ((-I*rrpp+ il3*rd33 + is3*rd3)*x1  + (-I*rrpp+ il1*rd11 + is1*rd1)*x2 + (-I*rrpp+ il4*rd44 + is4*rd4)*x2 + (-I*rrpp+ il2*rd22 + is2*rd2)*x2 )/ x3
+ 
+( (-I*rrpp+ il1*rd11 + is1*rd1)*x2  + (-I*rrpp+ il4*rd44 + is4*rd4)*x1 + (-I*rrpp+ il3*rd33 + is3*rd3)*x2  + (-I*rrpp+ il2*rd22 + is2*rd2)*x2 )/ x3 =#
+
+ 
+((-I*rrpp+ il1*rd11 + is1*rd1)*x1+   ((-3*I*rrpp+ il2*rd22 + is2*rd2)   + ( il3*rd33 + is3*rd3) + ( il4*rd44 + is4*rd4))*x2) / x3
+
+((-I*rrpp+ il2*rd22 + is2*rd2)*x1 +  ((-3*I*rrpp+ il3*rd33 + is3*rd3)+ ( il1*rd11 + is1*rd1) + ( il4*rd44 + is4*rd4))*x2) / x3
+
+ ((-I*rrpp+ il3*rd33 + is3*rd3)*x1  + ((-3*I*rrpp+ il1*rd11 + is1*rd1)+ ( il4*rd44 + is4*rd4) + ( il2*rd22 + is2*rd2))*x2 )/ x3
+ 
+( (-I*rrpp+ il4*rd44 + is4*rd4)*x1 +  ((-3*I*rrpp+ il1*rd11 + is1*rd1) +  ( il3*rd33 + is3*rd3) + ( il2*rd22 + is2*rd2))*x2 )/ x3
