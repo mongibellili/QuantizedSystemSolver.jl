@@ -132,9 +132,9 @@ t0=1.0
 
           
     end
-   # @show odeprob
+    @show odeprob
     tspan = (0.0, 4.0e-3)
-    sol= solve(odeprob,nmliqss1(),tspan,abstol=1e-3,reltol=1e-2)    
+   #=  sol= solve(odeprob,nmliqss1(),tspan,abstol=1e-3,reltol=1e-2)    
    save_Sol(sol,1)
    save_Sol(sol,2)
    save_Sol(sol,3) 
@@ -149,7 +149,7 @@ t0=1.0
   save_Sol(sol,11) 
   save_Sol(sol,12) 
  # save_Sol(sol,9,note="z1",xlims=(0.0,0.2e-8),ylims=(-0.005,0.005)) 
-   save_SolSum(sol,3,6,9,12,interp=0.00001) #add interpl preference
+   save_SolSum(sol,3,6,9,12,interp=0.00001) #add interpl preference =#
    
   save_Sol(sol,13) 
   save_Sol(sol,14) 

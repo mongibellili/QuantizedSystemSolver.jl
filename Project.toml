@@ -4,7 +4,14 @@ authors = ["mongi bellili"]
 version = "1.0.0-DEV"
 
 [compat]
-julia = "1"
+julia = "1.6"
+RuntimeGeneratedFunctions = "0.5.12"
+Plots = "1.40"
+SymEngine = "0.11"
+PolynomialRoots = "1"
+ExprTools = "0.1.10"
+MacroTools = "0.5.13"
+StaticArrays = "1"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
