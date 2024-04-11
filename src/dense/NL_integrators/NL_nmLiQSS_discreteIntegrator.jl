@@ -136,7 +136,8 @@ while simt< ft && totalSteps < 50000000
     if abs(dirI)>3*quantum[index] x[index][0]= 2*quantum[index] *sign(dirI) end # this is a rare case where dxi gets changed a lot by an event
    
     quantum[index] = relQ * abs(x[index].coeffs[1]) ;quantum[index]=quantum[index] < absQ ? absQ : quantum[index];quantum[index]=quantum[index] > maxErr ? maxErr : quantum[index]   
-    #if abs(x[index].coeffs[2])>1e9 quantum[index]=10*quantum[index] end
+   
+    if abs(x[index].coeffs[2])>1e9 quantum[index]=10*quantum[index] end  # i added this for the case a function is climbing (up/down) fast     
 
     
    

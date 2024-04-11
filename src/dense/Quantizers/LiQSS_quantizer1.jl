@@ -95,8 +95,106 @@
 end   =# 
   
  
- #analytic favor q-x
+ #iters from 0
 function updateQ(::Val{1},i::Int, xv::Vector{Taylor0},qv::Vector{Taylor0}, quantum::Vector{Float64}#= ,av::Vector{Vector{Float64}} =#,exactA::Function,d::Vector{Float64},cacheA::MVector{1,Float64},dxaux::Vector{MVector{1,Float64}},qaux::Vector{MVector{1,Float64}},tx::Vector{Float64},tq::Vector{Float64},simt::Float64,ft::Float64, nextStateTime::Vector{Float64})
+   # a=av[i][i]
+     cacheA[1]=0.0;exactA(qv,d,cacheA,i,i,simt)
+    
+     a=cacheA[1]
+ 
+
+    #=    if i==1
+        if abs(a+1.1)>1e-3
+            @show i,a
+        end
+    else
+        if abs(a+20.0)>1e-3
+            @show i,a
+        end
+    end =#
+
+     q=qv[i][0];x=xv[i][0];x1=xv[i][1];
+     qaux[i][1]=q
+    #=  olddx[i][1]=x1 =#
+     u=x1-a*q
+     #uv[i][i][1]=u
+     dx=x1
+     dxaux[i][1]=x1
+     h=0.0
+     Δ=quantum[i]
+     debugH=4.3;debugL=14.1
+    if a !=0.0
+        if dx==0.0
+            dx=u+(q)*a
+            if dx==0.0
+                dx=1e-26
+            end
+        end
+    #for order1 finding h is easy but for higher orders iterations are cheaper than finding exact h using a quadratic,cubic...
+    #exacte for order1: h=-2Δ/(u+xa-2aΔ) or h=2Δ/(u+xa+2aΔ)
+        h = 1e-8
+        h_=h
+       # lastH=h
+        q = (x + h * u) /(1 - h * a)
+        #= if (abs(q - x) >  1*quantum[i]) # removing this did nothing...check @btime later
+          h = (abs( quantum[i] / dx));
+          q= (x + h * u) /(1 - h * a)
+        end =#
+        maxIter=1000
+        while (abs(q - x) <  1*quantum[i]) && (maxIter>0) 
+            maxIter-=1
+            h_=h
+          h = h * 1.001*(quantum[i] / abs(q - x));
+          q= (x + h * u) /(1 - h * a)
+          if maxIter < 1 println("maxiter of updateQ      = ",maxIter) end
+        #  lastH=h
+        end
+        if (abs(q - x) >  2*quantum[i]) # if h takes too much outside, go back to prevoius h
+        h=h_
+        q= (x + h * u) /(1 - h * a)
+        end
+       # Qlast=(x + lastH * u) /(1 - lastH * a)
+
+
+       #=  k = ft-simt
+        qq = (x + k * u) /(1 - k * a)
+        if (abs(qq - x) >  1*quantum[i]) # removing this did nothing...check @btime later
+          k = (abs( quantum[i] / dx));
+          qq= (x + k * u) /(1 - k * a)
+        end
+        while (abs(qq - x) >  1*quantum[i]) 
+          k = k * 0.99*(quantum[i] / abs(qq - x));
+          qq= (x + k * u) /(1 - k * a)
+        end
+
+        if abs(h-k)>1e-8
+            @show h,k,q-x,qq-x,quantum[i]
+        end =#
+
+      
+    else
+        dx=u
+        if dx>0.0
+            q=x+quantum[i]# 
+        else
+            q=x-quantum[i]
+        end
+        if dx!=0
+        h=(abs(quantum[i]/dx))
+        else
+            h=Inf
+        end
+    end
+    qv[i][0]=q
+   # println("inside single updateQ: q & qaux[$i][1]= ",q," ; ",qaux[i][1])
+   nextStateTime[i]=simt+h
+    return h
+end   
+
+
+
+ #analytic favor q-x
+#= function updateQ(::Val{1},i::Int, xv::Vector{Taylor0},qv::Vector{Taylor0}, quantum::Vector{Float64}#= ,av::Vector{Vector{Float64}} =#,exactA::Function,d::Vector{Float64},cacheA::MVector{1,Float64},dxaux::Vector{MVector{1,Float64}},qaux::Vector{MVector{1,Float64}},tx::Vector{Float64},tq::Vector{Float64},simt::Float64,ft::Float64, nextStateTime::Vector{Float64})
     cacheA[1]=0.0;exactA(qv,d,cacheA,i,i,simt);a=cacheA[1]
      q=qv[i][0];x=xv[i][0];x1=xv[i][1];
      qaux[i][1]=q
@@ -155,7 +253,7 @@ function updateQ(::Val{1},i::Int, xv::Vector{Taylor0},qv::Vector{Taylor0}, quant
     qv[i][0]=q
     nextStateTime[i]=simt+h
     return h
-end     
+end   =#   
   
  #analytic favor q-x but care about h large
 #= function updateQ(::Val{1},i::Int, xv::Vector{Taylor0},qv::Vector{Taylor0}, quantum::Vector{Float64}#= ,av::Vector{Vector{Float64}} =#,exactA::Function,cacheA::MVector{1,Float64},dxaux::Vector{MVector{1,Float64}},qaux::Vector{MVector{1,Float64}},tx::Vector{Float64},tq::Vector{Float64},simt::Float64,ft::Float64, nextStateTime::Vector{Float64})

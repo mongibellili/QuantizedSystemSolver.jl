@@ -479,10 +479,10 @@ for h in(resi1,resi2,resi3,resi4,resi5,resi6)
 end =#
 
 #= 
-coefi=NTuple{7,BigFloat}((-2.5668078295588949092296481e+16, 1.0474193043858423245087585e+18,1.7114669426922051413515583e+13, -2.8508122708869649897226691e+14, -8.5524376124873223589469262e+08, -1140.3250641304001419575054, -0.00057016254603761695740615778))
+coefi=NTuple{7,Float64}((-2.5668078295588949092296481e+16, 1.0474193043858423245087585e+18,1.7114669426922051413515583e+13, -2.8508122708869649897226691e+14, -8.5524376124873223589469262e+08, -1140.3250641304001419575054, -0.00057016254603761695740615778))
 
-pp=pointer(Vector{NTuple{2,BigFloat}}(undef, 7))
-respp = pointer(Vector{BigFloat}(undef, 6))
+pp=pointer(Vector{NTuple{2,Float64}}(undef, 7))
+respp = pointer(Vector{Float64}(undef, 6))
 Base.GC.enable(false)
 unsafe_store!(respp, -1.0, 1);unsafe_store!(respp, -1.0, 2);unsafe_store!(respp, -1.0, 3);unsafe_store!(respp, -1.0, 4);unsafe_store!(respp, -1.0, 5);unsafe_store!(respp, -1.0, 6)
 allrealrootintervalnewtonregulafalsi(coefi,respp,pp)

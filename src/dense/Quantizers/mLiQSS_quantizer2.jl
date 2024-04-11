@@ -636,31 +636,22 @@ function isCycle_and_simulUpdate(::Val{2},index::Int,j::Int,#= direction::Vector
           h1 = h * sqrt(quani / abs(qi - xi));
           h2 = h * sqrt(quanj / abs(qj - xj));
           h=min(h1,h2)
-
           Δ1=(1-h*aii)*(1-h*ajj)-h*h*aij*aji
-
           αii=(aii*(1-h*ajj)+h*aij*aji)/Δ1
           αij=((1-h*ajj)*aij+h*aij*ajj)/Δ1
           αji=(aji*aii*h+(1-h*aii)*aji)/Δ1
           αjj=(h*aji*aij+(1-h*aii)*ajj)/Δ1
-
           βii=1+h*(αii-aii)-h*h*(aii*αii+aij*αji)/2
           βij=h*(αij-aij)-h*h*(aii*αij+aij*αjj)/2
           βji=h*(αji-aji)-h*h*(aji*αii+ajj*αji)/2
           βjj=1+h*(αjj-ajj)-h*h*(aji*αij+ajj*αjj)/2
- 
            Δ2=βii*βjj-βij*βji
-  
-
-
         λii=(h*h*aii/2-h)*(1-h*ajj)+h*h*h*aji*aij/2
         λij=(h*h*aii/2-h)*h*aij+h*h*aij*(1-h*aii)/2
         λji=h*h*aji/2*(1-h*ajj)+(h*h*ajj/2-h)*h*aji
         λjj=h*h*h*aij*aji/2+(h*h*ajj/2-h)*(1-h*aii)
-
         parti=((λii*(uij+h*uij2)+λij*(uji+h*uji2))/Δ1)+(xi+h*uij+h*h*uij2/2)#part1[1]+xpart2[1]#
-        partj=((λji*(uij+h*uij2)+λjj*(uji+h*uji2))/Δ1)+(xj+h*uji+h*h*uji2/2)#part1[2]+xpart2[2]#
-      
+        partj=((λji*(uij+h*uij2)+λjj*(uji+h*uji2))/Δ1)+(xj+h*uji+h*h*uji2/2)#part1[2]+xpart2[2]#    
         qi=((βjj/Δ2)*parti-(βij/Δ2)*partj)
          qj=((βii/Δ2)*partj-(βji/Δ2)*parti)
 

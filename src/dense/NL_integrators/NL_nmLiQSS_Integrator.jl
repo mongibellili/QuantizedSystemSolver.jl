@@ -101,13 +101,13 @@ printonce=0
       break # 
     end
     numSteps[index]+=1;totalSteps+=1
-    if (simt>ft/2 || totalSteps==40000) && printonce==0
+#=     if (simt>ft/2 || totalSteps==40000) && printonce==0
       printonce=1
     end
- if printonce==1
-  @show simt
-  printonce=2
- end
+    if printonce==1
+      @show "half",simt
+      printonce=2
+    end =#
    
     t[0]=simt
     ##########################################state########################################
@@ -115,7 +115,7 @@ printonce=0
         xitemp=x[index][0]
         elapsed = simt - tx[index];integrateState(Val(O),x[index],elapsed);tx[index] = simt 
         quantum[index] = relQ * abs(x[index].coeffs[1]) ;quantum[index]=quantum[index] < absQ ? absQ : quantum[index];quantum[index]=quantum[index] > maxErr ? maxErr : quantum[index] 
-        if abs(x[index].coeffs[2])>1e6 quantum[index]=10*quantum[index] end       
+        if abs(x[index].coeffs[2])>1e6 quantum[index]=10*quantum[index] end  # i added this for the case a function is climbing (up/down) fast     
         #dirI=x[index][0]-savedVars[index][end]  
         dirI=x[index][0]-xitemp
         for b in (jac(index)  )    # update Qb : to be used to calculate exacte Aindexb...move below updateQ
