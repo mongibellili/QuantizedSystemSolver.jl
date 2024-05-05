@@ -2,14 +2,14 @@ using Symbolics, LinearAlgebra
 import Base.:+
 +(a::T, b::Vector{T}) where {T <:Union{Float64,Num}}=a+b[1]
 @show 2
-@variables x,il1,il2,il3,il4,rd1,rd2,rd3,rd4,rr,rpr,v,is1,is2,is3,is4,Il
+@variables x,il1,il2,il3,il4,il5,il6,rd1,rd2,rd3,rd4,rd5,rd6,rr,rpr,v,is1,is2,is3,is4,is5,is6,Il
 #x=3.0
 #A=[5.1e-6+4.2e-9+0.453e-6*x 4.2e-9+0.453e-6*x  4.2e-9+0.453e-6*x  ;4.2e-9+0.453e-6*x  5.1e-6+4.2e-9+0.453e-6*x  4.2e-9+0.453e-6*x ;4.2e-9+0.453e-6*x  4.2e-9+0.453e-6*x  5.1e-6+4.2e-9+0.453e-6*x ]
  #A=[5.1+4.2e-3+0.453*x 4.2e-3+0.453*x  4.2e-3+0.453*x  4.2e-3+0.453*x ;4.2e-3+0.453*x  5.1+4.2e-3+0.453*x  4.2e-3+0.453*x 4.2e-3+0.453*x ;4.2e-3+0.453*x  4.2e-3+0.453*x  5.1+4.2e-3+0.453*x 4.2e-3+0.453*x ;4.2e-3+0.453*x  4.2e-3+0.453*x  4.2e-3+0.453*x 5.1+4.2e-3+0.453*x ]
 #B=(inv(A))
 #display(B);println()
 
-b=4.2e-3+0.453*x;a=5.1+4.2e-3+0.453*x  ;λ=a-b;u=[b;b;b;b];vec=[1 1 1 1]
+b=4.2e-3+0.453*x;a=5.1+4.2e-3+0.453*x  ;λ=a-b;u=[b;b;b;b;b;b];vec=[1 1 1 1 1 1]
 
 
 #AA=λ*Il+u*v
@@ -27,7 +27,7 @@ mm=I/λ-(u*vec)/(λ*(λ+vec*u))
 #display(mm) 
  
 
-C=[-(rd1+3.88e-3)*il1-(rr+rpr+0.453e-6*v)*Il+rd1*is1;-(rd2+3.88e-3)*il2-(rr+rpr+0.453e-6*v)*Il+rd2*is2;-(rd3+3.88e-3)*il3-(rr+rpr+0.453e-6*v)*Il+rd3*is3;-(rd4+3.88e-3)*il4-(rr+rpr+0.453e-6*v)*Il+rd4*is4]
+C=[-(rd1+3.88e-3)*il1-(rr+rpr+0.453e-6*v)*Il+rd1*is1;-(rd2+3.88e-3)*il2-(rr+rpr+0.453e-6*v)*Il+rd2*is2;-(rd3+3.88e-3)*il3-(rr+rpr+0.453e-6*v)*Il+rd3*is3;-(rd4+3.88e-3)*il4-(rr+rpr+0.453e-6*v)*Il+rd4*is4;-(rd5+3.88e-3)*il5-(rr+rpr+0.453e-6*v)*Il+rd5*is5;-(rd6+3.88e-3)*il6-(rr+rpr+0.453e-6*v)*Il+rd6*is6]
 
 #display(C)
 D=mm*C

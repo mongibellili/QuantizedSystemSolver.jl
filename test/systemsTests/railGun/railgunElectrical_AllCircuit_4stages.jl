@@ -22,7 +22,7 @@ FNmec = 680.0; α = 0.154
 rs11=1e-5;rs21=1e-5;rs31=1e-5;rs41=1e-5;
 t0=1.0
 
-          discrete = [1e5,1.0,1.0,1e5,0.0,1.0,1e5,0.0,1.0,1e5,0.0,1.0,0.0,1e-3];u = [0.0,20005.75,0.0,0.0,21003.75,0.0,0.0,20001.75,0.0,0.0,20001.75,0.0,0.0,0.0]
+          discrete = [1e5,1.0,1.0,1e5,1.0,1.0,1e5,1.0,1.0,1e5,1.0,1.0,0.0,1e-3];u = [0.0,20005.75,0.0,0.0,21003.75,0.0,0.0,20001.75,0.0,0.0,20001.75,0.0,0.0,0.0]
         
           rd1=discrete[1]; operate1=discrete[2];charge1=discrete[3];
           rd2=discrete[4];operate2=discrete[5];charge2=discrete[6]; 
@@ -59,6 +59,8 @@ t0=1.0
           du[11]=((-is4/C)*charge4)*operate4
           du[12]=operate4*1e6* ( (-I*rrpp+ il4*rd44 + is4*rd4)*x1 +  ((-3*I*rrpp+ il1*rd11 + is1*rd1) +  ( il3*rd33 + is3*rd3) + ( il2*rd22 + is2*rd2))*x2 )/ x3
   
+
+          
           du[13]=v
           du[14]=F/m
 
@@ -132,9 +134,10 @@ t0=1.0
 
           
     end
-    @show odeprob
+  #  @show odeprob
     tspan = (0.0, 4.0e-3)
-   #=  sol= solve(odeprob,nmliqss1(),tspan,abstol=1e-3,reltol=1e-2)    
+    sol= solve(odeprob,nmliqss1(),tspan,abstol=1e-3,reltol=1e-2) 
+
    save_Sol(sol,1)
    save_Sol(sol,2)
    save_Sol(sol,3) 
@@ -149,9 +152,9 @@ t0=1.0
   save_Sol(sol,11) 
   save_Sol(sol,12) 
  # save_Sol(sol,9,note="z1",xlims=(0.0,0.2e-8),ylims=(-0.005,0.005)) 
-   save_SolSum(sol,3,6,9,12,interp=0.00001) #add interpl preference =#
+   save_SolSum(sol,3,6,9,12,interp=0.00001) #add interpl preference
    
-  save_Sol(sol,13) 
+ # save_Sol(sol,13) 
   save_Sol(sol,14) 
    
 end

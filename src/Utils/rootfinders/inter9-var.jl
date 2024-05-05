@@ -312,9 +312,9 @@ end
 function quadRootv2(coeff::NTuple{3,Float64}) # 
 	mpr=(-1.0,-1.0) #size 2 to use mpr[2] in quantizer
 	a=coeff[1];b=coeff[2];c=coeff[3]
-	if a == 0.0 || (10000 * abs(a)) < abs(b)# coef3 is the coef of t^2
+	if a == 0.0 || (1e7 * abs(a)) < abs(b)# coef3 is the coef of t^2
 		if b != 0.0
-		  if -c / b>0.0
+		  if 0<-c / b<1e7  # neglecting a small 'a' then having a large h would cause an error  'a*h*h' because large
 		   mpr = (-c / b,-1.0)
 		  end
 		end
@@ -332,11 +332,14 @@ function quadRootv2(coeff::NTuple{3,Float64}) #
 			r1 = q / a
 		   
 			r2=c / q =#
+			
 			sq=sqrt(Δ)
+			#@show  sq
 			r1=-0.5*(1.0+sq)*b/a
 			r2=-0.5*(1.0-sq)*b/a
 		 
 			mpr = (r1,r2)
+			#@show mpr
 		elseif Δ ==0.0
 			r1=-0.5*b/a
 			mpr = (r1,r1-1e-12)
@@ -395,9 +398,14 @@ function quadRootv2(coeff::NTuple{3,Float64}) #
 	return mpr
   end
 
-
- #=    coef=NTuple{3,Float64}((-2.5768276401549883e-12, -239999.2196676244,1735305783508325))
-  x=mprv2(coef)
+ #= 
+  coef=NTuple{3,Float64}( (-54.5, 676862.94717592, 0.015584725741558765))
+  x=quadRootv2(coef)
+  @show x =#
+#=   sl=coef[3]+x*coef[2]+coef[1]*x*x
+@show sl  =#
+   #=  coef=NTuple{3,Float64}((-2.5768276401549883e-12, -239999.2196676244,1735305783508325))
+  x=quadRootv2(coef)
   @show x
   sl=coef[3]+x*coef[2]+coef[1]*x*x
 @show sl =#

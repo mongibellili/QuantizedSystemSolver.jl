@@ -45,11 +45,6 @@ t0=1.0
 
           du[3]=operate1*1e6*((-I*(rpr + rr + 4.53e-7v) + il1*(-0.00388 - rd1) + is1*rd1)*((5.1042 + 0.453x)^2 - ((0.0042 + 0.453x)^2))+ ((-I*(rpr + rr + 4.53e-7v) + il2*(-0.00388 - rd2) + is2*rd2)*((0.0042 + 0.453x)^2 - (0.0042 + 0.453x)*(5.1042 + 0.453x))) +((-I*(rpr + rr + 4.53e-7v) + il3*(-0.00388 - rd3) + is3*rd3)*((0.0042 + 0.453x)^2 - (0.0042 + 0.453x)*(5.1042 + 0.453x))) )/(132.97872599999997 + 35.34758999999999x)
 
-
-
-        
-        
-
           du[4] =((-(R1+rs21+rd2)*is2+rd2*il2+uc2)/L1)#*charge2*start2
           du[5]=(-is2/C)*charge2*start2
           #du[6]=start2*(((-rd2-R2-R3)*il2-RR*(I)+rd2*is2)/(L2+L3))#((L2+L3+α)*β)/Δ
@@ -162,7 +157,7 @@ t0=1.0
    # @show odeprob
     tspan = (0.0, 4.0e-3)
     sol= solve(odeprob,nmliqss1(),tspan,abstol=1e-3,reltol=1e-2)    
-   save_Sol(sol,1)
+  #=  save_Sol(sol,1)
    save_Sol(sol,2)
    save_Sol(sol,3) 
    save_Sol(sol,4)
@@ -171,7 +166,7 @@ t0=1.0
    save_Sol(sol,7) 
    save_Sol(sol,8) 
  
-   save_Sol(sol,9) 
+   save_Sol(sol,9)  =#
  # save_Sol(sol,9,note="z1",xlims=(0.0,0.2e-8),ylims=(-0.005,0.005)) 
    save_SolSum(sol,3,6,9) #add interpl preference
    save_Sol(sol,10) 
