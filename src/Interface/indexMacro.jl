@@ -1,6 +1,6 @@
 
 
-macro NLodeProblem(odeExprs)
+function NLodeProblem(odeExprs)
     Base.remove_linenums!(odeExprs)
     if VERBOSE println("starting prob parsing...") end 
     probHelper=arrangeProb(odeExprs)# replace symbols and params , extract info about size,symbols,initconds

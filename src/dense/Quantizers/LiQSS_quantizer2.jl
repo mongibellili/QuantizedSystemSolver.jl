@@ -362,10 +362,10 @@ function Liqss_reComputeNextTime(::Val{2}, i::Int, simt::Float64, nextStateTime:
     β=0
     if abs(q-x) >= 2*quani # this happened when var i and j s turns are now...var i depends on j, j is asked here for next time...or if you want to increase quant*10 later it can be put back to normal and q & x are spread out by 10quan
         nextStateTime[i] = simt+1e-12
-        if simt==2.500745083181994e-5
+       #=  if simt==2.500745083181994e-5
         println("quantizer-recomputeNext: abs(q-x) >= 2*quani")
         @show simt,i,x,q,abs(q-x),quani
-        end 
+        end  =#
        #=  if simt>3.486047550372409
             @show djsksfs
         end =#

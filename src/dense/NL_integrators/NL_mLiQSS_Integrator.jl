@@ -19,7 +19,7 @@ function mLiQSS_integrate(Al::QSSAlgorithm{:nmliqss,O},CommonqssData::CommonQSS_
   #u=liqssdata.u;#tu=liqssdata.tu
   #***************************************************************  
   qaux=liqssdata.qaux;dxaux=liqssdata.dxaux#= olddx=liqssdata.olddx; ; olddxSpec=liqssdata.olddxSpec =#
-
+  d=[0.0]
   numSteps = Vector{Int}(undef, T)
   pp=pointer(Vector{NTuple{2,Float64}}(undef, 7))
                                     
@@ -57,7 +57,8 @@ end
     #push!(savedVarsQ[i],q[i][0])
      push!(savedTimes[i],0.0)
      quantum[i] = relQ * abs(x[i].coeffs[1]) ;quantum[i]=quantum[i] < absQ ? absQ : quantum[i];quantum[i]=quantum[i] > maxErr ? maxErr : quantum[i] 
-    updateQ(Val(O),i,x,q,quantum,exacteA,cacheA,dxaux,qaux,tx,tq,initTime,ft,nextStateTime) 
+    updateQ(Val(O),i,x,q,quantum,exacteA,d,cacheA,dxaux,qaux,tx,tq,initTime,ft,nextStateTime) 
+         
   end
   for i = 1:T
      clearCache(taylorOpsCache,Val(CS),Val(O));f(i,q,t,taylorOpsCache);
@@ -106,7 +107,7 @@ end
           elapsedq = simt - tq[b] ;
           if elapsedq>0 integrateState(Val(O-1),q[b],elapsedq);tq[b]=simt end
         end
-        firstguess=updateQ(Val(O),index,x,q,quantum,exacteA,cacheA,dxaux,qaux,tx,tq,simt,ft,nextStateTime) ;tq[index] = simt   
+        firstguess=updateQ(Val(O),index,x,q,quantum,exacteA,d,cacheA,dxaux,qaux,tx,tq,simt,ft,nextStateTime) ;tq[index] = simt   
         #----------------------------------------------------check dependecy cycles---------------------------------------------                
         for j in SD(index)
           for b in (jac(j)  )    # update Qb: to be used to calculate exacte Ajb

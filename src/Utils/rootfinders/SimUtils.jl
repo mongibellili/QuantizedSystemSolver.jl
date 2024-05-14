@@ -113,7 +113,7 @@ end
 function minPosRoot(coeff::Taylor0, ::Val{2}) # credit goes to github.com/CIFASIS/qss-solver
   mpr=-1 
   a=coeff[2];b=coeff[1];c=coeff[0];  # a is coeff 3 because in taylor representation 1 is var 2 is der 3 is derder
-  if a == 0  || (10000 * abs(a)) < abs(b)# coef3 is the coef of t^2
+  if a == 0  || (100000 * abs(a)) < abs(b)# coef3 is the coef of t^2
     if b == 0
       mpr = Inf
     else 

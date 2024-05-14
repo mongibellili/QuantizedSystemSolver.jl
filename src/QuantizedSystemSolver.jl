@@ -57,7 +57,7 @@ import Base:  sqrt, exp, log, sin, cos, sincos, tan,
     export plotAbsoluteError#,stackplotAbsoluteError,plot_save_AbsoluteError,stackplot_save_AbsoluteError,saveAbsoluteError,stacksaveAbsoluteError
     export getError,getPlot,getPlot!#,plotCumulativeSquaredRelativeError,plotMSE,getIntervalError,plotElapsed
 
-    export  @NLodeProblem,@saveNLodeProblem,solve,save_prob_to_model,QSS_Solve_from_model,solInterpolated
+    export NLodeProblem, @NLodeProblem,@saveNLodeProblem,solve,save_prob_to_model,QSS_Solve_from_model,solInterpolated
     export Sol,getErrorByRodas,getAllErrorsByRefs,getAverageErrorByRefs
 
     export Taylor0,mulT,mulTT,createT,addsub,negateT,subsub,subadd,subT,addT,muladdT,mulsub,divT # in case to save into a file, otherwise remove

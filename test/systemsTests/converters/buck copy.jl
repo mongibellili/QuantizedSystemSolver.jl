@@ -1,6 +1,7 @@
 using QuantizedSystemSolver
 function test()
-    odeprob = @NLodeProblem begin
+  odeprob = NLodeProblem(
+    quote
           name=(buck,)
           C = 1e-4; L = 1e-4; R = 10.0;U = 24.0; T = 1e-4; DC = 0.5; ROn = 1e-5;ROff = 1e5;
           discrete = [1e5,1e-5,1e-4,0.0,0.0];u = [0.0,0.0]
@@ -20,7 +21,7 @@ function test()
           else
             rd=ROff;diodeon=0.0
           end     
-    end
+    end)
     tspan = (0.0, 0.001)
     sol= solve(odeprob,nmliqss2(),tspan,abstol=1e-4,reltol=1e-3)    
     save_Sol(sol)

@@ -26,7 +26,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O},CommonqssData::CommonQSS_data{Z}
 
   qaux=liqssdata.qaux;dxaux=liqssdata.dxaux#= olddx=liqssdata.olddx; ; olddxSpec=liqssdata.olddxSpec =#
 
-  savedDers = Vector{Vector{Float64}}(undef, T)
+  #savedDers = Vector{Vector{Float64}}(undef, T)
   # savedVarsQ = Vector{Vector{Float64}}(undef, T) 
  
 #=  setprecision(BigFloat,80)
@@ -72,9 +72,9 @@ end
 
 for i = 1:T
   numSteps[i]=0
-  savedDers[i]=Vector{Float64}()
+  #savedDers[i]=Vector{Float64}()
   push!(savedVars[i],x[i][0])
-   push!(savedDers[i],x[i][1])
+  # push!(savedDers[i],x[i][1])
    push!(savedTimes[i],0.0)
   
   quantum[i] = relQ * abs(x[i].coeffs[1]) ;quantum[i]=quantum[i] < absQ ? absQ : quantum[i];quantum[i]=quantum[i] > maxErr ? maxErr : quantum[i] 
@@ -122,22 +122,30 @@ while simt< ft && totalSteps < 50000000
  
   t[0]=simt
 
-  DEBUG_time=DEBUG  && 0.0002<=simt<=0.00022
+  DEBUG_time=DEBUG  && #= (29750 <=totalSteps<=29750) =# (0.0003557 <=simt<=0.0003559 )
   ##########################################state######################################## 
   if stepType == :ST_STATE
     statestep+=1
-  
+    if DEBUG_time #&& (index!=13 && index!=15)
+      println("at simt=$simt x $index at begining of state step  = $(x)") 
+      println("-------------q begining of state step  = $q") 
+      @show totalSteps
+      
+     end
  
     xitemp=x[index][0]
     numSteps[index]+=1;
     
     elapsed = simt - tx[index];integrateState(Val(O),x[index],elapsed);tx[index] = simt ; 
     dirI=x[index][0]-xitemp
-    if abs(dirI)>3*quantum[index] x[index][0]= 2*quantum[index] *sign(dirI) end # this is a rare case where dxi gets changed a lot by an event
+   #=  if abs(dirI)>3*quantum[index] 
+      x[index][0]=xitemp+ 3*quantum[index] *sign(dirI)
+      println("at start of state step, x moved more than 2 deltas")
+    end # this is a rare case where dxi gets changed a lot by an event =#
    
     quantum[index] = relQ * abs(x[index].coeffs[1]) ;quantum[index]=quantum[index] < absQ ? absQ : quantum[index];quantum[index]=quantum[index] > maxErr ? maxErr : quantum[index]   
    
-    if abs(x[index].coeffs[2])>1e9 quantum[index]=10*quantum[index] end  # i added this for the case a function is climbing (up/down) fast     
+    #if abs(x[index].coeffs[2])>1e9 quantum[index]=10*quantum[index] end  # i added this for the case a function is climbing (up/down) fast     
 
     
    
@@ -257,18 +265,18 @@ while simt< ft && totalSteps < 50000000
       computeNextEventTime(Val(O),j,taylorOpsCache[1],oldsignValue,simt,  nextEventTime, quantum,absQ)
   end#end for SZ
  
- #=  if DEBUG_time
-     println("at simt=$simt x end of state step  = $x") 
+  if DEBUG_time #&& (index!=13 && index!=15)
+     println("at simt=$simt x $index at end of state step  = $(x)") 
      println("-------------q end of state step  = $q") 
-     
-    end =#
+     @show totalSteps
+    end
 
-    if DEBUG_time && (index==3 || index==4)
+   #=  if DEBUG_time #&& (index==3 || index==6)
       println("========end state=======")
       @show index,simt
-      @show x,q
-      @show nextStateTime,quantum
-       end
+      @show x[]
+     # @show nextStateTime,quantum
+       end =#
 
     ##################################input########################################
   elseif stepType == :ST_INPUT  # time of change has come to a state var that does not depend on anything...no one will give you a chance to change but yourself    
@@ -320,8 +328,8 @@ else
         
         if DEBUG_time
            println("x at start of event simt=$simt index=$index") 
-          
-         # println("-------------q start of event  = $q") 
+           println("-------------x start of event  = $x") 
+          println("-------------q start of event  = $q") 
          #@show index,d
         end
 
@@ -397,7 +405,7 @@ else
                firstguess=updateQ(Val(O),i,x,q,quantum,exactA,d,cacheA,dxaux,qaux,tx,tq,simt,ft,nextStateTime)   
               #  computeNextTime(Val(O), i, simt, nextStateTime, x, quantum) 
               tx[i] = simt;tq[i] = simt
-              #Liqss_reComputeNextTime(Val(O), i, simt, nextStateTime, x, q, quantum)
+              Liqss_reComputeNextTime(Val(O), i, simt, nextStateTime, x, q, quantum)
           #=     if DEBUG_time
                 println("x end evcont simt=$simt x2=$(x[2])") 
                 println("q end evcont simt=$simt q2=$(q[2])")
@@ -421,7 +429,10 @@ else
                   elapsedq = simt - tq[b];if elapsedq>0 integrateState(Val(O-1),q[b],elapsedq);tq[b]=simt;#= @show q[b] =# end
                 end
               end
-          
+              if DEBUG_time
+                println("q $j after intgratestate")
+                @show x[j],q[j]
+                end
 
               clearCache(taylorOpsCache,Val(CS),Val(O));f(j,-1,-1,q,d,t,taylorOpsCache);computeDerivative(Val(O), x[j], taylorOpsCache[1])
  
@@ -450,10 +461,10 @@ else
        
         
           if DEBUG_time
-             println("x at end of event simt=$simt x2=$(x)") 
+            # println("x at end of event simt=$simt x=$(x)") 
              println("q at end of event simt=$simt q2=$(q)")
             @show countEvents,totalSteps,statestep
-            @show nextStateTime,quantum
+           # @show nextStateTime,quantum
             end
           #=   if 9.236846540089048e-5<=simt<9.237519926276279e-5 
               println("-------------end of event------------")
@@ -474,7 +485,7 @@ else
     
          #=  for i =1:T 
             push!(savedVars[i],x[i][0])
-            push!(savedDers[i],x[i][1])
+           # push!(savedDers[i],x[i][1])
             push!(savedTimes[i],simt)
           end =#
       else
@@ -485,7 +496,9 @@ else
           push!(savedVars[j],x[j][0])
           #push!(savedDers[j],x[j][1])
           push!(savedTimes[j],simt)
-          
+         #=  if simt==0.00035
+            @show j,x[j][0]
+          end =#
         end
       # end
       end

@@ -4,7 +4,7 @@ function test()
  
     odeprob = @NLodeProblem begin
           name=(RGElectrical4,)
-         ROn = 1e-5;ROff = 1e5;
+          ROn = 1e-5;ROff = 1e1;
           Lpr = 4.2*1e-9#0.48*1e-6#0.45 * 1e-6
 L1 = 0.6*1e-4 #28.0*1e-6#0.6*1e-6
 #L2 = 4.0e-6;L3 = 1.1*1e-6
@@ -15,20 +15,20 @@ L23=5.1e-6
 C = 3.08*1e-3#3.08*1e-3
 
 m=0.12
-γ = 50.0*1e6; w = 15.0*1e-3#25.0*1e-3#15.0*1e-3 
+γ = 50.0*1e6; w = 15.0*1e0#25.0*1e-3#15.0*1e-3 
 μ = 4.0*3.14*1e-7
-Rpr0 = 15.5*1e-6
+Rpr0 = 1.5*1e-6
 FNmec = 680.0; α = 0.154
 rs11=1e-5;rs21=1e-5;rs31=1e-5;rs41=1e-5;
 t0=1.0
 
-          discrete = [1e5,1.0,1.0,1e5,1.0,1.0,1e5,1.0,1.0,1e5,1.0,1.0,0.0,1e-3];u = [0.0,20005.75,0.0,0.0,21003.75,0.0,0.0,20001.75,0.0,0.0,20001.75,0.0,0.0,0.0]
+          discrete = [1e5,1.0,1.0,1e5,1.0,1.0,1e5,1.0,1.0,1e5,1.0,1.0,0.0,1e-3,1e-5,1e-5,1e-5,1e-5];u = [0.0,20005.75,0.0,0.0,20003.75,0.0,0.0,20001.75,0.0,0.0,20001.75,0.0,0.0,0.0]
         
           rd1=discrete[1]; operate1=discrete[2];charge1=discrete[3];
           rd2=discrete[4];operate2=discrete[5];charge2=discrete[6]; 
           rd3=discrete[7];operate3=discrete[8]; charge3=discrete[9]; 
           rd4=discrete[10];operate4=discrete[11]; charge4=discrete[12];
-          manualIntg=discrete[13]; nextT=discrete[14]
+          manualIntg=discrete[13]; nextT=discrete[14];rs1=discrete[15];rs2=discrete[16];rs3=discrete[17];rs4=discrete[18];
           is1=u[1] ;uc1=u[2]; il1=u[3] ;is2=u[4] ;uc2=u[5]; il2=u[6] ;is3=u[7] ;uc3=u[8]; il3=u[9] ;is4=u[10] ;uc4=u[11]; il4=u[12] ;x=u[13]; v=u[14] 
           #α=LR+Lpr;
          # RR=4.0e-5
@@ -43,19 +43,19 @@ t0=1.0
           I=il1+il2+il3+il4
           uf=0.1+0.2*exp(-v/100)
           F=0.5*0.453e-6*I*I*(1-uf*0.124)-uf*FNmec
-          du[1] =((-(R1+rs11+rd1)*is1+rd1*il1+uc1)/L1)#*charge1
+          du[1] =((-(R1+rs1+rd1)*is1+rd1*il1+uc1)/L1)#*charge1
           du[2]=(-is1/C)*charge1
           du[3]=operate1*1e6*  ((-I*rrpp+ il1*rd11 + is1*rd1)*x1+   ((-3*I*rrpp+ il2*rd22 + is2*rd2)   + ( il3*rd33 + is3*rd3) + ( il4*rd44 + is4*rd4))*x2) / x3
 
-          du[4] =((-(R1+rs21+rd2)*is2+rd2*il2+uc2)/L1)#*charge2
+          du[4] =((-(R1+rs2+rd2)*is2+rd2*il2+uc2)/L1)#*charge2
           du[5]=(-is2/C)*charge2
           du[6]=operate2*1e6* ((-I*rrpp+ il2*rd22 + is2*rd2)*x1 +  ((-3*I*rrpp+ il3*rd33 + is3*rd3)+ ( il1*rd11 + is1*rd1) + ( il4*rd44 + is4*rd4))*x2) / x3
 
-          du[7] =((-(R1+rs31+rd3)*is3+rd3*il3+uc3)/L1)*operate3#*charge3
+          du[7] =((-(R1+rs3+rd3)*is3+rd3*il3+uc3)/L1)*operate3#*charge3
           du[8]=((-is3/C)*charge3)*operate3
           du[9]=operate3*1e6* ((-I*rrpp+ il3*rd33 + is3*rd3)*x1  + ((-3*I*rrpp+ il1*rd11 + is1*rd1)+ ( il4*rd44 + is4*rd4) + ( il2*rd22 + is2*rd2))*x2 )/ x3
          
-          du[10] =((-(R1+rs41+rd4)*is4+rd4*il4+uc4)/L1)*operate4#*charge3
+          du[10] =((-(R1+rs4+rd4)*is4+rd4*il4+uc4)/L1)*operate4#*charge3
           du[11]=((-is4/C)*charge4)*operate4
           du[12]=operate4*1e6* ( (-I*rrpp+ il4*rd44 + is4*rd4)*x1 +  ((-3*I*rrpp+ il1*rd11 + is1*rd1) +  ( il3*rd33 + is3*rd3) + ( il2*rd22 + is2*rd2))*x2 )/ x3
   
@@ -74,7 +74,7 @@ t0=1.0
 
           if -(uc1)>0.0 
             charge1=0.0 # rs off not needed since charge=0
-            #rs1=ROff;
+            rs1=ROff;
             rd1=ROn;
             uc1=0.0
           #=   uc1=0.0;
@@ -82,7 +82,7 @@ t0=1.0
           end 
           if -(uc2)>0.0 
             charge2=0.0
-            #rs2=ROff;
+            rs2=ROff;
             rd2=ROn;
             #@show rd2
             uc2=0.0
@@ -91,14 +91,14 @@ t0=1.0
          
           if -(uc3)>0.0 
             charge3=0.0
-           # rs3=ROff;
+            rs3=ROff;
             rd3=ROn;
             uc3=0.0
            
           end 
           if -(uc4)>0.0 
             charge4=0.0
-           # rs3=ROff;
+            rs3=ROff;
             rd4=ROn;
             uc4=0.0
            

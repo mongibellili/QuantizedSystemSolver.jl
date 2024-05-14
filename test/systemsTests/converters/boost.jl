@@ -47,7 +47,7 @@ function test()
       end  =#
            
     end
-    tspan=(0.0,0.001)
+    tspan=(0.0,0.0025)
    sol= solve(odeprob,nmliqss2(),abstol=1e-4,reltol=1e-3,tspan)
             
   save_Sol(sol)

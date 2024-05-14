@@ -121,5 +121,5 @@ function test(case,solvr)
 end
 
 case="order1_"
-test(case,nmliqss1())
+test(case,nmliqss2())
 #test(case,nmliqss2())
