@@ -1,4 +1,5 @@
-#hold helper datastructures needed for simulation, can be seen as the model in the qss architecture (model-integrator-quantizer)
+
+ """ hold helper datastructures needed for simulation, can be seen as the model in the qss architecture (model-integrator-quantizer)"""
 struct CommonQSS_data{Z}
     quantum :: Vector{Float64} 
     x :: Vector{Taylor0}  #MVector cannot hold non-isbits
