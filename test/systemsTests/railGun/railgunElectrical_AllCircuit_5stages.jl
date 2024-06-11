@@ -2,7 +2,8 @@ using QuantizedSystemSolver
 using BenchmarkTools
 function test()
  
-    odeprob = @NLodeProblem begin
+  odeprob = NLodeProblem(
+    quote
       name=(RGElectrical5,)
       ROn = 1e-5;ROff = 1e1;
       Lpr = 4.2*1e-9#0.48*1e-6#0.45 * 1e-6
@@ -152,13 +153,13 @@ t0=1.0
     
 
           
-    end
+    end)
   #  @show odeprob
     tspan = (0.0, 0.004)
-    sol= solve(odeprob,nmliqss1(),tspan,abstol=1e-3,reltol=1e-2) 
+    sol= solve(odeprob,nmliqss2(),tspan,abstol=1e-3,reltol=1e-2) 
   #  sol= solve(odeprob,nmliqss1(),tspan,abstol=1e-3,reltol=1e-2)  
  
- #=   save_Sol(sol,1)
+   save_Sol(sol,1)
    save_Sol(sol,2)
    save_Sol(sol,3) 
 
@@ -176,7 +177,7 @@ t0=1.0
 
   save_Sol(sol,13) 
   save_Sol(sol,14) 
-  save_Sol(sol,15)  =#
+  save_Sol(sol,15) 
  # save_Sol(sol,9,note="z1",xlims=(0.0,0.2e-8),ylims=(-0.005,0.005)) 
    save_SolSum(sol,3,6,9,12,15,interp=0.00001) #add interpl preference
    

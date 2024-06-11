@@ -1,5 +1,9 @@
 #using TimerOutputs
+function integrate(Al::QSSAlgorithm{:nmliqss,O},CommonqssData::CommonQSS_data{Z},liqssdata::LiQSS_data{O,false},specialLiqssData::SpecialLiqssQSS_data, odep::NLODEProblem{PRTYPE,T,Z,D,CS}) where {PRTYPE,O,T,Z,D,CS}
+  if VERBOSE  println("begining of intgrate dummy function") end
+end
 function integrate(Al::QSSAlgorithm{:nmliqss,O},CommonqssData::CommonQSS_data{Z},liqssdata::LiQSS_data{O,false},specialLiqssData::SpecialLiqssQSS_data, odep::NLODEProblem{PRTYPE,T,Z,D,CS},f::Function,jac::Function,SD::Function,exactA::Function) where {PRTYPE,O,T,Z,D,CS}
+  if VERBOSE  println("begining of intgrate function") end
   cacheA=specialLiqssData.cacheA
   ft = CommonqssData.finalTime;initTime = CommonqssData.initialTime;relQ = CommonqssData.dQrel;absQ = CommonqssData.dQmin;maxErr=CommonqssData.maxErr;
 
@@ -12,7 +16,9 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O},CommonqssData::CommonQSS_data{Z}
   #*********************************problem info*****************************************
   d = CommonqssData.d
   
-
+ #=  exactA=odep.exactJac
+  f=odep.eqs
+  if VERBOSE  println("after function declare") end =#
   zc_SimpleJac=odep.ZCjac
 
   HZ=odep.HZ
@@ -50,7 +56,13 @@ for i =1:4*O-1 #3
   acceptedi[i]=[0.0,0.0]#zeros(2)
   acceptedj[i]=[0.0,0.0]#zeros(2)
 end
+
+   #@show exactA
   exactA(q,d,cacheA,1,1,initTime+1e-9)
+ 
+  #@show f
+  f(1,-1,-1,q,d, t ,taylorOpsCache)
+
   trackSimul = Vector{Int}(undef, 1)
  # cacheRatio=zeros(5);cacheQ=zeros(5)
   #********************************helper values*******************************  
@@ -58,6 +70,7 @@ end
   oldsignValue = MMatrix{Z,2}(zeros(Z*2))  #usedto track if zc changed sign; each zc has a value and a sign 
   numSteps = Vector{Int}(undef, T)
 #######################################compute initial values##################################################
+if VERBOSE  println("before x init") end
 n=1
 for k = 1:O # compute initial derivatives for x and q (similar to a recursive way )
   n=n*k
@@ -69,7 +82,7 @@ for k = 1:O # compute initial derivatives for x and q (similar to a recursive wa
       x[i].coeffs[k+1] = (integratorCache.coeffs[1]) / n # /fact cuz i will store der/fac like the convention...to extract the derivatives (at endof sim) multiply by fac  derderx=coef[3]*fac(2)
     end
 end
-
+if VERBOSE  println("after init") end
 for i = 1:T
   numSteps[i]=0
   #savedDers[i]=Vector{Float64}()
@@ -79,22 +92,10 @@ for i = 1:T
   
   quantum[i] = relQ * abs(x[i].coeffs[1]) ;quantum[i]=quantum[i] < absQ ? absQ : quantum[i];quantum[i]=quantum[i] > maxErr ? maxErr : quantum[i] 
   
-  updateQ(Val(O),i,x,q,quantum,exactA,d,cacheA,dxaux,qaux,tx,tq,initTime+1e-9,ft,nextStateTime) #1e-9 exactAfunc contains 1/t
+  updateQ(Val(O),i,x,q,quantum,exactA,d,cacheA,dxaux,qaux,tx,tq,initTime+1e-12,ft,nextStateTime) #1e-9 exactAfunc contains 1/t
 end
-#= for i = 1:T
-   clearCache(taylorOpsCache,Val(CS),Val(O));f(i,-1,-1,q,d,t,taylorOpsCache);
-   computeDerivative(Val(O), x[i], taylorOpsCache[1])#0.0 used to be elapsed...even down below not neeeded anymore
-  Liqss_reComputeNextTime(Val(O), i, initTime, nextStateTime, x, q, quantum)
-  computeNextInputTime(Val(O), i, initTime, 0.1,taylorOpsCache[1] , nextInputTime, x,  quantum)#not complete, currently elapsed=0.1 is temp until fixed
- #prevStepVal[i]=x[i][0]#assignXPrevStepVals(Val(O),prevStepVal,x,i)
-end =#
-  
 
-  #assignXPrevStepVals(Val(O),prevStepVal,x,i)
-  
-
-
-#@show nextStateTime,nextInputTime
+if VERBOSE  println("after initial updateQ") end
 for i=1:Z
   clearCache(taylorOpsCache,Val(CS),Val(O));  f(-1,i,-1,x,d,t,taylorOpsCache)                
   oldsignValue[i,2]=taylorOpsCache[1][0] #value
@@ -109,6 +110,7 @@ end
 ####################################################################################################################################################################
 simt = initTime ;totalSteps=0;prevStepTime=initTime;modifiedIndex=0; countEvents=0;inputstep=0;statestep=0;simulStepCount=0
 ft<savetime && error("ft<savetime")
+if VERBOSE  println("start integration") end
 while simt< ft && totalSteps < 50000000
   
   sch = updateScheduler(Val(T),nextStateTime,nextEventTime, nextInputTime)
@@ -122,7 +124,7 @@ while simt< ft && totalSteps < 50000000
  
   t[0]=simt
 
-  DEBUG_time=DEBUG  && #= (29750 <=totalSteps<=29750) =# (0.0003557 <=simt<=0.0003559 )
+  DEBUG_time=DEBUG  && #= (29750 <=totalSteps<=29750) =# #= (0.0003557 <=simt<=0.0003559 ) =# simt==1.0323797751288692e-9
   ##########################################state######################################## 
   if stepType == :ST_STATE
     statestep+=1
@@ -145,7 +147,10 @@ while simt< ft && totalSteps < 50000000
    
     quantum[index] = relQ * abs(x[index].coeffs[1]) ;quantum[index]=quantum[index] < absQ ? absQ : quantum[index];quantum[index]=quantum[index] > maxErr ? maxErr : quantum[index]   
    
-    #if abs(x[index].coeffs[2])>1e9 quantum[index]=10*quantum[index] end  # i added this for the case a function is climbing (up/down) fast     
+    #= if abs(x[index].coeffs[2])>1e9 
+      quantum[index]=10*quantum[index]
+      @show simt, index,x[index]
+     end =#  # i added this for the case a function is climbing (up/down) fast     
 
     
    
@@ -180,6 +185,8 @@ while simt< ft && totalSteps < 50000000
             cacherealPosj[i][1]=0.0; cacherealPosj[i][2]=0.0
           end  =#
          # @show aij,aji
+        #=  test=false
+         if test =#
           if nmisCycle_and_simulUpdate(cacheRootsi,cacheRootsj,acceptedi,acceptedj,aij,aji,respp,pp,trackSimul,Val(O),index,j,dirI,firstguess,x,q,quantum,exactA,d,cacheA,dxaux,qaux,tx,tq,simt,ft)
             simulStepCount+=1
 

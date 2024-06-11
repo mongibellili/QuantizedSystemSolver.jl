@@ -1,16 +1,7 @@
-if -(is1)>0.0 
-  operate1=0.0
-  is1=0.0
-end 
-if -(is2)>0.0 
-  operate2=0.0
-  is2=0.0
-end 
-if -(is3)>0.0 
-  operate3=0.0
-  is3=0.0
-end 
-if -(is4)>0.0 
-  operate4=0.0
-  is4=0.0
-end 
+#= γ = 50.0e6; w = 7.5#25.0*1e-3#15.0*1e-3 
+μ = 4.0*3.14*1e-7
+c=sqrt(μ/(3.14*γ))/w
+@show c =#
+#= c=0.5*0.453e-6
+@show c =#
+@show 0.19607843137254904/12

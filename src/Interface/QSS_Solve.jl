@@ -20,6 +20,9 @@ function custom_Solve(prob::NLODEProblem{PRTYPE,T,Z,D,CS},al::QSSAlgorithm{Solve
     else
           liqssdata=createLiqssData(prob,Val(Sparsity),Val(T),Val(Order))
          specialLiqssData=createSpecialLiqssData(Val(T))
+         if VERBOSE println("begin dispatch on liqss algorithm") end
+         #integrate()
+         integrate(al,commonQSSdata,liqssdata,specialLiqssData,prob)
          integrate(al,commonQSSdata,liqssdata,specialLiqssData,prob,prob.eqs,jac,SD,prob.exactJac)
         #= if Solver==:nmliqss
              nmLiQSS_integrate(commonQSSdata,liqssdata,specialLiqssData,prob,prob.eqs,jac,SD,prob.exactJac)
@@ -55,6 +58,7 @@ function custom_Solve(prob::NLODEProblem{PRTYPE,T,Z,D,CS},al::QSSAlgorithm{Solve
 #helper methods...not to be touched...extension can be done through creating others via specializing on one PRTYPE or more of the symbols (PRTYPE,T,Z,D,Order) if in the future...
 #################################################################################################################################################################################
 function createCommonData(prob::NLODEProblem{PRTYPE,T,Z,D,CS},::Val{Order},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64)where{PRTYPE,T,Z,D,CS,Order}
+  if VERBOSE println("begin create common data") end
     quantum =  zeros(T)
     x = Vector{Taylor0}(undef, T)
     q = Vector{Taylor0}(undef, T)
@@ -90,7 +94,7 @@ function createCommonData(prob::NLODEProblem{PRTYPE,T,Z,D,CS},::Val{Order},final
     for i=1:CS
     push!(taylorOpsCache,Taylor0(zeros(Order+1),Order))
     end
-    
+    if VERBOSE println("END create common data") end
     commonQSSdata= CommonQSS_data(quantum,x,q,tx,tq,d,nextStateTime,nextInputTime ,nextEventTime , t, integratorCache,taylorOpsCache,finalTime,saveat, initialTime,abstol,reltol,maxErr,savedTimes,savedVars)
 end
 
@@ -100,6 +104,7 @@ end
 
 #no sparsity
 function createLiqssData(prob::NLODEProblem{PRTYPE,T,Z,D,CS},::Val{false},::Val{T},::Val{Order})where{PRTYPE,T,Z,D,CS,Order}
+    if VERBOSE println("begin create Liqss data") end
     a = Vector{Vector{Float64}}(undef, T)
    # u=Vector{Vector{MVector{Order,Float64}}}(undef, T)
     qaux = Vector{MVector{Order,Float64}}(undef, T)
@@ -119,6 +124,7 @@ function createLiqssData(prob::NLODEProblem{PRTYPE,T,Z,D,CS},::Val{false},::Val{
         olddxSpec[i]=zeros(MVector{Order,Float64})
 
     end
+    if VERBOSE println("END create Liqss data") end
     liqssdata= LiQSS_data(Val(false),a#= ,u =#,qaux,olddx,dxaux,olddxSpec)
 end
 

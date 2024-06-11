@@ -209,14 +209,14 @@ while simt<ft && totalSteps < 50000000
 
   end#end state/input/event
   if stepType != :ST_EVENT
-    #=   push!(savedVars[index],x[index][0])
-      push!(savedTimes[index],simt) =#
+      push!(savedVars[index],x[index][0])
+      push!(savedTimes[index],simt)
 
-      for i =1:T 
+     #=  for i =1:T 
         push!(savedVars[i],x[i][0])
         
         push!(savedTimes[i],simt)
-      end
+      end =#
   else
     #if needSaveEvent
     for j in (HD[modifiedIndex])
@@ -230,7 +230,7 @@ while simt<ft && totalSteps < 50000000
 
 end#end while
  
- @show countEvents,totalSteps
+ #@show countEvents,totalSteps
 
 
 createSol(Val(T),Val(O),savedTimes,savedVars, "qss$O",string(odep.prname),absQ,totalSteps,0,countEvents,numSteps,ft)

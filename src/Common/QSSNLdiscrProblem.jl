@@ -319,7 +319,7 @@ dDVect = [[5, 2, 3, 4, 1], [5, 1]] =#
 
 
     
-     
+    if VERBOSE println("discrete problem created") end
     
     myodeProblem = NLODEDiscProblem(fname,Val(1),Val(T),Val(Z),Val(D),Val(num_cache_equs),initCond, discrVars, jacVect ,ZCjac  ,functioncodeF, evsArr,SDVect,HZ,HD,SZvect,exacteJacfunctionF)
   

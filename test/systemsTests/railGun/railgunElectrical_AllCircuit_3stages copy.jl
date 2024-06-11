@@ -1,8 +1,9 @@
 using QuantizedSystemSolver
-using BenchmarkTools
+#using BenchmarkTools
 function test()
  
-    odeprob = @NLodeProblem begin
+  odeprob = NLodeProblem(
+    quote
           name=(RGElectrical3,)
          ROn = 1e-5;ROff = 1e1;
           Lpr = 4.2*1e-9#0.48*1e-6#0.45 * 1e-6
@@ -22,7 +23,7 @@ FNmec = 680.0; α = 0.154
 rs11=1e-5;rs21=1e-5;rs31=1e-5;
 t0=1.0
 
-          discrete = [1e5,1e-5,1.0,1e5,1e-5,1.0,1e5,1e-5,1.0,1.0,1.0,0.0,1e-3,1.0,1.0,1.0];u = [0.0,80005.75,0.0,0.0,81003.75,0.0,0.0,80001.75,0.0,0.0,0.0]
+          discrete = [1e5,1e-5,1.0,1e5,1e-5,1.0,1e5,1e-5,1.0,1.0,1.0,0.0,1e-3,1.0,1.0,1.0];u = [0.0,10750.0,0.0,0.0,10750.0,0.0,0.0,10750.0,0.0,0.0,0.0]
           rd1=discrete[1];rs1=discrete[2];charge1=discrete[3];
           rd2=discrete[4];rs2=discrete[5];charge2=discrete[6];
           rd3=discrete[7];rs3=discrete[8];charge3=discrete[9];
@@ -104,27 +105,7 @@ t0=1.0
           end 
 
          
-       #=    if -(is1)>0.0 
-            rs1=ROff;charge1=0.0 # rs off not needed since charge=0
-            rd1=ROn;
-          #=   uc1=0.0;
-            =#
-            is1=0.0 
-          end 
-          if -(is2)>0.0 
-            rs2=ROff;charge2=0.0
-            rd2=ROn;
-           # @show rd2
-           is2=0.0 
-            
-          end 
-         
-          if -(is3)>0.0 
-            rs3=ROff;charge3=0.0
-            rd3=ROn;
-            is3=0.0 
-           
-          end  =#
+
 
           if -(il1)>0.0 
             operate1=0.0
@@ -148,15 +129,13 @@ t0=1.0
             @show il1,il2,il3 =#
           end
         
-         #=  if -il3>0
-            sep_rd3=1e3
-          end =#
+      
 
           
-    end
+    end)
    # @show odeprob
     tspan = (0.0, 4.0e-3)
-    sol= solve(odeprob,nmliqss1(),tspan,abstol=1e-3,reltol=1e-2)    
+    sol= solve(odeprob,nmliqss2(),tspan,abstol=1e-3,reltol=1e-2)    
    save_Sol(sol,1)
    save_Sol(sol,2)
    save_Sol(sol,3) 

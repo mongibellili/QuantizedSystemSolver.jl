@@ -153,7 +153,7 @@ function getPlot(sol::Sol{T,O}) where{T,O}
   p1
 end
 function getPlot(sol::Sol{T,O},k::Int) where{T,O}
-  p1=plot!(sol.savedTimes[k], sol.savedVars[k],marker=(:circle),markersize=2,#= title="$(sol.sysName)_$(sol.algName)_$(sol.absQ)_$(sol.simulStepCount) ", =#label="x$index ")
+  p1=plot!(sol.savedTimes[k], sol.savedVars[k],marker=(:circle),markersize=2,#= title="$(sol.sysName)_$(sol.algName)_$(sol.absQ)_$(sol.simulStepCount) ", =#label="x$k ")
 end
 function getPlot!(sol::Sol{T,O}) where{T,O}
   p1=plot!(title="$(sol.sysName)")

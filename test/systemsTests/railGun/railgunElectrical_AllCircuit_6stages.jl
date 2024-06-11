@@ -19,7 +19,7 @@ m=0.12
 μ = 4.0*3.14*1e-7
 Rpr0 = 1.5*1e-6
 FNmec = 680.0; α = 0.154
-rs11=1e-5;rs21=1e-5;rs31=1e-5;rs41=1e-5;;rs51=1e-5;rs61=1e-5;
+
 t0=1.0
 
        discrete = [1e5,1.0,1.0,1e5,1.0,1.0,1e5,1.0,1.0,1e5,0.0,1.0,1e5,0.0,1.0,1e5,0.0,1.0,0.0,1e-3,1e-5,1e-5,1e-5,1e-5,1e-5,1e-5];u = [0.0,10750.0,0.0,0.0,10750.0,0.0,0.0,10750.0,0.0,0.0,10750.0,0.0,0.0,10750.0,0.0,0.0,10750.0,0.0,0.0,0.0]
@@ -207,18 +207,3 @@ end
 #@btime 
 test()
 
-function convert(par)
-  exp_as_str = " a = $par"
-
-  exp = Meta.parse(exp_as_str)
-   
-  return exp
-end
-
-exp = convert(156)
-
-function test(exp)
-  println(exp)
-end
-
-test(convert(6))

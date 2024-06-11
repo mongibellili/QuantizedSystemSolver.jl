@@ -2,19 +2,20 @@
 using QuantizedSystemSolver
 #using XLSX
 #using BenchmarkTools
-using BSON
+#using BSON
 #using TimerOutputs
 #using Plots
 function test(case,solvr)
   absTol=1e-5
      relTol=1e-2
-      odeprob = @NLodeProblem begin
+      odeprob = NLodeProblem(
+        quote
          #sys b53
          name=(sysb53,)
          u = [-1.0, -2.0]
          du[1] = -20.0*u[1]-80.0*u[2]+1600.0
          du[2] =1.24*u[1]-0.01*u[2]+0.2
-     end  
+     end  )
     # @show odeprob.prname
      u1, u2 = -8.73522174738572, -7.385745994549763
      λ1, λ2 = -10.841674966758294, -9.168325033241706
@@ -29,7 +30,7 @@ function test(case,solvr)
      tspan=(0.0,100.0)
      solnmliqss=solve(odeprob,solvr,abstol=absTol,saveat=0.01,reltol=relTol,tspan#= ,maxErr=10000*relTol =#)
      @show solnmliqss.totalSteps
-   # save_Sol(solnmliqss,note="xi10dxi")
+    save_Sol(solnmliqss,note="xi10dxi")
 
      solnmliqssInterp=solInterpolated(solnmliqss,0.01)
      er1=getError(solnmliqssInterp,1,x1)  
@@ -39,7 +40,7 @@ function test(case,solvr)
      @show resnmliqss1E_2
 
     
-    
+  #=   
   BSON.@load "ref_bson/solVect_Tyson_Rodas5Pe-12.bson" solRodas5PVectorTyson
      odeprob = @NLodeProblem begin
          name=(tyson,)
@@ -103,7 +104,7 @@ function test(case,solvr)
   # ttnmliqss=@belapsed solve($prob,$solvr,abstol=$absTol,saveat=0.01,reltol=$relTol,tspan)
     resnmliqss12E_2= ("$(solnmliqss.algName)",relTol,err4,solnmliqss.totalSteps,solnmliqss.simulStepCount,ttnmliqss)
     @show resnmliqss12E_2   
-
+ =#
 
 
     #=  XLSX.openxlsx("3sys $(solvr)_$(case)_$(relTol).xlsx", mode="w") do xf
@@ -121,5 +122,5 @@ function test(case,solvr)
 end
 
 case="order1_"
-test(case,nmliqss2())
+test(case,qss2())
 #test(case,nmliqss2())
