@@ -23,6 +23,9 @@ struct CommonQSS_data{Z}
     savedVars:: Vector{Vector{Float64}}
     
 end
+```
+data needed only for implicit case
+```
 struct LiQSS_data{O,Sparsity}
    vs::Val{Sparsity}
    a::Vector{Vector{Float64}}
