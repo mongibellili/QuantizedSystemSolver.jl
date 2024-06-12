@@ -26,4 +26,16 @@ using Test
     sol=solve(odeprob,nmliqss1(),tspan)
     @test sol.algName == "nmliqss1"
     
+    Order=1
+    cache=Array{Taylor0,1}()# cache= vector of taylor0s of size CS
+    for i=1:3
+    push!(cache,Taylor0(zeros(Order+1),Order))
+    end
+    q1=Taylor0([1.0,0.0], Order)
+    q2=Taylor0([2.0,0.0], Order)
+    q=[q1,q2];
+    t=Taylor0(zeros(Order + 1), Order)
+    
+     odeprob.eqs(1, q, t, cache)
+     @test cache[1][0]==-20.0*1.0-80.0*2.0+1600.0
 end
