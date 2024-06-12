@@ -56,8 +56,8 @@ import Base:  sqrt, exp, log, sin, cos, sincos, tan,
     export save_SolSum,plotRelativeError#,stackplotRelativeError,plot_save_RelativeError,stackplot_save_RelativeError,saveRelativeError,stacksaveRelativeError
     export plotAbsoluteError#,stackplotAbsoluteError,plot_save_AbsoluteError,stackplot_save_AbsoluteError,saveAbsoluteError,stacksaveAbsoluteError
     export getError,getPlot,getPlot!#,plotCumulativeSquaredRelativeError,plotMSE,getIntervalError,plotElapsed
-
-    export NLodeProblem, @NLodeProblem,@saveNLodeProblem,solve,save_prob_to_model,QSS_Solve_from_model,solInterpolated
+     export NLODEProblem
+    export NLodeProblem#= , @NLodeProblem,@saveNLodeProblem =#,solve,save_prob_to_model,QSS_Solve_from_model,solInterpolated
     export Sol,getErrorByRodas,getAllErrorsByRefs,getAverageErrorByRefs
 
     export Taylor0,mulT,mulTT,createT,addsub,negateT,subsub,subadd,subT,addT,muladdT,mulsub,divT # in case to save into a file, otherwise remove
@@ -122,7 +122,7 @@ import Base:  sqrt, exp, log, sin, cos, sincos, tan,
    # include("dense/NL_integrators/NL_LiQSS_discreteIntegrator.jl")
     # implicit integrator when large entries NOT on the main diagonal of the jacobian
 
-   # include("dense/NL_integrators/NL_nmLiQSS_Integrator.jl")
+    include("dense/NL_integrators/NL_nmLiQSS_Integrator.jl")
     include("dense/NL_integrators/NL_nmLiQSS_discreteIntegrator.jl")
    
 
