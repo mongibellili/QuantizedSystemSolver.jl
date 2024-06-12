@@ -3,5 +3,5 @@ using QuantizedSystemSolver
 makedocs(sitename="QuantizedSystemSolver")
 
 deploydocs(
-    repo = "https://mongibellili.github.io/",
+    repo = "https://github.com/mongibellili/QuantizedSystemSolver.git",
 )
