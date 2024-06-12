@@ -1,3 +1,3 @@
 using Documenter
 using QuantizedSystemSolver
-makedocs(sitename="QuantizedSystemSolver.jl")
+makedocs(sitename="QuantizedSystemSolver/wiki")
