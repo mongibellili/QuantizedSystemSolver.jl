@@ -1,4 +1,4 @@
-import Pkg; Pkg.add("Documenter")
+import Pkg; Pkg.add("Documenter");Pkg.add("QuantizedSystemSolver")
 using Documenter
 using QuantizedSystemSolver
 
