@@ -1,7 +1,7 @@
 # Functions
 
 ```@docs
-testfunc(x)
+testFunc(x)
 ```
 
 

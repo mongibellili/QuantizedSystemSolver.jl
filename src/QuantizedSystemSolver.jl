@@ -64,13 +64,13 @@ import Base:  sqrt, exp, log, sin, cos, sincos, tan,
 
    export savedNLODEContProblem,savedNLODEDiscProblem,EventDependencyStruct
  
-   export testfunc
+   export testFunc
 
-   """testfunc(expression)
+   """testFunc(x)
    
    creates a problem from the user code
    """
-   testfunc(x) = 2x + 1
+   testFunc(x) = 2x + 1
  
 
     #include section of ts subcomponent
