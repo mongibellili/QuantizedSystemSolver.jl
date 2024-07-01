@@ -1,4 +1,4 @@
-import Pkg; Pkg.add("Documenter");Pkg.add(url="https://github.com/mongibellili/QuantizedSystemSolver.git")
+import Pkg; Pkg.add("Documenter");Pkg.develop(url="https://github.com/mongibellili/QuantizedSystemSolver.git")
 using Documenter
 using QuantizedSystemSolver
 
