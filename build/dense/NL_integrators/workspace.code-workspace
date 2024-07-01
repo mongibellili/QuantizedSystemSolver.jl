@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "../../.."
+		},
+		{
+			"path": "../../../../.julia/dev/TaylorSeries"
+		}
+	],
+	"settings": {}
+}
