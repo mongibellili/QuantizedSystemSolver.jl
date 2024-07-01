@@ -19,7 +19,8 @@ jobs:
       - name: Install dependencies
         run: julia -e 'using Pkg; Pkg.instantiate()'
 
+      - name: Set environment variables
+        run: echo "DOCUMENTER_KEY=${{ secrets.DOCUMENTER_KEY }}" >> $GITHUB_ENV
+
       - name: Build and deploy documentation
-        env:
-          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
         run: julia --project=docs docs/make.jl
