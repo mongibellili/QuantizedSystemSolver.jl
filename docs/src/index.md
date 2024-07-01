@@ -1,8 +1,5 @@
 # Functions
 
-```@docs
-testFunc(x)
-```
 
 
 ```@docs
