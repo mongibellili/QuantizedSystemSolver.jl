@@ -9,18 +9,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up Julia
-        uses: julia-actions/setup-julia@v1
+      - uses: actions/checkout@v3
+      - uses: julia-actions/setup-julia@v1
         with:
-          version: '1.7'
-
-      - name: Install dependencies
-        run: julia -e 'using Pkg; Pkg.instantiate()'
-
-      - name: Set environment variables
-        run: echo "DOCUMENTER_KEY=${{ secrets.DOCUMENTER_KEY }}" >> $GITHUB_ENV
-
-      - name: Build and deploy documentation
-        run: julia --project=docs docs/make.jl
+          version: '1'
+      - run: |
+          julia --project=docs -e '
+            import Pkg; Pkg.add("Documenter")
+            using Pkg
+            Pkg.develop(PackageSpec(path=pwd()))
+            Pkg.instantiate()'
+      - run: julia --project=docs docs/make.jl
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
