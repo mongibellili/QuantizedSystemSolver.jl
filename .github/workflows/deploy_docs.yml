@@ -18,9 +18,9 @@ jobs:
 
       - name: Install dependencies
         run: julia --project=docs -e '
-                import Pkg; Pkg.add("Documenter")
-                using Pkg
-                Pkg.develop(PackageSpec(path=pwd()))
+                import Pkg; Pkg.add("Documenter");
+                using Pkg;
+                Pkg.develop(PackageSpec(path=pwd()));
                 Pkg.instantiate()'
       - name: Set environment variables
         run: echo "DOCUMENTER_KEY=${{ secrets.DOCUMENTER_KEY }}" >> $GITHUB_ENV
