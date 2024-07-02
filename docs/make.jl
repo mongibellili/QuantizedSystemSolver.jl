@@ -1,4 +1,4 @@
-import Pkg; Pkg.add("Documenter");Pkg.develop(url="https://github.com/mongibellili/QuantizedSystemSolver.git")
+#import Pkg; Pkg.add("Documenter");Pkg.develop(url="https://github.com/mongibellili/QuantizedSystemSolver.git")
 using Documenter
 using QuantizedSystemSolver
 
@@ -16,8 +16,8 @@ using QuantizedSystemSolver
     )
 
     deploydocs(
-        repo = "git@github.com:mongibellili/mongibellili.github.io.git",
-        branch = "gh-pages",
+      repo   = "github.com/mongibellili/QuantizedSystemSolver.git",
+      branch = "gh-pages",
       #  deploy_key = ENV["DOCUMENTER_KEY"]  # Provide the deployment key explicitly
     )
       # Perform deployment using SSH key authentication
