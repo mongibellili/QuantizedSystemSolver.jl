@@ -4,10 +4,14 @@
 [![Coverage](https://codecov.io/gh/mongibellili/QuantizedSystemSolver/branch/main/graph/badge.svg)](https://codecov.io/gh/mongibellili/QuantizedSystemSolver)
 
 
-The QuantizedSystemSolver implements the quantized state system methods: An approach that builds the solution by updating the system variables independently as opposed to classic integration methods that update all the system variables every step.
+The QuantizedSystemSolver aims to solve a set of Ordinary differential equations with a set of events. It implements the quantized state system methods: An approach that builds the solution by updating the system variables independently as opposed to classic integration methods that update all the system variables every step.
+# Example: Buck circuit
+[The Buck](https://en.wikipedia.org/wiki/Buck_converter) is a converter that decreases voltage and increases current with a greater power efficiency than linear regulators. After a mesh analysis we get the problem discribed below.
+<img width="220" alt="buckcircuit" src="https://github.com/mongibellili/QuantizedSystemSolver/assets/59377156/c0bcfdbe-ed12-4bb0-8ad1-649ae72dfdd2">
+
 ## Problem
-the NLodeProblem function takes the user code as shown in the example below:
-```
+The NLodeProblem function takes the following user code:
+```julia
     odeprob = NLodeProblem(quote
           name=(buck,)
           #parameters
@@ -36,27 +40,59 @@ the NLodeProblem function takes the user code as shown in the example below:
           end     
     end)
 ```
-The output is an object that subtypes 
-``` abstract type NLODEProblem{PRTYPE,T,Z,Y,CS} end ```
+The output is an object that subtypes the
 
-## solve
-Input: NLODEProblem{PRTYPE,T,Z,Y,CS}
-       ALGORITHM{N,O}
- ```
+```julia 
+abstract type NLODEProblem{PRTYPE,T,Z,Y,CS} end
+```
+
+## Solve
+The solve function takes the previous problem (NLODEProblem{PRTYPE,T,Z,Y,CS}) with a chosen algorithm (ALGORITHM{N,O}) and some simulation settings:
+
+ ```julia
 tspan = (0.0, 0.001)
  sol= solve(odeprob,nmliqss2(),tspan,abstol=1e-4,reltol=1e-3)
 ```
-Output:Sol{T,O}
+It output a solution of type Sol{T,O}.
 
 ## Query the solution
 
-```xp=sol(2,0.0005)```
+```julia
+# The value of variable 2  at time 0.0005
+sol(2,0.0005)
+19.209921627620943
+# The total number of steps to end the simulation
+sol.totalSteps
+498
+# The number of simultaneous steps during the simulation
+sol.simulStepCount
+132
+# The total number of events during the simulation
+sol.evCount
+53
+# The actual data is stored in two vectors:
+sol.savedTimes
+sol.savedVars
+```
 
 ## Plot the solution
 
-```getPlot(sol)```
-```save_Sol(sol)```
+```julia
+# If the user wants to perform other tasks with the plot:
+getPlot(sol)
+```
+```julia
+# If the user wants to save the plot to a file:
+save_Sol(sol)
+```
+![plot_buck_nmLiqss2_()_0 0001_ _ft_0 001_2024_7_2_16_43_54](https://github.com/mongibellili/QuantizedSystemSolver/assets/59377156/00bee649-d337-445a-9ddb-9669076d8ffa)
 
-## Compute the error against a reference solution
-``` error=getAverageErrorByRefs(solRef::Vector{Any},sol)```
+## Error Analysis
+
+```julia
+#Compute the error against an analytic solution
+error=getError(sol::Sol{T,O},index::Int,f::Function)
+#Compute the error against a reference solution
+error=getAverageErrorByRefs(solRef::Vector{Any},sol)
+```
 
