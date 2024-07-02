@@ -8,10 +8,12 @@ using QuantizedSystemSolver
 # Function to deploy documentation
 
     makedocs(
-        sitename = "Quantized State System Solver",
+        sitename = "Quantized System Solver",
         modules = [QuantizedSystemSolver],
         pages = [
-            "Home" => "index.md"
+            "Home" => "index.md",
+            "QSS Problem" => "Problem.md",
+            "Taylor Object" => "Taylor0.md",
         ]
     )
 
