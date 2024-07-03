@@ -1,6 +1,6 @@
 #using StaticArrays
 
-function minPosRoot(coeff::SVector{2,Float64}, ::Val{1}) # coming from val(1) means coef has x and derx only...size 2
+function minPosRoot(coeff::SVector{2,Float64}, ::Val{1}) # coming from val(1) means coef has x and derx only...size 2 #call from reComputeNextTime
     mpr=-1
         if coeff[2] == 0 
             mpr = Inf
@@ -14,7 +14,7 @@ function minPosRoot(coeff::SVector{2,Float64}, ::Val{1}) # coming from val(1) me
     return mpr
 end
 
-function minPosRoot(coeff::Taylor0, ::Val{1}) # coming from val(1) means coef has x and derx only...size 2
+function minPosRoot(coeff::Taylor0, ::Val{1}) # coming from val(1) means coef has x and derx only...size 2 call from compute event order1
   mpr=-1
       if coeff[1] == 0 
           mpr = Inf
@@ -28,7 +28,7 @@ function minPosRoot(coeff::Taylor0, ::Val{1}) # coming from val(1) means coef ha
   return mpr
 end
 
-  function minPosRootv1(coeff::NTuple{3,Float64}) #
+function minPosRootv1(coeff::NTuple{3,Float64}) #called from updateQ order2
     a=coeff[1];b=coeff[2];c=coeff[3]
   mpr=-1 #coef1=c, coef2=b, coef3=a
   if a== 0 || 10000 * abs(a) < abs(b)# coef3 is the coef of t^2
@@ -64,7 +64,7 @@ end
   return mpr
 end
 
-function minPosRoot(coeff::SVector{3,Float64}, ::Val{2}) # credit goes to github.com/CIFASIS/qss-solver
+function minPosRoot(coeff::SVector{3,Float64}, ::Val{2}) # credit goes to github.com/CIFASIS/qss-solver # call from reComputeNextTime order2
     mpr=-1 
     a=coeff[3];b=coeff[2];c=coeff[1];  # a is coeff 3 because in taylor representation 1 is var 2 is der 3 is derder
     if a == 0  || (10000 * abs(a)) < abs(b)# coef3 is the coef of t^2
@@ -110,7 +110,7 @@ function minPosRoot(coeff::SVector{3,Float64}, ::Val{2}) # credit goes to github
 end
 
 
-function minPosRoot(coeff::Taylor0, ::Val{2}) # credit goes to github.com/CIFASIS/qss-solver
+function minPosRoot(coeff::Taylor0, ::Val{2}) # credit goes to github.com/CIFASIS/qss-solver # call from compute event(::Val{2})
   mpr=-1 
   a=coeff[2];b=coeff[1];c=coeff[0];  # a is coeff 3 because in taylor representation 1 is var 2 is der 3 is derder
   if a == 0  || (100000 * abs(a)) < abs(b)# coef3 is the coef of t^2
@@ -123,7 +123,7 @@ function minPosRoot(coeff::Taylor0, ::Val{2}) # credit goes to github.com/CIFASI
     if mpr < 0
       mpr = Inf
     end
-else 
+  else 
    #double disc;
     disc = b * b - 4 * a * c#b^2-4ac
   
@@ -147,15 +147,15 @@ else
       end
     end
     
-end
-if DEBUG2 && mpr!=Inf
-  sl=c+mpr*b+a*mpr*mpr
-  @show sl
-end
-return mpr
+  end
+  if DEBUG2 && mpr!=Inf
+    sl=c+mpr*b+a*mpr*mpr
+    @show sl
+  end
+  return mpr
 end
 
-function minPosRoot2(coeff::SVector{3,Float64}, ::Val{2}) # ben lauwens
+#= function minPosRoot2(coeff::SVector{3,Float64}, ::Val{2}) # ben lauwens
   mpr=-1 #coef1=c, coef2=b, coef3=a
   a=coeff[3];b=coeff[2];c=coeff[1]
   if a == 0 #|| (10000 * abs(coeff[3])) < abs(coeff[2])# coef3 is the coef of t^2
@@ -187,7 +187,7 @@ function minPosRoot2(coeff::SVector{3,Float64}, ::Val{2}) # ben lauwens
       
   end
   return mpr
-end
+end =#
 
 
 #= @inline function minPosRoot(coeffs::SVector{4,Float64}, ::Val{3})#where F <: AbstractFloat
@@ -241,72 +241,152 @@ function minPosRoot(ZCFun::Taylor0, ::Val{3})
   minPosRoot(coeffs,Val(3))
 
 end
-@inline function minPosRoot(coeffs::SVector{4,Float64}, ::Val{3})#where F <: AbstractFloat
-  if coeffs[4] == 0.0
-    coeffs2=@SVector[coeffs[1],coeffs[2],coeffs[3]]
-    return minPosRoot(coeffs2, Val(2))
-  end
-  _a = 1.0 / coeffs[4]
-  b, c, d = coeffs[3] * _a, coeffs[2] * _a, coeffs[1] * _a
-  m = b < c ? b : c
-  m = d < m ? d : m
-  m > 0.0 && return Inf#typemax(Float64) # Cauchy bound
-  _3 = 1.0 / 3
-  _9 = 1.0 / 9
-  SQ3 = sqrt(3.0)
-  xₙ = -b * _3
-  b²_9 = b * b * _9
-  yₙ = muladd(muladd(-2, b²_9, c), xₙ, d)   #eq to 2R
-  δ² = muladd(-_3, c, b²_9)                  #eq to Q
-  h² = 4δ² * δ² * δ²
-  Δ = muladd(yₙ, yₙ, -h²)
-  if Δ > 0.0 # one real root and two complex roots
-  p = yₙ < 0 ? cbrt(0.5 * (-yₙ + √Δ)) : cbrt(0.5 * (-yₙ - √Δ))
-  q = δ² / p
-  z = xₙ + p + q
-  z > 0.0 ? z : Inf#typemax(Float64)
-  elseif Δ < 0.0 # three real roots
-  θ = abs(yₙ) < 0.0 ? 0.5π * _3 : atan(√abs(Δ) / abs(yₙ)) * _3 # acos(-yₙ / √h²)
-  δ = yₙ < 0 ? √abs(δ²) : -√abs(δ²)
-  z₁ = 2δ * cos(θ)
-  z₂ = muladd(-0.5, z₁, xₙ)
-  z₃ = SQ3 * δ * sin(θ)
-  x₁ = xₙ + z₁
-  x₂ = z₂ + z₃
-  x₃ = z₂ - z₃
-  x = x₁ > 0.0 ? x₁ : Inf# typemax(F)
-  x = x₂ > 0.0 && x₂ < x ? x₂ : x
-  x₃ > 0.0 && x₃ < x ? x₃ : x
-  else # double or triple real roots
-  δ = cbrt(0.5yₙ)
-  x₁ = xₙ + δ
-  x₂ = xₙ - 2δ
-  x = x₁ > 0.0 ? x₁ : Inf#typemax(F)
-  x₂ > 0.0 && x₂ < x ? x₂ : x
-  end
-end
-###########later optimize
-
-#= @inline function minPosRoot(coeffs::NTuple{3,Float64}, ::Val{2}) 
-
-
-	_a = 1.0 / coeffs[1]
-	b, c = -0.5coeffs[2] * _a, coeffs[3] * _a
-	Δ = muladd(b, b, -c) # b * b - c
-	if Δ < -4eps() # Complex roots
-		Inf
-	elseif Δ > 4eps() # Real roots
-		if b > eps()
-			c > eps() ? c / (b + sqrt(Δ)) : b + sqrt(Δ)
-		elseif b < -eps()
-			c < eps() ? c / (b - sqrt(Δ)) : Inf
-		else
-			sqrt(-c)
+function quadRootv2(coeff::NTuple{3,Float64}) # call from mliqss1/simultupdate1
+	mpr=(-1.0,-1.0) #size 2 to use mpr[2] in quantizer
+	a=coeff[1];b=coeff[2];c=coeff[3]
+	if a == 0.0 || (1e7 * abs(a)) < abs(b)# coef3 is the coef of t^2
+		if b != 0.0
+		  if 0<-c / b<1e7  # neglecting a small 'a' then having a large h would cause an error  'a*h*h' because large
+		   mpr = (-c / b,-1.0)
+		  end
 		end
-	else # Double real root
-		b > -eps() ? b : Inf
+	elseif b==0.0
+		if -c/a>0
+		mpr = (sqrt(-c / a),-1.0)
+		end
+	elseif c==0.0
+		mpr=(-1.0,-b/a)
+	else 
+	   #double disc;
+	   Δ = 1.0 - 4.0*c*a / (b*b)
+		if Δ >0.0
+			#= q = -0.5*(1.0+sign(b)*sqrt(Δ))*b
+			r1 = q / a
+		   
+			r2=c / q =#
+			
+			sq=sqrt(Δ)
+			#@show  sq
+			r1=-0.5*(1.0+sq)*b/a
+			r2=-0.5*(1.0-sq)*b/a
+		 
+			mpr = (r1,r2)
+			#@show mpr
+		elseif Δ ==0.0
+			r1=-0.5*b/a
+			mpr = (r1,r1-1e-12)
+		end
 	end
-end =#
+	return mpr
+end
+
+ #=   function cubic5(a::Float64, b::Float64, c::Float64, d::Float64) # call from reComputeNextTime order3
+    _a = 1.0 / a
+    b, c, d = b * _a, c * _a, d * _a
+    m = b < c ? b : c
+    m = d < m ? d : m
+    m > 0.0 && return Inf#typemax(Float64) # Cauchy bound
+    _3 = 1.0 / 3
+    _9 = 1.0 / 9
+    SQ3 = sqrt(3.0)
+    xₙ = -b * _3
+    b²_9 = b * b * _9
+    yₙ = muladd(muladd(-2, b²_9, c), xₙ, d)   #eq to 2R
+    δ² = muladd(-_3, c, b²_9)                  #eq to Q
+    h² = 4δ² * δ² * δ²
+    Δ = muladd(yₙ, yₙ, -h²)
+    if Δ > 0.0 # one real root and two complex roots
+    p = yₙ < 0 ? cbrt(0.5 * (-yₙ + √Δ)) : cbrt(0.5 * (-yₙ - √Δ))
+    q = δ² / p
+    z = xₙ + p + q
+    z > 0.0 ? z : Inf#typemax(Float64)
+    elseif Δ < 0.0 # three real roots
+    θ = abs(yₙ) < 0.0 ? 0.5π * _3 : atan(√abs(Δ) / abs(yₙ)) * _3 # acos(-yₙ / √h²)
+    δ = yₙ < 0 ? √abs(δ²) : -√abs(δ²)
+    z₁ = 2δ * cos(θ)
+    z₂ = muladd(-0.5, z₁, xₙ)
+    z₃ = SQ3 * δ * sin(θ)
+    x₁ = xₙ + z₁
+    x₂ = z₂ + z₃
+    x₃ = z₂ - z₃
+    x = x₁ > 0.0 ? x₁ : Inf# typemax(Float64)
+    x = x₂ > 0.0 && x₂ < x ? x₂ : x
+    x₃ > 0.0 && x₃ < x ? x₃ : x
+    else # double or triple real roots
+    δ = cbrt(0.5yₙ)
+    x₁ = xₙ + δ
+    x₂ = xₙ - 2δ
+    x = x₁ > 0.0 ? x₁ : Inf#typemax(Float64)
+    x₂ > 0.0 && x₂ < x ? x₂ : x
+    end
+  end =#
+
+  #= @inline function minPosRoot(coeffs::SVector{4,Float64}, ::Val{3})#where F <: AbstractFloat
+    if coeffs[4] == 0.0
+      coeffs2=@SVector[coeffs[1],coeffs[2],coeffs[3]]
+      return minPosRoot(coeffs2, Val(2))
+    end
+    _a = 1.0 / coeffs[4]
+    b, c, d = coeffs[3] * _a, coeffs[2] * _a, coeffs[1] * _a
+    m = b < c ? b : c
+    m = d < m ? d : m
+    m > 0.0 && return Inf#typemax(Float64) # Cauchy bound
+    _3 = 1.0 / 3
+    _9 = 1.0 / 9
+    SQ3 = sqrt(3.0)
+    xₙ = -b * _3
+    b²_9 = b * b * _9
+    yₙ = muladd(muladd(-2, b²_9, c), xₙ, d)   #eq to 2R
+    δ² = muladd(-_3, c, b²_9)                  #eq to Q
+    h² = 4δ² * δ² * δ²
+    Δ = muladd(yₙ, yₙ, -h²)
+    if Δ > 0.0 # one real root and two complex roots
+    p = yₙ < 0 ? cbrt(0.5 * (-yₙ + √Δ)) : cbrt(0.5 * (-yₙ - √Δ))
+    q = δ² / p
+    z = xₙ + p + q
+    z > 0.0 ? z : Inf#typemax(Float64)
+    elseif Δ < 0.0 # three real roots
+    θ = abs(yₙ) < 0.0 ? 0.5π * _3 : atan(√abs(Δ) / abs(yₙ)) * _3 # acos(-yₙ / √h²)
+    δ = yₙ < 0 ? √abs(δ²) : -√abs(δ²)
+    z₁ = 2δ * cos(θ)
+    z₂ = muladd(-0.5, z₁, xₙ)
+    z₃ = SQ3 * δ * sin(θ)
+    x₁ = xₙ + z₁
+    x₂ = z₂ + z₃
+    x₃ = z₂ - z₃
+    x = x₁ > 0.0 ? x₁ : Inf# typemax(F)
+    x = x₂ > 0.0 && x₂ < x ? x₂ : x
+    x₃ > 0.0 && x₃ < x ? x₃ : x
+    else # double or triple real roots
+    δ = cbrt(0.5yₙ)
+    x₁ = xₙ + δ
+    x₂ = xₙ - 2δ
+    x = x₁ > 0.0 ? x₁ : Inf#typemax(F)
+    x₂ > 0.0 && x₂ < x ? x₂ : x
+    end
+  end =#
+  ###########later optimize
+
+  #= @inline function minPosRoot(coeffs::NTuple{3,Float64}, ::Val{2}) 
+
+
+    _a = 1.0 / coeffs[1]
+    b, c = -0.5coeffs[2] * _a, coeffs[3] * _a
+    Δ = muladd(b, b, -c) # b * b - c
+    if Δ < -4eps() # Complex roots
+      Inf
+    elseif Δ > 4eps() # Real roots
+      if b > eps()
+        c > eps() ? c / (b + sqrt(Δ)) : b + sqrt(Δ)
+      elseif b < -eps()
+        c < eps() ? c / (b - sqrt(Δ)) : Inf
+      else
+        sqrt(-c)
+      end
+    else # Double real root
+      b > -eps() ? b : Inf
+    end
+  end =#
 
 #coef=@SVector [-5.144241008311048e7, -8938.3815305787700, -0.2906652780025, 1e-6]
 #coef=@SVector [17, -239999.2196676244, -2.5768276401549883e-12]

@@ -10,11 +10,11 @@ end
   x.coeffs[2] = x.coeffs[2]+elapsed*x.coeffs[3]*2
 end
 
-@inline function integrateState(::Val{3}, x::Taylor0,elapsed::Float64) 
+#= @inline function integrateState(::Val{3}, x::Taylor0,elapsed::Float64) 
   x.coeffs[1] = x(elapsed)
   x.coeffs[2] = x.coeffs[2]+elapsed*x.coeffs[3]*2+elapsed*elapsed*x.coeffs[4]*3
   x.coeffs[3] = x.coeffs[3]+elapsed*x.coeffs[4]*3#(x.coeffs[3]*2+elapsed*x.coeffs[4]*6)/2
-end
+end =#
 
 
 ######################################################################################################################################"
@@ -28,9 +28,9 @@ function computeDerivative( ::Val{2}  ,x::Taylor0,f::Taylor0)
     return nothing
 end
 
-function computeDerivative( ::Val{3}  ,x::Taylor0,f::Taylor0)
+#= function computeDerivative( ::Val{3}  ,x::Taylor0,f::Taylor0)
   x.coeffs[2] =f[0]
   x.coeffs[3]=f.coeffs[2]/2
   x.coeffs[4]=f.coeffs[3]/3 # coeff3*2/6
   return nothing
-end
+end =#

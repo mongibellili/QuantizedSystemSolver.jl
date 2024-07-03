@@ -14,6 +14,7 @@ using QuantizedSystemSolver
             "Home" => "index.md",
             "QSS Problem" => "Problem.md",
             "Taylor Object" => "Taylor0.md",
+            "Algorithms" => "Algorithm.md",
         ]
     )
 

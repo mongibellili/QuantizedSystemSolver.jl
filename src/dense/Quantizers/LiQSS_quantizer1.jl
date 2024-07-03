@@ -452,7 +452,7 @@ function Liqss_reComputeNextTime(::Val{1}, i::Int, simt::Float64, nextStateTime:
     dt=0.0; q=qv[i][0];x=xv[i][0];x1=xv[i][1]
     if abs(q-x) >= 2*quantum[i] # this happened when var i and j s turns are now...var i depends on j, j is asked here for next time...or if you want to increase quant*10 later it can be put back to normal and q & x are spread out by 10quan
         nextStateTime[i] = simt+1e-12
-        @show simt,i
+       # @show simt,i
     else
                 if x1 !=0.0 #&& abs(q-x)>quantum[i]/10
                     dt=(q-x)/x1

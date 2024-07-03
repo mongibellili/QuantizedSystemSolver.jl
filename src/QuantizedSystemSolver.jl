@@ -84,9 +84,8 @@ import Base:  sqrt, exp, log, sin, cos, sincos, tan,
        
     #Utils
     include("Utils/rootfinders/SimUtils.jl") 
-   # include("Utils/rootfinders/intervalNewton.jl") 
-   include("Utils/rootfinders/inter9-var.jl") 
-    include("Utils/rootfinders/compare_cubics_smallPos.jl") 
+  
+   
     
     
     #Common
@@ -94,7 +93,7 @@ import Base:  sqrt, exp, log, sin, cos, sincos, tan,
     include("Common/QSSNL_AbstractTypes.jl")
     include("Common/Solution.jl")
     include("Common/SolutionPlot.jl")
-    include("Common/SolutionDerPlot.jl")
+  
     include("Common/SolutionError.jl")
 
 
@@ -129,10 +128,10 @@ import Base:  sqrt, exp, log, sin, cos, sincos, tan,
    include("dense/Quantizers/QSS_quantizer.jl")
     include("dense/Quantizers/LiQSS_quantizer1.jl")
     include("dense/Quantizers/LiQSS_quantizer2.jl")
-    include("dense/Quantizers/LiQSS_quantizer3.jl")
+    #include("dense/Quantizers/LiQSS_quantizer3.jl")
     include("dense/Quantizers/mLiQSS_quantizer1.jl")
     include("dense/Quantizers/mLiQSS_quantizer2.jl")
-    include("dense/Quantizers/mLiQSS_quantizer3.jl")
+    #include("dense/Quantizers/mLiQSS_quantizer3.jl")
 
 
   

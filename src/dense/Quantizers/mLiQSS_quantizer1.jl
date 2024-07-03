@@ -1,59 +1,31 @@
 #analy
 function nmisCycle_and_simulUpdate(cacheRootsi::Vector{Float64},cacheRootsj::Vector{Float64},acceptedi::Vector{Vector{Float64}},acceptedj::Vector{Vector{Float64}},aij::Float64,aji::Float64,respp::Ptr{Float64}, pp::Ptr{NTuple{2,Float64}},trackSimul,::Val{1},index::Int,j::Int,dirI::Float64,dti::Float64, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64},exacteA::Function,d::Vector{Float64},cacheA::MVector{1,Float64},dxaux::Vector{MVector{1,Float64}},qaux::Vector{MVector{1,Float64}},tx::Vector{Float64},tq::Vector{Float64},simt::Float64,ft::Float64)
- 
-  cacheA[1]=0.0;exacteA(q,d,cacheA,index,index,simt)
+   cacheA[1]=0.0;exacteA(q,d,cacheA,index,index,simt)
   aii=cacheA[1]
   cacheA[1]=0.0;exacteA(q,d,cacheA,j,j,simt)
   ajj=cacheA[1]
- #=  exacteA(q,cacheA,index,j)
-  aij=cacheA[1]
-  exacteA(q,cacheA,j,index)
-  aji=cacheA[1] =#
-
-
   xi=x[index][0];xj=x[j][0];ẋi=x[index][1];ẋj=x[j][1]
   qi=q[index][0];qj=q[j][0]
   quanj=quantum[j];quani=quantum[index]
-  #qaux[j][1]=qj;
   elapsed = simt - tx[j];x[j][0]= xj+elapsed*ẋj;
-
   xj=x[j][0]
   tx[j]=simt
-
- qiminus=qaux[index][1]
-   #ujj=ẋj-ajj*qj
-    uji=ẋj-ajj*qj-aji*qiminus
-    #uii=dxaux[index][1]-aii*qaux[index][1]
-    uij=dxaux[index][1]-aii*qiminus-aij*qj
-    iscycle=false
-    dxj=aji*qi+ajj*qj+uji #only future qi   #emulate fj
-   
-    
-
-    dxithrow=aii*qi+aij*qj+uij #only future qi
-                                                      
+  qiminus=qaux[index][1]
+  uji=ẋj-ajj*qj-aji*qiminus
+  uij=dxaux[index][1]-aii*qiminus-aij*qj
+  iscycle=false
+  dxj=aji*qi+ajj*qj+uji #only future qi   #emulate fj
+  dxithrow=aii*qi+aij*qj+uij #only future qi                                          
   qjplus=xj+sign(dxj)*quanj  #emulate updateQ(j)...
-
-    dxi=aii*qi+aij*qjplus+uij #both future qi & qj   #emulate fi
-    #dxj2=ajj*qjplus+aji*qi+uji
-    
-  
-   #=  if abs(dxithrow)<1e-15 && dxithrow!=0.0
-      dxithrow=0.0
-    end =#
-                             
+  dxi=aii*qi+aij*qjplus+uij #both future qi & qj   #emulate fi
+           
    ########condition:Union 
  #= if abs(dxj)*3<abs(ẋj) || abs(dxj)>3*abs(ẋj) || (dxj*ẋj)<0.0 
     if abs(dxi)>3*abs(ẋi) || abs(dxi)*3<abs(ẋi) ||  (dxi*ẋi)<0.0 
         iscycle=true
     end
   end   =#                           
-    ########condition:Union i
-  #=   if abs(dxj-ẋj)>(abs(dxj+ẋj)/2)  
-      if abs(dxi-dxithrow)>(abs(dxi+dxithrow)/2) 
-        iscycle=true
-      end
-    end =#
+ 
     ########condition:Union i union
     if (abs(dxj)*3<abs(ẋj) || abs(dxj)>3*abs(ẋj) || (dxj*ẋj)<0.0)
       cancelCriteria=1e-6*quani
@@ -78,17 +50,7 @@ function nmisCycle_and_simulUpdate(cacheRootsi::Vector{Float64},cacheRootsj::Vec
       end
 
     end   
-   
-
-    #=  if 9.087757893221387e-5<=simt<=9.23684654009e-5
-      println("simulUpdate $iscycle at simt=$simt index=$index, j=$j")
-      @show  ẋi,dxi,dxithrow,ẋj,dxj
-      @show qj,xj
-     
-      
-     end  =#
-  
- 
+    
   if iscycle
     #clear accIntrvals and cache of roots
     for i =1:3# 3 ord1 ,7 ord2
@@ -99,103 +61,74 @@ function nmisCycle_and_simulUpdate(cacheRootsi::Vector{Float64},cacheRootsj::Vec
       cacheRootsi[i]=0.0
       cacheRootsj[i]=0.0
     end
-   
-      
-       #find positive zeros f=+-Δ
-      bi=aii*xi+aij*xj+uij;ci=aij*(aji*xi+uji)-ajj*(aii*xi+uij);αi=-ajj-aii;βi=aii*ajj-aij*aji
-      bj=ajj*xj+aji*xi+uji;cj=aji*(aij*xj+uij)-aii*(ajj*xj+uji);αj=-aii-ajj;βj=ajj*aii-aji*aij
-    
-      coefi=NTuple{3,Float64}((βi*quani-ci,αi*quani-bi,quani))
-      coefi2=NTuple{3,Float64}((-βi*quani-ci,-αi*quani-bi,-quani))
-      coefj=NTuple{3,Float64}((βj*quanj-cj,αj*quanj-bj,quanj))
-      coefj2=NTuple{3,Float64}((-βj*quanj-cj,-αj*quanj-bj,-quanj))
 
-   
-
-
-      resi1,resi2=quadRootv2(coefi)
-      resi3,resi4=quadRootv2(coefi2)
-      resj1,resj2=quadRootv2(coefj)
-      resj3,resj4=quadRootv2(coefj2)
-     #=  unsafe_store!(respp, -1.0, 1);unsafe_store!(respp, -1.0, 2)
-      allrealrootintervalnewtonregulafalsi(coefi,respp,pp)
-      resi1,resi2=unsafe_load(respp,1),unsafe_load(respp,2) 
-   
-      unsafe_store!(respp, -1.0, 1);unsafe_store!(respp, -1.0, 2)
-      allrealrootintervalnewtonregulafalsi(coefi2,respp,pp)
-      resi3,resi4=unsafe_load(respp,1),unsafe_load(respp,2) 
+    #find positive zeros f=+-Δ
+    bi=aii*xi+aij*xj+uij;ci=aij*(aji*xi+uji)-ajj*(aii*xi+uij);αi=-ajj-aii;βi=aii*ajj-aij*aji
+    bj=ajj*xj+aji*xi+uji;cj=aji*(aij*xj+uij)-aii*(ajj*xj+uji);αj=-aii-ajj;βj=ajj*aii-aji*aij
   
-      unsafe_store!(respp, -1.0, 1);unsafe_store!(respp, -1.0, 2)
-      allrealrootintervalnewtonregulafalsi(coefj,respp,pp)
-      resj1,resj2=unsafe_load(respp,1),unsafe_load(respp,2) 
-     
-      unsafe_store!(respp, -1.0, 1);unsafe_store!(respp, -1.0, 2)
-      allrealrootintervalnewtonregulafalsi(coefj2,respp,pp)
-      resj3,resj4=unsafe_load(respp,1),unsafe_load(respp,2)  =#
-      
-
-
-
-      #construct intervals
-      constructIntrval(acceptedi,resi1,resi2,resi3,resi4)
-
-      constructIntrval(acceptedj,resj1,resj2,resj3,resj4)
-  
-      #find best H (largest overlap)
-      ki=3;kj=3
-      while true
-            currentLi=acceptedi[ki][1];currentHi=acceptedi[ki][2]
-            currentLj=acceptedj[kj][1];currentHj=acceptedj[kj][2]
-            if currentLj<=currentLi<currentHj || currentLi<=currentLj<currentHi#resj[end][1]<=resi[end][1]<=resj[end][2] || resi[end][1]<=resj[end][1]<=resi[end][2] #overlap
-                        h=min(currentHi,currentHj )
-                        #= if simt==6.167911302732222e-9
-                          @show h
-                        end =#
-                        if h==Inf && (currentLj!=0.0 || currentLi!=0.0) # except case both  0 sols  h1=(0,Inf)
-                          h=max(currentLj,currentLi#= ,ft-simt,dti =#) #ft-simt in case they are both ver small...elaborate on his later
-                        end
-                        if h==Inf # both lower bounds ==0  --> zero sols for both
-                          qi=getQfromAsymptote(simt,xi,βi,ci,αi,bi)
-                          qj=getQfromAsymptote(simt,xj,βj,cj,αj,bj)
-                         
-                      
-                        else
-                            Δ=(1-h*aii)*(1-h*ajj)-h*h*aij*aji
-                            if Δ!=0.0
-                              qi = ((1-h*ajj)*(xi+h*uij)+h*aij*(xj+h*uji))/Δ
-                              qj = ((1-h*aii)*(xj+h*uji)+h*aji*(xi+h*uij))/Δ
-                            else
-                              qi,qj,h,maxIter=IterationH(h,xi,quani, xj,quanj,aii,ajj,aij,aji,uij,uji)
-                              if maxIter==0
-                                return false
-                              end
-                            end
-                        end
-                        break
-            else
-                      if currentHj==0.0 && currentHi==0.0#empty
-                        ki-=1;kj-=1
-                      elseif currentHj==0.0 && currentHi!=0.0
-                        kj-=1
-                      elseif currentHi==0.0 && currentHj!=0.0
-                        ki-=1
-                      else #both non zero
-                            if currentLj<currentLi#remove last seg of resi
-                              ki-=1
-                            else #remove last seg of resj
-                              kj-=1
-                            end
+    coefi=NTuple{3,Float64}((βi*quani-ci,αi*quani-bi,quani))
+    coefi2=NTuple{3,Float64}((-βi*quani-ci,-αi*quani-bi,-quani))
+    coefj=NTuple{3,Float64}((βj*quanj-cj,αj*quanj-bj,quanj))
+    coefj2=NTuple{3,Float64}((-βj*quanj-cj,-αj*quanj-bj,-quanj))
+    resi1,resi2=quadRootv2(coefi)
+    resi3,resi4=quadRootv2(coefi2)
+    resj1,resj2=quadRootv2(coefj)
+    resj3,resj4=quadRootv2(coefj2)
+    #construct intervals
+    constructIntrval(acceptedi,resi1,resi2,resi3,resi4)
+    constructIntrval(acceptedj,resj1,resj2,resj3,resj4)
+    #find best H (largest overlap)
+    ki=3;kj=3
+    while true
+          currentLi=acceptedi[ki][1];currentHi=acceptedi[ki][2]
+          currentLj=acceptedj[kj][1];currentHj=acceptedj[kj][2]
+          if currentLj<=currentLi<currentHj || currentLi<=currentLj<currentHi#resj[end][1]<=resi[end][1]<=resj[end][2] || resi[end][1]<=resj[end][1]<=resi[end][2] #overlap
+                      h=min(currentHi,currentHj )
+                      #= if simt==6.167911302732222e-9
+                        @show h
+                      end =#
+                      if h==Inf && (currentLj!=0.0 || currentLi!=0.0) # except case both  0 sols  h1=(0,Inf)
+                        h=max(currentLj,currentLi#= ,ft-simt,dti =#) #ft-simt in case they are both ver small...elaborate on his later
                       end
-            end
+                      if h==Inf # both lower bounds ==0  --> zero sols for both
+                        qi=getQfromAsymptote(simt,xi,βi,ci,αi,bi)
+                        qj=getQfromAsymptote(simt,xj,βj,cj,αj,bj)
+                        
+                    
+                      else
+                          Δ=(1-h*aii)*(1-h*ajj)-h*h*aij*aji
+                          if Δ!=0.0
+                            qi = ((1-h*ajj)*(xi+h*uij)+h*aij*(xj+h*uji))/Δ
+                            qj = ((1-h*aii)*(xj+h*uji)+h*aji*(xi+h*uij))/Δ
+                          else
+                            qi,qj,h,maxIter=IterationH(h,xi,quani, xj,quanj,aii,ajj,aij,aji,uij,uji)
+                            if maxIter==0
+                              return false
+                            end
+                          end
+                      end
+                      break
+          else
+                    if currentHj==0.0 && currentHi==0.0#empty
+                      ki-=1;kj-=1
+                    elseif currentHj==0.0 && currentHi!=0.0
+                      kj-=1
+                    elseif currentHi==0.0 && currentHj!=0.0
+                      ki-=1
+                    else #both non zero
+                          if currentLj<currentLi#remove last seg of resi
+                            ki-=1
+                          else #remove last seg of resj
+                            kj-=1
+                          end
+                    end
+          end
 
-      end # end while
-          
-      q[j][0]=qj
-      tq[j]=simt 
-      q[index][0]=qi# store back helper vars
-      trackSimul[1]+=1 # do not have to recomputeNext if qi never changed
-     
-  
+    end # end while       
+    q[j][0]=qj
+    tq[j]=simt 
+    q[index][0]=qi# store back helper vars
+    trackSimul[1]+=1 # do not have to recomputeNext if qi never changed
   end
   return iscycle
 end   

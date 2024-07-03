@@ -31,7 +31,7 @@ function getErrorByRefs(solRef::Vector{Any},solmliqss::Sol{T,O},index::Int)where
 end
 
 
-function getAllErrorsByRefs(solRef::Vector{Any},solmliqss::Sol{T,O})where{T,O}
+#= function getAllErrorsByRefs(solRef::Vector{Any},solmliqss::Sol{T,O})where{T,O}
   numPoints=length(solmliqss.savedTimes[1])
   allErrors=Array{Float64}(undef, T)
   for index=1:T
@@ -49,13 +49,13 @@ function getAllErrorsByRefs(solRef::Vector{Any},solmliqss::Sol{T,O})where{T,O}
       allErrors[index]= relerror
   end
   return allErrors
-end
-@inline function getX_fromSavedVars(savedVars :: Vector{Array{Taylor0}},index::Int,i::Int)
+end =#
+#= @inline function getX_fromSavedVars(savedVars :: Vector{Array{Taylor0}},index::Int,i::Int)
   return savedVars[index][i].coeffs[1]
 end
 @inline function getX_fromSavedVars(savedVars :: Vector{Vector{Float64}},index::Int,i::Int)
   return savedVars[index][i]
-end
+end =#
 
 function getAverageErrorByRefs(solRef::Vector{Any},solmliqss::Sol{T,O})where{T,O}
   numPoints=length(solmliqss.savedTimes[1])
@@ -83,7 +83,7 @@ end
 
 
 
-
+#= 
 function plotRelativeError(sol::Sol,index::Int,f::Function)
   numPoints=length(sol.savedTimes)
   numVars=length(sol.savedVars)
@@ -223,3 +223,4 @@ function plotMSE(sol::Sol,index::Int,f::Function)
   println("press enter to exit")
   readline()
 end
+ =#

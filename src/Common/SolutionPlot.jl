@@ -114,7 +114,7 @@ function save_SolSum(sol::Sol{T,O},xvars::Int...;interp=0.0001,note=" "::String,
   savefig(p1, "plot_$(sol.sysName)_$(sol.algName)_$(xvars)_$(sol.absQ)_$(note)_ft_$(sol.ft)_$(timestamp).png")
 end
 #for debug to be deleted later: simultaneous steps plot
-function save_SimulSol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64}) where{T,O}
+#= function save_SimulSol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64}) where{T,O}
   p1=plot()
   mydate=now()
   timestamp=(string(year(mydate),"_",month(mydate),"_",day(mydate),"_",hour(mydate),"_",minute(mydate),"_",second(mydate)))
@@ -140,7 +140,7 @@ function save_SimulSol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0
     p1=plot!(p1, title="$(sol.sysName)_$(sol.algName)_$(sol.absQ)_$(sol.totalSteps)_$(sol.simulStepCount) \n $note")
   end
   savefig(p1, "plot_$(sol.sysName)_$(sol.algName)_$(sol.absQ)_$(note)_ft_$(sol.ft)_$(timestamp).png")
-end
+end =#
 
 
 

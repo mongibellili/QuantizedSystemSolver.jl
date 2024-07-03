@@ -46,7 +46,7 @@ function computeNextTime(::Val{2}, i::Int, simt::Float64, nextTime::Vector{Float
       end
       return nothing
 end
-function computeNextTime(::Val{3}, i::Int, simt::Float64, nextTime::Vector{Float64}, x::Vector{Taylor0}, quantum::Vector{Float64})
+#= function computeNextTime(::Val{3}, i::Int, simt::Float64, nextTime::Vector{Float64}, x::Vector{Taylor0}, quantum::Vector{Float64})
   absDeltaT=1e-12 # minimum deltaT to protect against der=Inf coming from sqrt(0) for example...similar to min ΔQ
     if (x[i].coeffs[4]) != 0
         tempTime=max(cbrt(abs(quantum[i] / ((x[i].coeffs[4])))),absDeltaT)   #6/6
@@ -61,7 +61,7 @@ function computeNextTime(::Val{3}, i::Int, simt::Float64, nextTime::Vector{Float
       nextTime[i] = Inf
     end
     return nothing
-end
+end =#
 ######################################################################################################################################"
 function reComputeNextTime(::Val{1}, index::Int, simt::Float64, nextTime::Vector{Float64}, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64})
   absDeltaT=1e-12
@@ -108,7 +108,7 @@ function reComputeNextTime(::Val{2}, index::Int, simt::Float64, nextTime::Vector
   return nothing
 end
   
-function reComputeNextTime(::Val{3}, index::Int, simt::Float64, nextTime::Vector{Float64}, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64})
+#= function reComputeNextTime(::Val{3}, index::Int, simt::Float64, nextTime::Vector{Float64}, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64})
   #coef=@SVector [q[index].coeffs[1] - (x[index].coeffs[1]) - quantum[index], q[index].coeffs[2]-x[index].coeffs[2],(q[index].coeffs[3])-(x[index].coeffs[3]),-(x[index].coeffs[4])]
   #time1 = simt + minPosRoot(coef, Val(3))
   #pp=pointer(Vector{NTuple{2,Float64}}(undef, 5))
@@ -131,9 +131,9 @@ function reComputeNextTime(::Val{3}, index::Int, simt::Float64, nextTime::Vector
   nextTime[index] = simt +tempTime
 
   return nothing
-end
+end =#
 ######################################################################################################################################"
-function computeNextInputTime(::Val{1}, i::Int, simt::Float64,elapsed::Float64, tt::Taylor0 ,nextInputTime::Vector{Float64}, x::Vector{Taylor0}, quantum::Vector{Float64})
+#= function computeNextInputTime(::Val{1}, i::Int, simt::Float64,elapsed::Float64, tt::Taylor0 ,nextInputTime::Vector{Float64}, x::Vector{Taylor0}, quantum::Vector{Float64})
     df=0.0
     oldDerX=x[i].coeffs[2]
     newDerX=tt.coeffs[1] 
@@ -222,7 +222,7 @@ function computeNextInputTime(::Val{3}, i::Int, simt::Float64,elapsed::Float64, 
   end
     return nothing
 end
-
+ =#
 
 
 

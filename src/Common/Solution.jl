@@ -14,7 +14,7 @@ struct LightSol{T,O}<:Sol{T,O}
   numSteps ::Vector{Int}
   ft::Float64
 end
-struct HeavySol{T,O}<:Sol{T,O}
+#= struct HeavySol{T,O}<:Sol{T,O}
   size::Val{T}
   order::Val{O}
   savedTimes::Vector{Vector{Float64}}
@@ -29,7 +29,7 @@ struct HeavySol{T,O}<:Sol{T,O}
   evCount::Int
   numSteps ::Vector{Int}
   ft::Float64
-end
+end =#
 
 
 @inline function createSol(::Val{T},::Val{O}, savedTimes:: Vector{Vector{Float64}},savedVars :: Vector{Vector{Float64}},solver::String,nameof_F::String,absQ::Float64,totalSteps::Int#= ,stepsaftersimul::Int =#,simulStepCount::Int,evCount::Int,numSteps ::Vector{Int},ft::Float64#= ,simulStepsVals :: Vector{Vector{Float64}},  simulStepsDers :: Vector{Vector{Float64}}  ,simulStepsTimes :: Vector{Vector{Float64}} =#)where {T,O}
@@ -37,10 +37,10 @@ end
   sol=LightSol(Val(T),Val(O),savedTimes, savedVars,solver,nameof_F,absQ,totalSteps#= ,stepsaftersimul =#,simulStepCount,evCount,numSteps,ft#= ,simulStepsVals,simulStepsDers,simulStepsTimes =#)
 end
 
-@inline function createSol(::Val{T},::Val{O}, savedTimes:: Vector{Vector{Float64}},savedVars :: Vector{Vector{Float64}},savedDers :: Vector{Vector{Float64}},solver::String,nameof_F::String,absQ::Float64,totalSteps::Int#= ,stepsaftersimul::Int =#,simulStepCount::Int,evCount::Int,numSteps ::Vector{Int},ft::Float64#= ,simulStepsVals :: Vector{Vector{Float64}},  simulStepsDers :: Vector{Vector{Float64}}  ,simulStepsTimes :: Vector{Vector{Float64}} =#)where {T,O}
+#= @inline function createSol(::Val{T},::Val{O}, savedTimes:: Vector{Vector{Float64}},savedVars :: Vector{Vector{Float64}},savedDers :: Vector{Vector{Float64}},solver::String,nameof_F::String,absQ::Float64,totalSteps::Int#= ,stepsaftersimul::Int =#,simulStepCount::Int,evCount::Int,numSteps ::Vector{Int},ft::Float64#= ,simulStepsVals :: Vector{Vector{Float64}},  simulStepsDers :: Vector{Vector{Float64}}  ,simulStepsTimes :: Vector{Vector{Float64}} =#)where {T,O}
   # println("light")
    sol=HeavySol(Val(T),Val(O),savedTimes, savedVars,savedDers,solver,nameof_F,absQ,totalSteps#= ,stepsaftersimul =#,simulStepCount,evCount,numSteps,ft#= ,simulStepsVals,simulStepsDers,simulStepsTimes =#)
- end
+ end =#
 
 function getindex(s::Sol, i::Int64)
   if i==1
@@ -147,7 +147,7 @@ end
 (sol::Sol)(index::Int,t::Float64) = evaluateSol(sol,index,t)
 ####################################################################################################
   
-function plotElapsed(sol::Sol)
+#= function plotElapsed(sol::Sol)
   numVars=length(sol.savedVars)
   p1=plot()
   for k=1:numVars#T
@@ -156,4 +156,4 @@ function plotElapsed(sol::Sol)
     p1=plot!(legend=:topleft,xlims=(16.0,20.0),ylims=(0.0,0.5))
   end
   savefig(p1, "trackELAPSED_$(sol.sysName)_$(sol.algName)_$(sol.absQ).png")
-end
+end =#

@@ -1,6 +1,6 @@
 using QuantizedSystemSolver
 using Test
-
+include("Taylor0test.jl")
 @testset "QuantizedSystemSolver.jl" begin
     # Write your tests here.
     odeprob = NLodeProblem(quote
@@ -22,9 +22,7 @@ using Test
     @test odeprob.b == Val(0)
     @test odeprob.c == Val(0)
     @test odeprob.prtype == Val(1)
-    tspan=(0.0,1.0)
-    sol=solve(odeprob,nmliqss1(),tspan)
-    @test sol.algName == "nmliqss1"
+   
     
     Order=1
     cache=Array{Taylor0,1}()# cache= vector of taylor0s of size CS
@@ -38,4 +36,9 @@ using Test
     
      odeprob.eqs(1, q, t, cache)
      @test cache[1][0]==-20.0*1.0-80.0*2.0+1600.0
+
+     tspan=(0.0,1.0)
+     sol=solve(odeprob,nmliqss1(),tspan)
+     @test sol.algName == "nmliqss1"
+     @test sol(2,0.5) == 19.076750604345154
 end

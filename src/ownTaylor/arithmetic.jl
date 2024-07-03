@@ -17,7 +17,7 @@ function ==(a::Taylor0, b::Taylor0)
     end =#
     return a.coeffs == b.coeffs
 end
-iszero(a::Taylor0) = iszero(a.coeffs)
+#iszero(a::Taylor0) = iszero(a.coeffs)
 ## zero and one ##
  zero(a::Taylor0) = Taylor0(zero.(a.coeffs))
  function zero(a::Taylor0,cache::Taylor0)
@@ -67,12 +67,7 @@ end
 #= (+)(b::S, a::Taylor0) where {T<:Number,S<:Number} =
     (+)(promote(b,a)...) =#
 
-function (+)(b::T, a::Taylor0) where {T<:Number}
-    coeffs = similar(a.coeffs)
-    @__dot__ coeffs = (+)(a.coeffs)
-    @inbounds coeffs[1] = (+)(b, a[0])
-    return Taylor0(coeffs, a.order)
-end
+ (+)(b::T, a::Taylor0) where {T<:Number} = (+)(a,b)
 
        
 ## substraction ##
