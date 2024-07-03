@@ -155,7 +155,7 @@
                 cachexpr2 = Expr(:ref, :cache)   
                 push!(cachexpr2.args,length(cachexpr_lengthtracker.args))#construct cache[2]
                 push!(x.args, cachexpr2)        
-      elseif false #holder for "myviewing" for next symbol for other functions...
+      elseif false #holder for "myviewing" for next symbol for other functions...for example ^ to be transformed to powerT
          
       end
       return x # this is the line that actually enables modification of the original expression (prewalk only)

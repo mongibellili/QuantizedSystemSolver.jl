@@ -131,6 +131,29 @@ end
     return nothing
 end
 
+function abs(a::Taylor0,cache1::Taylor0)
+    if constant_term(a) > 0
+        return a
+    elseif constant_term(a) < 0
+        @__dot__ cache1.coeffs = (-)(a.coeffs)
+        return cache1
+    else
+        cache1.coeffs .=Inf # no need to throw error, Inf is fine...for my solver i deal with it by guarding against small steps
+        cache1[0]=0.0
+        return cache1
+        #= throw(DomainError(a, 
+        """The 0th order Taylor0 coefficient must be non-zero
+        (abs(x) is not differentiable at x=0).""")) =#
+    end
+end
+function abs(a::T,cache1::Taylor0) where {T<:Number}
+        cache1[0]=abs(a)
+        return cache1
+        #= throw(DomainError(a, 
+        """The 0th order Taylor0 coefficient must be non-zero
+        (abs(x) is not differentiable at x=0).""")) =#
+
+end
 
 
 

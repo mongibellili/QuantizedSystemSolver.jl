@@ -60,7 +60,7 @@ import Base:  sqrt, exp, log, sin, cos, sincos, tan,
     export NLodeProblem#= , @NLodeProblem,@saveNLodeProblem =#,solve,save_prob_to_model,QSS_Solve_from_model,solInterpolated
     export Sol,getErrorByRodas,getAllErrorsByRefs,getAverageErrorByRefs
 
-    export Taylor0,mulT,mulTT,createT,addsub,negateT,subsub,subadd,subT,addT,muladdT,mulsub,divT # in case to save into a file, otherwise remove
+    export Taylor0,mulT,mulTT,createT,addsub,negateT,subsub,subadd,subT,addT,muladdT,mulsub,divT,powerT # in case to save into a file, otherwise remove
 
    export savedNLODEContProblem,savedNLODEDiscProblem,EventDependencyStruct
  
@@ -68,19 +68,17 @@ import Base:  sqrt, exp, log, sin, cos, sincos, tan,
  
 
     #include section of ts subcomponent
-   # include("ownTaylor/parameters.jl")  
+  
     include("ownTaylor/constructors.jl") 
-   # include("ownTaylor/conversion.jl")        
     include("ownTaylor/arithmetic.jl")
     include("ownTaylor/arithmeticT.jl")
     include("ownTaylor/functions.jl")
     include("ownTaylor/functionsT.jl")
     include("ownTaylor/power.jl")
     include("ownTaylor/powerT.jl")
-    include("ownTaylor/auxiliary.jl") 
     include("ownTaylor/calculus.jl")    
-    include("ownTaylor/other_functions.jl")
-    include("ownTaylor/evaluate.jl")       
+ 
+          
        
     #Utils
     include("Utils/rootfinders/SimUtils.jl") 

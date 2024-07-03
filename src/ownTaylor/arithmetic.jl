@@ -130,16 +130,6 @@ end
 
 
 
-
-#= function *(a::T, b::Taylor0{S}) where {T<:NumberNotSeries,S<:NumberNotSeries}
-    @inbounds aux = a * b.coeffs[1]
-    v = Array{typeof(aux)}(undef, length(b.coeffs))
-    @__dot__ v = a * b.coeffs
-    return Taylor0(v, b.order)
-end
-
-*(b::Taylor0{S}, a::T) where {T<:NumberNotSeries,S<:NumberNotSeries} = a * b =#
-
 function (*)(a::T, b::Taylor0) where {T<:Number}
     v = Array{T}(undef, length(b.coeffs))
     @__dot__ v = a * b.coeffs
@@ -159,54 +149,7 @@ end
         return nothing
     end
 
-#=     @inline function mul!(v::Taylor0, a::Taylor0, b::NumberNotSeries, k::Int)
-        @inbounds v[k] = a[k] * b
-        return nothing
-    end
-    @inline function mul!(v::Taylor0, a::NumberNotSeries, b::Taylor0, k::Int)
-        @inbounds v[k] = a * b[k]
-        return nothing
-    end =#
 
-#= 
-@doc doc"""
-    mul!(c, a, b, k::Int) --> nothing
-
-Update the `k`-th expansion coefficient `c[k]` of `c = a * b`,
-where all `c`, `a`, and `b` are either `Taylor0` or `TaylorN`.
-
-The coefficients are given by
-
-```math
-c_k = \sum_{j=0}^k a_j b_{k-j}.
-```
-
-""" mul!
-
-
-"""
-    mul!(c, a, b) --> nothing
-
-Return `c = a*b` with no allocation; all arguments are `HomogeneousPolynomial`.
-
-"""
- =#
-
-
-## Division ##
-#= function /(a::Taylor0{Rational{T}}, b::S) where {T<:Integer,S<:NumberNotSeries}
-    R = typeof( a[0] // b)
-    v = Array{R}(undef, a.order+1)
-    @__dot__ v = a.coeffs // b
-    return Taylor0(v, a.order)
-end =#
-
-#= function /(a::Taylor0, b::S) where {T<:NumberNotSeries,S<:NumberNotSeries}
-    @inbounds aux = a.coeffs[1] / b
-    v = Array{typeof(aux)}(undef, length(a.coeffs))
-    @__dot__ v = a.coeffs / b
-    return Taylor0(v, a.order)
-end =#
 
 function /(a::Taylor0, b::T) where {T<:Number}
     @inbounds aux = a.coeffs[1] / b
@@ -252,25 +195,7 @@ end
 end
 
 
-## TODO: Implement factorization (divfactorization) for TaylorN polynomials
 
-#= 
-# Homogeneous coefficient for the division
-@doc doc"""
-    div!(c, a, b, k::Int)
-
-Compute the `k-th` expansion coefficient `c[k]` of `c = a / b`,
-where all `c`, `a` and `b` are either `Taylor0` or `TaylorN`.
-
-The coefficients are given by
-
-```math
-c_k =  \frac{1}{b_0} \big(a_k - \sum_{j=0}^{k-1} c_j b_{k-j}\big).
-```
-
-For `Taylor0` polynomials, a similar formula is implemented which
-exploits `k_0`, the order of the first non-zero coefficient of `a`.
-""" div! =#
 
 @inline function div!(c::Taylor0, a::Taylor0, b::Taylor0, k::Int)
 
@@ -294,91 +219,3 @@ exploits `k_0`, the order of the first non-zero coefficient of `a`.
     return nothing
 end
 
-#= @inline function div!(v::Taylor0, a::Taylor0, b::NumberNotSeries, k::Int)
-    @inbounds v[k] = a[k] / b
-    return nothing
-end
-
-div!(v::Taylor0, b::NumberNotSeries, a::Taylor0, k::Int) =
-    div!(v::Taylor0, Taylor0(b, a.order), a, k) =#
-
-
-
-
-
-#= """
-    mul!(Y, A, B)
-
-Multiply A*B and save the result in Y.
-""" =#
-#= function mul!(y::Vector{Taylor0},
-        a::Union{Matrix{T},SparseMatrixCSC{T}},
-        b::Vector{Taylor0}) where {T<:Number}
-
-    n, k = size(a)
-    @assert (length(y)== n && length(b)== k)
-
-    # determine the maximal order of b
-    # order = maximum([b1.order for b1 in b])
-    order = maximum(get_order.(b))
-
-    # Use matrices of coefficients (of proper size) and mul!
-    # B = zeros(T, k, order+1)
-    B = Array{T}(undef, k, order+1)
-    B = zero.(B)
-    for i = 1:k
-        @inbounds ord = b[i].order
-        @inbounds for j = 1:ord+1
-            B[i,j] = b[i][j-1]
-        end
-    end
-    Y = Array{T}(undef, n, order+1)
-    mul!(Y, a, B)
-    @inbounds for i = 1:n
-        # y[i] = Taylor0( collect(Y[i,:]), order)
-        y[i] = Taylor0( Y[i,:], order)
-    end
-
-    return y
-end =#
-
-
-# Adapted from (Julia v1.2) stdlib/v1.2/LinearAlgebra/src/dense.jl#721-734,
-# licensed under MIT "Expat".
-# Specialize a method of `inv` for Matrix{Taylor0}. Simply, avoid pivoting,
-# since the polynomial field is not an ordered one.
-# function Base.inv(A::StridedMatrix{Taylor0}) where T
-#     checksquare(A)
-#     S = Taylor0{typeof((one(T)*zero(T) + one(T)*zero(T))/one(T))}
-#     AA = convert(AbstractArray{S}, A)
-#     if istriu(AA)
-#         Ai = triu!(parent(inv(UpperTriangular(AA))))
-#     elseif istril(AA)
-#         Ai = tril!(parent(inv(LowerTriangular(AA))))
-#     else
-#         # Do not use pivoting !!
-#         Ai = inv!(lu(AA, Val(false)))
-#         Ai = convert(typeof(parent(Ai)), Ai)
-#     end
-#     return Ai
-# end
-
-#= # see https://github.com/JuliaLang/julia/pull/40623
-const LU_RowMaximum = VERSION >= v"1.7.0-DEV.1188" ? RowMaximum() : Val(true)
-const LU_NoPivot = VERSION >= v"1.7.0-DEV.1188" ? NoPivot() : Val(false)
-
-# Adapted from (Julia v1.2) stdlib/v1.2/LinearAlgebra/src/lu.jl#240-253
-# and (Julia v1.4.0-dev) stdlib/LinearAlgebra/v1.4/src/lu.jl#270-274,
-# licensed under MIT "Expat".
-# Specialize a method of `lu` for Matrix{Taylor0}, which avoids pivoting,
-# since the polynomial field is not an ordered one.
-# We can't assume an ordered field so we first try without pivoting
-function lu(A::AbstractMatrix{Taylor0}; check::Bool = true) where {T<:Number}
-    S = Taylor0{lutype(T)}
-    F = lu!(copy_oftype(A, S), LU_NoPivot; check = false)
-    if issuccess(F)
-        return F
-    else
-        return lu!(copy_oftype(A, S), LU_RowMaximum; check = check)
-    end
-end =#

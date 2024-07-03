@@ -73,13 +73,13 @@ use internally `pow!`.
 ## Real power ##
 function ^(a::Taylor0, r::S) where {S<:Real}
     # println()
-    #a0 = constant_term(a)
+    a0 = constant_term(a)
     # @show(a, a0)
-    #aux = one(a0)^r
+    aux = one(a0)^r
     # @show(aux)
 
     iszero(r) && return Taylor0(1.0, a.order)
-   # aa = aux*a
+    aa = aux*a
   #  @show(aa)
     r == 1 && return a
     r == 2 && return square(a)
@@ -202,25 +202,6 @@ Return `a^2`; see [`TaylorSeries.sqr!`](@ref).
 
 
 
-#= # Homogeneous coefficients for square
-@doc doc"""
-    sqr!(c, a, k::Int) --> nothing
-
-Update the `k-th` expansion coefficient `c[k]` of `c = a^2`, for
-both `c` and `a` either `Taylor0` or `TaylorN`.
-
-The coefficients are given by
-
-```math
-\begin{eqnarray*}
-c_k & = & 2 \sum_{j=0}^{(k-1)/2} a_{k-j} a_j,
-    \text{ if k is odd,} \\
-c_k & = & 2 \sum_{j=0}^{(k-2)/2} a_{k-j} a_j + (a_{k/2})^2,
-    \text{ if k is even. }
-\end{eqnarray*}
-```
-
-""" sqr! =#
 
 
    
@@ -304,28 +285,6 @@ end
 
 
 
-# Homogeneous coefficients for the square-root
-#= @doc doc"""
-    sqrt!(c, a, k::Int, k0::Int=0)
-
-Compute the `k-th` expansion coefficient `c[k]` of `c = sqrt(a)`
-for both`c` and `a` either `Taylor0` or `TaylorN`.
-
-The coefficients are given by
-
-```math
-\begin{eqnarray*}
-c_k &=& \frac{1}{2 c_0} \big( a_k - 2 \sum_{j=1}^{(k-1)/2} c_{k-j}c_j\big),
-    \text{ if k is odd,} \\
-c_k &=& \frac{1}{2 c_0} \big( a_k - 2 \sum_{j=1}^{(k-2)/2} c_{k-j}c_j
-    - (c_{k/2})^2\big), \text{ if k is even.}
-\end{eqnarray*}
-```
-
-For `Taylor0` polynomials, `k0` is the order of the first non-zero
-coefficient, which must be even.
-
-""" sqrt! =#
 
 @inline function sqrt!(c::Taylor0, a::Taylor0, k::Int, k0::Int=0) 
     
