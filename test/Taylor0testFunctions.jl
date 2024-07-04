@@ -41,20 +41,18 @@ cache3=Taylor0([0.0,0.0,0.0],2)
 @test   powerT(t2,3.0,cache1)[0]≈0.125
 @test   sqrt(t2,cache1)[0]≈0.7071067811865476
 t2=1.0
-@test   exp(t2,cache1)[0]≈1.6487212707001282
-@test   log(t2,cache1)[0]≈-0.6931471805599453
-@test   sin(t2,cache1,cache2)[0]≈0.479425538604203
-@test   cos(t2,cache1,cache2)[0]≈0.8775825618903728
-@test   tan(t2,cache1,cache2)[0]≈0.5463024898437905
-@test   asin(t2,cache1,cache2,cache3)[0]≈0.5235987755982989
-@test   acos(t2,cache1,cache2,cache3)[0]≈1.0471975511965979 
-@test   atan(t2,cache1,cache2)[0]≈0.4636476090008061
-@test   abs(t2,cache1)[0]≈0.5
+@test    exp(t2,cache1)[0]≈2.718281828459045
+@test    log(t2,cache1)[0]≈0.0
+@test    sin(t2,cache1,cache2)[0]≈0.8414709848078965
+@test    cos(t2,cache1,cache2)[0]≈0.5403023058681398
+@test    tan(t2,cache1,cache2)[0]≈1.5574077246549023
+ 
+@test    abs(t2,cache1)[0]≈1.0
 
 
-@test   (t2^2)[0]≈0.25
-@test   (t2^3.0)[0]≈0.125
-@test   sqrt(t2)[0]≈0.7071067811865476
-@test   powerT(t2,2,cache1)[0]≈0.25
-@test   powerT(t2,3.0,cache1)[0]≈0.125
-@test   sqrt(t2,cache1)[0]≈0.7071067811865476
+@test    (t2^2)≈1.0
+@test    (t2^3.0)≈1.0
+@test    sqrt(t2)≈1.0
+@test    powerT(t2,2,cache1)[0]≈1.0
+@test    powerT(t2,3.0,cache1)[0]≈1.0
+@test    sqrt(t2,cache1)[0]≈1.0

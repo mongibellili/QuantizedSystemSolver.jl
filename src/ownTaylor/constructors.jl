@@ -35,8 +35,7 @@ getindex(a::Taylor0, n::Int) = a.coeffs[n+1]
 #getindex(a::Taylor0, u::StepRange{Int,Int})  =view(a.coeffs, u[:] .+ 1)
 
 setindex!(a::Taylor0, x::T, n::Int) where {T<:Number} = a.coeffs[n+1] = x
-#setindex!(a::Taylor0, x::T, u::UnitRange{Int}) where {T<:Number} =
-    a.coeffs[u .+ 1] .= x
+#setindex!(a::Taylor0, x::T, u::UnitRange{Int}) where {T<:Number} = a.coeffs[u .+ 1] .= x
 #= function setindex!(a::Taylor0, x::Array{T,1}, u::UnitRange{Int}) where {T<:Number}
     @assert length(u) == length(x)
     for ind in eachindex(x)

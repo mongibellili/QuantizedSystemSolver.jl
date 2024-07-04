@@ -5,12 +5,13 @@ using QuantizedSystemSolver
 using BSON
 #using TimerOutputs
 #using Plots
+
 function test(case,solvr)
   absTol=1e-5
      relTol=1e-2
      
 
-      BSON.@load "./ref_bson/solVectAdvection_N1000d01_Feagin14e-12.bson" solFeagin14VectorN1000d01
+      BSON.@load "./solVectAdvection_N1000d01_Feagin14e-12.bson" solFeagin14VectorN1000d01
      prob=NLodeProblem(quote
         name=(adrN1000d01,)
         u[1:333]=1.0
@@ -31,7 +32,7 @@ function test(case,solvr)
     ttnmliqss=0.0
 
     tspan=(0.0,5.0)
-    solnmliqss=solve(prob,solvr,abstol=absTol,reltol=relTol,tspan)#
+    solnmliqss=solve(prob,abstol=absTol,reltol=relTol,tspan)#
    # @show solnmliqss.totalSteps,solnmliqss.simulStepCount  
     #save_Sol(solnmliqss,1,2,600,1000,note="analy1") 
     #@show solnmliqss.savedVars
