@@ -32,13 +32,13 @@ calls the modified imlicit quantized state system solver with order 3
 """
 nmliqss3()=QSSAlgorithm(Val(:nmliqss),Val(3))
 
-nliqss1()=QSSAlgorithm(Val(:nliqss),Val(1))
+#= nliqss1()=QSSAlgorithm(Val(:nliqss),Val(1))
 nliqss2()=QSSAlgorithm(Val(:nliqss),Val(2))
 nliqss3()=QSSAlgorithm(Val(:nliqss),Val(3))
 
 mliqss1()=QSSAlgorithm(Val(:mliqss),Val(1))
 mliqss2()=QSSAlgorithm(Val(:mliqss),Val(2))
-mliqss3()=QSSAlgorithm(Val(:mliqss),Val(3))
+mliqss3()=QSSAlgorithm(Val(:mliqss),Val(3)) =#
 """liqss1()
 calls the  imlicit quantized state system solver with order 1
 """
@@ -54,6 +54,6 @@ liqss3()=QSSAlgorithm(Val(:liqss),Val(3))
 
 
 
-sparse()=Val(true)
-dense()=Val(false)
+#= sparse()=Val(true)
+dense()=Val(false) =#
 

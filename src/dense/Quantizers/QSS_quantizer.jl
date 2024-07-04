@@ -9,7 +9,7 @@ function computeNextTime(::Val{1}, i::Int, simt::Float64, nextTime::Vector{Float
         else#usual (quant/der) is very small
           x[i].coeffs[2]=sign(x[i].coeffs[2])*(abs(quantum[i])/absDeltaT)# adjust  derivative if it is too high
           nextTime[i] = simt + tempTime
-          if DEBUG  println("qssQuantizer: smalldelta in compute next") end
+          if DEBUG  println("*************qssQuantizer: smalldelta in compute next") end
         end
     else
       nextTime[i] = Inf
@@ -65,27 +65,26 @@ end =#
 ######################################################################################################################################"
 function reComputeNextTime(::Val{1}, index::Int, simt::Float64, nextTime::Vector{Float64}, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64})
   absDeltaT=1e-12
-  coef=@SVector [q[index].coeffs[1] - (x[index].coeffs[1]) - quantum[index], -x[index].coeffs[2]]
-  time1 = simt + minPosRoot(coef, Val(1))
-  coef=setindex(coef,q[index].coeffs[1] - (x[index].coeffs[1]) + quantum[index],1)
-  time2 = simt + minPosRoot(coef, Val(1))
-  timeTemp = time1 < time2 ? time1 : time2
-  tempTime=max(timeTemp,absDeltaT) #guard against very small Δt 
-
-  #if tempTime==absDeltaT #normal
-  # if DEBUG  println("smalldelta in recompute next, simt= ",simt) end
- # end
-
-
-
-  nextTime[index] = simt +tempTime
+  if abs(q[index].coeffs[1] - (x[index].coeffs[1])) >= quantum[index] # this happened when var i and j s turns are now...var i depends on j, j is asked here for next time
+    nextTime[index] = simt+1e-16
+   # @show simt,index
+  else
+    coef=@SVector [q[index].coeffs[1] - (x[index].coeffs[1]) - quantum[index], -x[index].coeffs[2]]
+    time1 =  minPosRoot(coef, Val(1))
+   # @show time1
+    coef=setindex(coef,q[index].coeffs[1] - (x[index].coeffs[1]) + quantum[index],1)
+    time2 =  minPosRoot(coef, Val(1))
+   # @show time2
+    timeTemp = time1 < time2 ? time1 : time2
+    tempTime=max(timeTemp,absDeltaT) #guard against very small Δt 
+   # @show tempTime
+    nextTime[index] = simt +tempTime
+  end
 end
-
 function reComputeNextTime(::Val{2}, index::Int, simt::Float64, nextTime::Vector{Float64}, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64})
   absDeltaT=1e-15
-
   if abs(q[index].coeffs[1] - (x[index].coeffs[1])) >= quantum[index] # this happened when var i and j s turns are now...var i depends on j, j is asked here for next time
-    nextTime[index] = simt+1e-15
+    nextTime[index] = simt+1e-12
   else
     coef=@SVector [q[index].coeffs[1] - (x[index].coeffs[1]) - quantum[index], q[index].coeffs[2]-x[index].coeffs[2],-(x[index].coeffs[3])]#not *2 because i am solving c+bt+a/2*t^2
     time1 =  minPosRoot(coef, Val(2))
@@ -93,14 +92,10 @@ function reComputeNextTime(::Val{2}, index::Int, simt::Float64, nextTime::Vector
     time2 =  minPosRoot(coef, Val(2))
     timeTemp = time1 < time2 ? time1 : time2
     tempTime=max(timeTemp,absDeltaT)#guard against very small Δt 
-
   # if tempTime==absDeltaT #normal
     # x[index].coeffs[3]=sign(x[index].coeffs[3])*(abs(quantum[index])/(absDeltaT*absDeltaT))/2
     # if DEBUG  println("smalldelta in recompute next, simt= ",simt) end
   # end
-
-
-
     nextTime[index] = simt +tempTime
 
   end

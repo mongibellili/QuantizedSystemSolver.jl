@@ -1,9 +1,7 @@
 
-function integrate(Al::QSSAlgorithm{:nmliqss,O},CommonqssData::CommonQSS_data{0},liqssdata::LiQSS_data{O,false},specialLiqssData::SpecialLiqssQSS_data, odep::NLODEProblem{PRTYPE,T,0,0,CS},f::Function,jac::Function,SD::Function,exactA::Function) where {PRTYPE,CS,O,T}
-  cacheA=specialLiqssData.cacheA
-  #direction=specialLiqssData.direction
-  #qminus= specialLiqssData.qminus
-  #buddySimul=specialLiqssData.buddySimul
+function integrate(Al::QSSAlgorithm{:nmliqss,O},CommonqssData::CommonQSS_data{0},liqssdata::LiQSS_data{O,false}, odep::NLODEProblem{PRTYPE,T,0,0,CS},f::Function,jac::Function,SD::Function,exactA::Function) where {PRTYPE,CS,O,T}
+  cacheA=liqssdata.cacheA
+
   ft = CommonqssData.finalTime;initTime = CommonqssData.initialTime;relQ = CommonqssData.dQrel;absQ = CommonqssData.dQmin;maxErr=CommonqssData.maxErr;
   
   #savetimeincrement=CommonqssData.savetimeincrement;savetime = savetimeincrement
@@ -12,10 +10,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O},CommonqssData::CommonQSS_data{0}
   savedVars=CommonqssData.savedVars;
   savedTimes=CommonqssData.savedTimes;integratorCache=CommonqssData.integratorCache;taylorOpsCache=CommonqssData.taylorOpsCache;#cacheSize=odep.cacheSize
  
-  #prevStepVal = specialLiqssData.prevStepVal
-  #a=deepcopy(odep.initJac);
-  #a=liqssdata.a
-  #u=liqssdata.u;#tu=liqssdata.tu
+ 
   #***************************************************************  
   qaux=liqssdata.qaux;dxaux=liqssdata.dxaux#= olddx=liqssdata.olddx; ; olddxSpec=liqssdata.olddxSpec =#
 

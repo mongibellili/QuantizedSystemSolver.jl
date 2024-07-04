@@ -26,7 +26,12 @@ function getErrorByRefs(solRef::Vector{Any},solmliqss::Sol{T,O},index::Int)where
     sumDiffSqr+=(solmliqss.savedVars[index][i]-ts)*(solmliqss.savedVars[index][i]-ts)
     sumTrueSqr+=ts*ts
   end
-  relerror=sqrt(sumDiffSqr/sumTrueSqr)
+  
+  if  abs(sumTrueSqr)>1e-12
+    relerror=sqrt(sumDiffSqr/sumTrueSqr)
+    else
+      relerror=0.0
+    end
   return relerror
 end
 
@@ -50,12 +55,12 @@ end
   end
   return allErrors
 end =#
-#= @inline function getX_fromSavedVars(savedVars :: Vector{Array{Taylor0}},index::Int,i::Int)
+@inline function getX_fromSavedVars(savedVars :: Vector{Array{Taylor0}},index::Int,i::Int)
   return savedVars[index][i].coeffs[1]
 end
 @inline function getX_fromSavedVars(savedVars :: Vector{Vector{Float64}},index::Int,i::Int)
   return savedVars[index][i]
-end =#
+end
 
 function getAverageErrorByRefs(solRef::Vector{Any},solmliqss::Sol{T,O})where{T,O}
   numPoints=length(solmliqss.savedTimes[1])

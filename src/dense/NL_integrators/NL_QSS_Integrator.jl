@@ -35,12 +35,13 @@ for i = 1:T
      push!(savedTimes[i],0.0)
   quantum[i] = relQ * abs(x[i].coeffs[1]) ;quantum[i]=quantum[i] < absQ ? absQ : quantum[i];quantum[i]=quantum[i] > maxErr ? maxErr : quantum[i] 
   computeNextTime(Val(O), i, initTime, nextStateTime, x, quantum)
-  initSmallAdvance=0.1
+  
+  #initSmallAdvance=0.1
   #t[0]=initTime#initSmallAdvance
  # clearCache(taylorOpsCache,Val(CS),Val(O));
   #@timeit "f" 
-  f(i,q,t,taylorOpsCache);#@show taylorOpsCache
- computeNextInputTime(Val(O), i, initTime, initSmallAdvance,taylorOpsCache[1] , nextInputTime, x,  quantum)
+ # f(i,q,t,taylorOpsCache);#@show taylorOpsCache
+ #computeNextInputTime(Val(O), i, initTime, initSmallAdvance,taylorOpsCache[1] , nextInputTime, x,  quantum)
   #= assignXPrevStepVals(Val(O),prevStepVal,x,i) =#
 end
 
@@ -52,7 +53,7 @@ end
 simt = initTime ;totalSteps=0;prevStepTime=initTime
  # breakloop= zeros(MVector{1,Float64})
  #@timeit "qssintgrateWhile"
-  while simt < ft && totalSteps < 200000000   
+  while simt < ft && totalSteps < 2000000
    #=  if breakloop[1]>5.0
       break
     end =#
@@ -71,11 +72,21 @@ simt = initTime ;totalSteps=0;prevStepTime=initTime
     numSteps[index]+=1;
     elapsed = simt - tx[index];integrateState(Val(O),x[index],elapsed);tx[index] = simt 
     quantum[index] = relQ * abs(x[index].coeffs[1]) ;quantum[index]=quantum[index] < absQ ? absQ : quantum[index];quantum[index]=quantum[index] > maxErr ? maxErr : quantum[index]   
-    if abs(x[index].coeffs[2])>1e7 quantum[index]=10*quantum[index] end
-    for k = 1:O q[index].coeffs[k] = x[index].coeffs[k] end; tq[index] = simt    
+   # if totalSteps >0 @show nextStateTime,simt,index,x[1][0],q[1][0],x[2][0],q[2][0] end 
+    for k = 1:O q[index].coeffs[k] = x[index].coeffs[k] end; tq[index] = simt   
+      #if totalSteps >0 @show nextStateTime end 
     computeNextTime(Val(O), index, simt, nextStateTime, x, quantum) #
+    
+   # if totalSteps >0 @show nextStateTime end
+  #  tr1=nextStateTime[index]-simt
+  #  xr1=x[index][0]+tr1*x[index][1];
+   # @show xr1-q[index][0],quantum[index]
     for j in (SD(index))
-        elapsedx = simt - tx[j];if elapsedx > 0 x[j].coeffs[1] = x[j](elapsedx);tx[j] = simt end
+        elapsedx = simt - tx[j];
+        if elapsedx > 0
+           x[j].coeffs[1] = x[j](elapsedx);tx[j] = simt 
+         #  @show j,x[j].coeffs[1]
+          end
         # quantum[j] = relQ * abs(x[j].coeffs[1]) ;quantum[j]=quantum[j] < absQ ? absQ : quantum[j];quantum[j]=quantum[j] > maxErr ? maxErr : quantum[j]         
         elapsedq = simt - tq[j];if elapsedq > 0 integrateState(Val(O-1),q[j],elapsedq);tq[j] = simt  end#q needs to be updated here for recomputeNext        
         for b in (jac(j)  )    
@@ -85,12 +96,18 @@ simt = initTime ;totalSteps=0;prevStepTime=initTime
           end
          end
         clearCache(taylorOpsCache,Val(CS),Val(O));f(j,q,t,taylorOpsCache);computeDerivative(Val(O), x[j], taylorOpsCache[1])  
+     #  @show j,x[j][1]
         reComputeNextTime(Val(O), j, simt, nextStateTime, x, q, quantum)
+       # @show j,nextStateTime[j]
+      #  tr1=nextStateTime[j]-simt
+      #  @show tr1
+      #  xr1=x[j][0]+tr1*x[j][1];
+      #  @show j,xr1-q[j][0],quantum[j]
     end#end for SD
     ##################################input########################################
   elseif sch[3] == :ST_INPUT  # time of change has come to a state var that does not depend on anything...no one will give you a chance to change but yourself    
    @show index
-    elapsed = simt - tx[index];integrateState(Val(O),x[index],elapsed);tx[index] = simt 
+   #=  elapsed = simt - tx[index];integrateState(Val(O),x[index],elapsed);tx[index] = simt 
     quantum[index] = relQ * abs(x[index].coeffs[1]) ;quantum[index]=quantum[index] < absQ ? absQ : quantum[index];quantum[index]=quantum[index] > maxErr ? maxErr : quantum[index]   
     for k = 1:O q[index].coeffs[k] = x[index].coeffs[k] end; tq[index] = simt 
       for b in jac(index) 
@@ -113,7 +130,7 @@ simt = initTime ;totalSteps=0;prevStepTime=initTime
         
         clearCache(taylorOpsCache,Val(CS),Val(O));f(j,q,t,taylorOpsCache);computeDerivative(Val(O), x[j], taylorOpsCache[1])
         reComputeNextTime(Val(O), j, simt, nextStateTime, x, q, quantum)
-    end#end for
+    end#end for =#
   end#end state/input/event
  #=  if simt > savetime #|| sch[3] ==:ST_EVENT
     save!(Val(O),savedVars , savedTimes , saveVarsHelper,prevStepTime ,simt,tx ,tq , integratorCache,x , q,prevStepVal)

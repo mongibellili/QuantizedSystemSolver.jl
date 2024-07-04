@@ -24,31 +24,20 @@ function custom_Solve(prob::NLODEProblem{PRTYPE,T,Z,D,CS},al::QSSAlgorithm{Solve
         integrate(al,commonQSSdata,prob,prob.eqs,jac,SD)
     else
           liqssdata=createLiqssData(prob,Val(Sparsity),Val(T),Val(Order))
-         specialLiqssData=createSpecialLiqssData(Val(T))
          if VERBOSE println("begin dispatch on liqss algorithm") end
-         #integrate()
-         integrate(al,commonQSSdata,liqssdata,specialLiqssData,prob)
-         integrate(al,commonQSSdata,liqssdata,specialLiqssData,prob,prob.eqs,jac,SD,prob.exactJac)
-        #= if Solver==:nmliqss
-             nmLiQSS_integrate(commonQSSdata,liqssdata,specialLiqssData,prob,prob.eqs,jac,SD,prob.exactJac)
-        elseif Solver==:nliqss
-            nLiQSS_integrate(commonQSSdata,liqssdata,specialLiqssData,prob,prob.eqs,jac,SD,prob.exactJac)
-        elseif Solver==:mliqss
-            mLiQSS_integrate(commonQSSdata,liqssdata,specialLiqssData,prob,prob.eqs,jac,SD,prob.exactJac)
-        elseif Solver==:liqss
-             LiQSS_integrate(commonQSSdata,liqssdata,specialLiqssData,prob,prob.eqs,jac,SD,prob.exactJac)     
-        end =#
+         integrate(al,commonQSSdata,liqssdata,prob,prob.eqs,jac,SD,prob.exactJac)
+    
     end
  end
 
 
 
- function getClosure(jacSD::Function)::Function # 
+#=  function getClosure(jacSD::Function)::Function # 
    function closureJacSD(i::Int)
         jacSD(i)
    end
    return closureJacSD
- end
+ end =#
 
  function getClosure(jacSD::Vector{Vector{Int}})::Function
     function closureJacSD(i::Int)
@@ -110,27 +99,26 @@ end
 #no sparsity
 function createLiqssData(prob::NLODEProblem{PRTYPE,T,Z,D,CS},::Val{false},::Val{T},::Val{Order})where{PRTYPE,T,Z,D,CS,Order}
     if VERBOSE println("begin create Liqss data") end
-    a = Vector{Vector{Float64}}(undef, T)
+   
    # u=Vector{Vector{MVector{Order,Float64}}}(undef, T)
     qaux = Vector{MVector{Order,Float64}}(undef, T)
     dxaux=Vector{MVector{Order,Float64}}(undef, T)
-    olddx = Vector{MVector{Order,Float64}}(undef, T)
-    olddxSpec = Vector{MVector{Order,Float64}}(undef, T)
+  
      for i=1:T
        #=  temparr=Vector{MVector{Order,Float64}}(undef, T)
         for j=1:T
             temparr[j]=zeros(MVector{Order,Float64})
         end
         u[i]=temparr =#
-        a[i]=zeros(T)
+       
         qaux[i]=zeros(MVector{Order,Float64})
-        olddx[i]=zeros(MVector{Order,Float64})
+       
         dxaux[i]=zeros(MVector{Order,Float64})
-        olddxSpec[i]=zeros(MVector{Order,Float64})
+      
 
     end
-    if VERBOSE println("END create Liqss data") end
-    liqssdata= LiQSS_data(Val(false),a#= ,u =#,qaux,olddx,dxaux,olddxSpec)
+    cacheA=zeros(MVector{1,Float64})
+    liqssdata= LiQSS_data(Val(false),cacheA,qaux,dxaux)
 end
 
 #to be removed if sparsity did not help
@@ -157,41 +145,8 @@ end
 end =#
 
 
-function createSpecialLiqssData(::Val{T})where{T}
-    cacheA=zeros(MVector{1,Float64})
-    direction= zeros(T)
-    qminus= zeros(T)
-    buddySimul=zeros(MVector{2,Int})
-    prevStepVal = zeros(T)
-    specialLiqssData=SpecialLiQSS_data(cacheA,direction,qminus,buddySimul,prevStepVal)
-end
-
-
-
-
-
 # get init conds for normal vect...getinitcond for fun can be found with qssnlsavedprob file
 function getInitCond(prob::NLODEContProblem,i::Int)
     return prob.initConditions[i]
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

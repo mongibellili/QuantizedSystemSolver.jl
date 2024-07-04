@@ -13,6 +13,7 @@ zero(t1,cache1)
 one(t1,cache1)
 @test cache1[0]==1.0
 t4=t1+t3
+@test +t1==Taylor0([1.0,1.0,0.0],2)
 @test t4==Taylor0([2.0,2.0,0.0],2)
 @test 5.0+t4==Taylor0([7.0,2.0,0.0],2)
 @test t4+5.0==Taylor0([7.0,2.0,0.0],2)

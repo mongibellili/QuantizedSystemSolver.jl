@@ -50,7 +50,7 @@ import Base:  sqrt, exp, log, sin, cos, sincos, tan,
 
 
     # list of public (API) to the user, not between files as those are linked as if in one file
-    export qss1,qss2,qss3,liqss1,liqss2,liqss3,mliqss1,mliqss2,mliqss3,light,heavy,sparse,dense,saveat,nliqss1,nliqss2,nliqss3,nmliqss1,nmliqss2,nmliqss3
+    export qss1,qss2,qss3,liqss1,liqss2,liqss3,#= mliqss1,mliqss2,mliqss3, =#light,heavy,sparse,dense,saveat,#= nliqss1,nliqss2,nliqss3, =#nmliqss1,nmliqss2,nmliqss3
     export save_Sol,save_SolDer,save_SimulSol#,stacksave_Sol,plotSol,stackplotSol,plot_save_Sol,stackplot_save_Sol,plot_save_SolVars,plotSol_Der1,evaluateSol,save_SolVar,save_SolZoomed
     
     export save_SolSum,plotRelativeError#,stackplotRelativeError,plot_save_RelativeError,stackplot_save_RelativeError,saveRelativeError,stacksaveRelativeError
@@ -107,15 +107,15 @@ import Base:  sqrt, exp, log, sin, cos, sincos, tan,
    
     # integrator
   
-   # include("dense/NL_integrators/NL_QSS_Integrator.jl")
-  #  include("dense/NL_integrators/NL_QSS_discreteIntegrator.jl")
+    include("dense/NL_integrators/NL_QSS_Integrator.jl")
+    include("dense/NL_integrators/NL_QSS_discreteIntegrator.jl")
     # implicit integrator when large entries on the main diagonal of the jacobian
-  #  include("dense/NL_integrators/NL_LiQSS_Integrator.jl")
-   # include("dense/NL_integrators/NL_LiQSS_discreteIntegrator.jl")
+    include("dense/NL_integrators/NL_LiQSS_Integrator.jl")
+  #  include("dense/NL_integrators/NL_LiQSS_discreteIntegrator.jl")
     # implicit integrator when large entries NOT on the main diagonal of the jacobian
 
-    include("dense/NL_integrators/NL_nmLiQSS_Integrator.jl")
-    include("dense/NL_integrators/NL_nmLiQSS_discreteIntegrator.jl")
+  include("dense/NL_integrators/NL_nmLiQSS_Integrator.jl")
+  include("dense/NL_integrators/NL_nmLiQSS_discreteIntegrator.jl")
    
 
    #implicit intgrators used to show improvement of modifications

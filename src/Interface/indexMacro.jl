@@ -61,7 +61,7 @@ function arrangeProb(x::Expr) # replace symbols and params , extract info about 
                     if du==:nothing du=Symbol(:d,stateVarName) end # construct symbol du
                     if  y.args[2] isa Expr && y.args[2].args[1]== :(:)  #u[a:b]=N
 
-                            length(y.args[2].args)==3 || error(" use syntax u[a:b]") # not needed
+                           # length(y.args[2].args)==3 || error(" use syntax u[a:b]") # not needed
                             savedInitCond[:(($(y.args[2].args[2]),$(y.args[2].args[3])))]=rhs# dict {expr->float}
                             if problemSize < y.args[2].args[3]
                                 problemSize=y.args[2].args[3] #largest b determines probSize

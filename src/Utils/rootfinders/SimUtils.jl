@@ -6,6 +6,7 @@ function minPosRoot(coeff::SVector{2,Float64}, ::Val{1}) # coming from val(1) me
             mpr = Inf
         else 
             mpr = -coeff[1] / coeff[2];
+          
         end
         if mpr < 0
             mpr = Inf

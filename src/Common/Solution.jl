@@ -55,7 +55,7 @@ end
 
 
 @inline function evaluateSol(sol::LightSol{T,O},index::Int,t::Float64)where {T,O}
-  (t>sol.ft) && error("given point is outside the sol range")
+  (t>sol.ft) && error("given point is outside the solution range! Verify where you want to evaluate the solution")
 
   x=sol[2][index][end] 
   #integratorCache=Taylor0(zeros(O+1),O)

@@ -61,7 +61,7 @@ function differentiate!(::Val{O},cache::Taylor0, a::Taylor0)where {O}
     cache[O]=0.0  #cache Letter O not zero
     nothing
 end
-function differentiate(a::Taylor0, n::Int) 
+#= function differentiate(a::Taylor0, n::Int) 
     if n > a.order
         return Taylor0(T, 0)
     elseif n==0
@@ -73,7 +73,7 @@ function differentiate(a::Taylor0, n::Int)
         end
         return Taylor0(view(res.coeffs, 1:a.order-n+1))
     end
-end
+end =#
 function ndifferentiate!(cache::Taylor0,a::Taylor0, n::Int) 
     if n > a.order
         cache.coeffs.=0.0
@@ -95,10 +95,10 @@ end
 
 Return the value of the `n`-th differentiate of the polynomial `a`.
 """ =#
-function differentiate(n::Int, a::Taylor0) 
+#= function differentiate(n::Int, a::Taylor0) 
     @assert a.order ≥ n ≥ 0
     factorial( widen(n) ) * a[n] 
-end
+end =#
 
 ## Integrating ##
 #= """
@@ -107,7 +107,7 @@ end
 Return the integral of `a::Taylor0`. The constant of integration
 (0-th order coefficient) is set to `x`, which is zero if ommitted.
 """ =#
-function integrate(a::Taylor0, x::S) where {S<:Number}
+#= function integrate(a::Taylor0, x::S) where {S<:Number}
     order = get_order(a)
     aa = a[0]/1 + zero(x)
     R = typeof(aa)
@@ -135,6 +135,6 @@ function integrate!( a::Taylor0, x::S) where {S<:Number}
     end
     a.coeffs[1]=x
     return nothing
-end
+end =#
 
 

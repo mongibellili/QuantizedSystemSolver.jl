@@ -22,8 +22,8 @@ function test()
           end     
     end)
     tspan = (0.0, 0.001)
-    sol= solve(odeprob,nmliqss2(),tspan,abstol=1e-4,reltol=1e-3)    
-    #save_Sol(sol)
+    sol= solve(odeprob,qss2(),tspan,abstol=1e-4,reltol=1e-3)    
+    save_Sol(sol)
     xp=sol(2,0.0005)
     @show xp
     #getAverageErrorByRefs(solRef::Vector{Any},solmliqss::Sol{T,O})

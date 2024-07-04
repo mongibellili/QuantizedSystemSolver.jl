@@ -339,14 +339,14 @@ function divT(a::Taylor0, b::Taylor0,cache1::Taylor0)
 end
 
 
-function clearCache(cache::Vector{Taylor0},::Val{CS},::Val{3}) where {CS}
+#= function clearCache(cache::Vector{Taylor0},::Val{CS},::Val{3}) where {CS}
   for i=1:CS
     cache[i][0]=0.0
     cache[i][1]=0.0
     cache[i][2]=0.0
     cache[i][3]=0.0 # no need to clean? higher value is empty
   end
-end
+end =#
 
 
 #= function clearCache(cache::Vector{Taylor0},::Val{2}) #where {CS}
