@@ -2,7 +2,7 @@
  #using InteractiveUtils
 function integrate(Al::QSSAlgorithm{:liqss,O},CommonqssData::CommonQSS_data{0},liqssdata::LiQSS_data{O,false}, odep::NLODEProblem{PRTYPE,T,0,0,CS},f::Function,jac::Function,SD::Function,exactA::Function ) where {PRTYPE,CS,O,T}
   cacheA=liqssdata.cacheA
-  ft = CommonqssData.finalTime;initTime = CommonqssData.initialTime;relQ = CommonqssData.dQrel;absQ = CommonqssData.dQmin;maxErr=CommonqssData.maxErr;
+  ft = CommonqssData.finalTime;initTime = CommonqssData.initialTime;relQ = CommonqssData.dQrel;absQ = CommonqssData.dQmin;maxErr=CommonqssData.maxErr;;maxStepsAllowed=CommonqssData.maxStepsAllowed
   savetimeincrement=CommonqssData.savetimeincrement;savetime = savetimeincrement
   quantum = CommonqssData.quantum;nextStateTime = CommonqssData.nextStateTime;nextEventTime = CommonqssData.nextEventTime;nextInputTime = CommonqssData.nextInputTime
   tx = CommonqssData.tx;tq = CommonqssData.tq;x = CommonqssData.x;q = CommonqssData.q;t=CommonqssData.t
@@ -74,7 +74,10 @@ function integrate(Al::QSSAlgorithm{:liqss,O},CommonqssData::CommonQSS_data{0},l
   simul=false
 
  
-  while simt < ft && totalSteps < 200000000
+  while simt < ft && totalSteps < maxStepsAllowed
+    if totalSteps==maxStepsAllowed-1
+      @warn("The algorithm liqss$O is taking too long to converge. The simulation will be stopped. Consider using a different algorithm!")
+    end
     sch = updateScheduler(Val(T),nextStateTime,nextEventTime, nextInputTime)
     simt = sch[2];index = sch[1]
     if simt>ft
@@ -144,7 +147,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O},CommonqssData::CommonQSS_data{0},l
   push!(savedTimes[index],simt)
  end#end while
  # createSol(Val(T),Val(O),savedTimes,savedVars, "liqss$O",string(odep.prname),absQ,totalSteps,simulStepCount,numSteps,ft,simulStepsVals,simulStepsDers,simulStepsTimes)
- createSol(Val(T),Val(O),savedTimes,savedVars, "Liqss$O",string(odep.prname),absQ,totalSteps,simulStepCount,0,numSteps,ft)
+ createSol(Val(T),Val(O),savedTimes,savedVars, "liqss$O",string(odep.prname),absQ,totalSteps,simulStepCount,0,numSteps,ft)
 end#end integrate
  
 

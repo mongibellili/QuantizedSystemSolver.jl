@@ -3,7 +3,7 @@
 function integrate(Al::QSSAlgorithm{:liqss,O},CommonqssData::CommonQSS_data{Z},liqssdata::LiQSS_data{O,false}, odep::NLODEProblem{PRTYPE,T,Z,D,CS},f::Function,jac::Function,SD::Function,exactA::Function) where {PRTYPE,O,T,Z,D,CS}
   if VERBOSE  println("begining of intgrate function") end
   cacheA=liqssdata.cacheA
-  ft = CommonqssData.finalTime;initTime = CommonqssData.initialTime;relQ = CommonqssData.dQrel;absQ = CommonqssData.dQmin;maxErr=CommonqssData.maxErr;
+  ft = CommonqssData.finalTime;initTime = CommonqssData.initialTime;relQ = CommonqssData.dQrel;absQ = CommonqssData.dQmin;maxErr=CommonqssData.maxErr;;maxStepsAllowed=CommonqssData.maxStepsAllowed
 
   savetimeincrement=CommonqssData.savetimeincrement;savetime = savetimeincrement
   quantum = CommonqssData.quantum;nextStateTime = CommonqssData.nextStateTime;nextEventTime = CommonqssData.nextEventTime;nextInputTime = CommonqssData.nextInputTime
@@ -25,7 +25,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O},CommonqssData::CommonQSS_data{Z},l
  
   evDep = odep.eventDependencies
 
-  if DEBUG2 @show HD,HZ end
+  if DEBUG @show HD,HZ end
  
 
   qaux=liqssdata.qaux;dxaux=liqssdata.dxaux#= olddx=liqssdata.olddx; ; olddxSpec=liqssdata.olddxSpec =#
@@ -109,7 +109,10 @@ end
 simt = initTime ;totalSteps=0;prevStepTime=initTime;modifiedIndex=0; countEvents=0;inputstep=0;statestep=0;simulStepCount=0
 ft<savetime && error("ft<savetime")
 if VERBOSE  println("start integration") end
-while simt< ft && totalSteps < 50000000
+while simt < ft && totalSteps < maxStepsAllowed
+  if totalSteps==maxStepsAllowed-1
+    @warn("The algorithm liqss$O is taking too long to converge. The simulation will be stopped. Consider using a different algorithm!")
+  end
   
   sch = updateScheduler(Val(T),nextStateTime,nextEventTime, nextInputTime)
   simt = sch[2];index = sch[1];stepType=sch[3]
@@ -518,5 +521,5 @@ end#end while
 #@show savedVars
 #createSol(Val(T),Val(O),savedTimes,savedVars, "qss$O",string(nameof(f)),absQ,totalSteps,0)#0 I track simulSteps 
 #createSol(Val(T),Val(O),savedTimes,savedVars, "nmLiqss$O",string(odep.prname),absQ,totalSteps,simulStepCount,countEvents,numSteps,ft)
-createSol(Val(T),Val(O),savedTimes,savedVars#= ,savedDers =#, "nmLiqss$O",string(odep.prname),absQ,totalSteps,simulStepCount,countEvents,numSteps,ft)
+createSol(Val(T),Val(O),savedTimes,savedVars#= ,savedDers =#, "liqss$O",string(odep.prname),absQ,totalSteps,simulStepCount,countEvents,numSteps,ft)
 end#end integrate

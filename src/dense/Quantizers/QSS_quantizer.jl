@@ -224,7 +224,7 @@ end
 
 function computeNextEventTime(::Val{O},j::Int,ZCFun::Taylor0,oldsignValue,simt,  nextEventTime, quantum::Vector{Float64},absQ::Float64) where {O}
  #=  if ZCFun[0]==0.0 && oldsignValue[j,1] !=0.0#abs(oldsignValue[j,1])>1e-15
-    if DEBUG2 println("qss quantizer:zcf$j ZCF=0.0 (rare) immediate event at simt= $simt oldzcf value= $(oldsignValue[j,2])  ") end
+    if DEBUG println("qss quantizer:zcf$j ZCF=0.0 (rare) immediate event at simt= $simt oldzcf value= $(oldsignValue[j,2])  ") end
     nextEventTime[j]=simt 
   else =#
   if (oldsignValue[j,1] != sign(ZCFun[0])) && abs(oldsignValue[j,2]) >1e-9*absQ #prevent double tapping: when zcf is leaving zero it should be considered an event
@@ -241,7 +241,7 @@ function computeNextEventTime(::Val{O},j::Int,ZCFun::Taylor0,oldsignValue,simt, 
       #sl=ZCFun[0]+mpr*ZCFun[1]+mpr*mpr*ZCFun[2]/2
     end
     nextEventTime[j] =simt + mpr
-      if DEBUG2
+      if DEBUG
          println("qss quantizer:zcf$j at simt= $simt ****scheduled**** event at $(simt + mpr) oldzcf value= $(oldsignValue[j,2])  newZCF value= $(ZCFun[0])") 
         end
     oldsignValue[j,1]=sign(ZCFun[0])#update the values

@@ -86,12 +86,12 @@ covered_lines, total_lines = get_summary(coverage)
 @test get_summary(process_file(joinpath("src", "QuantizedSystemSolver"))) =#
 #= using Pkg
 Pkg.test("QuantizedSystemSolver"; coverage=true) # run this then comment and run next code =#
-using Coverage
+#= using Coverage
 coverage = process_folder()
 open("lcov.info", "w") do io
     LCOV.write(io, coverage)
 end;
-
+ =#
 
 
 
@@ -115,3 +115,4 @@ cache3=Taylor0([0.0,0.0,0.0],2)
 @test    powerT(t2,2,cache1)[0]≈1.0
 @test    powerT(t2,3.0,cache1)[0]≈1.0
 @test    sqrt(t2,cache1)[0]≈1.0 =#
+

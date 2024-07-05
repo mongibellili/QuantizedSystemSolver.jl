@@ -103,9 +103,9 @@ function minPosRoot(coeff::SVector{3,Float64}, ::Val{2}) # credit goes to github
       end
       
   end
-  if DEBUG2 && mpr!=Inf
+  if DEBUG && mpr!=Inf
     sl=c+mpr*b+a*mpr*mpr
-    @show sl
+    println("inside simUtils, mpr val2 sl= ",sl)
   end
   return mpr
 end
@@ -149,7 +149,7 @@ function minPosRoot(coeff::Taylor0, ::Val{2}) # credit goes to github.com/CIFASI
     end
     
   end
-  if DEBUG2 && mpr!=Inf
+  if DEBUG && mpr!=Inf
     sl=c+mpr*b+a*mpr*mpr
     @show sl
   end

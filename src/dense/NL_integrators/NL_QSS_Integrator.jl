@@ -1,7 +1,7 @@
 #using TimerOutputs
 function integrate(Al::QSSAlgorithm{:qss,O},CommonqssData::CommonQSS_data{0}, odep::NLODEProblem{PRTYPE,T,0,0,CS},f::Function,jac::Function,SD::Function) where {PRTYPE,O,T,CS}
 
-  ft = CommonqssData.finalTime;initTime = CommonqssData.initialTime;relQ = CommonqssData.dQrel;absQ = CommonqssData.dQmin;maxErr=CommonqssData.maxErr;
+  ft = CommonqssData.finalTime;initTime = CommonqssData.initialTime;relQ = CommonqssData.dQrel;absQ = CommonqssData.dQmin;maxErr=CommonqssData.maxErr;maxStepsAllowed=CommonqssData.maxStepsAllowed
   #= savetimeincrement=CommonqssData.savetimeincrement;savetime = savetimeincrement =#
   quantum = CommonqssData.quantum;nextStateTime = CommonqssData.nextStateTime;nextEventTime = CommonqssData.nextEventTime;nextInputTime = CommonqssData.nextInputTime
   tx = CommonqssData.tx;tq = CommonqssData.tq;x = CommonqssData.x;q = CommonqssData.q;t=CommonqssData.t
@@ -53,10 +53,10 @@ end
 simt = initTime ;totalSteps=0;prevStepTime=initTime
  # breakloop= zeros(MVector{1,Float64})
  #@timeit "qssintgrateWhile"
-  while simt < ft && totalSteps < 2000000
-   #=  if breakloop[1]>5.0
-      break
-    end =#
+  while simt < ft && totalSteps < maxStepsAllowed
+    if totalSteps==maxStepsAllowed-1
+      @warn("The algorithm qss$O is taking too long to converge. The simulation will be stopped. Consider using a different algorithm!")
+    end
      sch = updateScheduler(Val(T),nextStateTime,nextEventTime, nextInputTime)
     simt = sch[2]
    # @timeit "saveLast" 

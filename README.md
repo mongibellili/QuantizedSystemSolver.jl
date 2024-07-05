@@ -53,7 +53,7 @@ The solve function takes the previous problem (NLODEProblem{PRTYPE,T,Z,Y,CS}) wi
 tspan = (0.0, 0.001)
  sol= solve(odeprob,nmliqss2(),tspan,abstol=1e-4,reltol=1e-3)
 ```
-It output a solution of type Sol{T,O}.
+It outputs a solution of type Sol{T,O}.
 
 ## Query the solution
 
@@ -93,6 +93,6 @@ save_Sol(sol)
 #Compute the error against an analytic solution
 error=getError(sol::Sol{T,O},index::Int,f::Function)
 #Compute the error against a reference solution
-error=getAverageErrorByRefs(solRef::Vector{Any},sol)
+error=getAverageErrorByRefs(sol,solRef::Vector{Any})
 ```
 

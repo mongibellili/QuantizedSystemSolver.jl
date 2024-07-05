@@ -12,9 +12,8 @@ using QuantizedSystemSolver
         modules = [QuantizedSystemSolver],
         pages = [
             "Home" => "index.md",
-            "QSS Problem" => "Problem.md",
-            "Taylor Object" => "Taylor0.md",
-            "Algorithms" => "Algorithm.md",
+            "Tutorial" => "userGuide.md",
+            "developper Guide" => "developperGuide.md",
             "Examples" => "examples.md",
         ]
     )

@@ -94,5 +94,5 @@ end)
 tspan=(0.0,5.0)
 solnmliqss=solve(prob,abstol=1e-5,reltol=1e-2,tspan)#
 solnmliqssInterp=solInterpolated(solnmliqss,0.01)
-getErrorByRefs(solFeagin14VectorN1000d01,solnmliqssInterp,1)
-err4=getAverageErrorByRefs(solFeagin14VectorN1000d01,solnmliqssInterp)
+getErrorByRefs(solnmliqssInterp,1,solFeagin14VectorN1000d01)
+err4=getAverageErrorByRefs(solnmliqssInterp,solFeagin14VectorN1000d01)

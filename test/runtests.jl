@@ -13,7 +13,7 @@ using BSON
         du[1] = -20.0*u[1]-80.0*u[2]+1600.0
         du[2] =1.24*u[1]-0.01*u[2]+0.2
     end)  
-    @test typeof(odeprob) <: NLODEProblem{1,2,0,0,3} 
+    @test typeof(odeprob) <: QuantizedSystemSolver.NLODEProblem{1,2,0,0,3} 
     @test odeprob.prname == :sysb53
     @test odeprob.initConditions == [-1.0, -2.0]
     @test odeprob.jac == [[1,2], [1,2]] || odeprob.jac == [[2,1], [2,1]]

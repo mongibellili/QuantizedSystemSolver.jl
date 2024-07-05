@@ -1,4 +1,7 @@
-
+"""LightSol{T,O}
+calls the modified imlicit quantized state system solver with order 3.
+It is efficient when the system contains large entries outside the main diagonal of the Jacobian .
+"""
 struct LightSol{T,O}<:Sol{T,O}
   size::Val{T}
   order::Val{O}

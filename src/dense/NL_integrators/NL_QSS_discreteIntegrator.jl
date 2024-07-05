@@ -1,7 +1,7 @@
 #using TimerOutputs
 function integrate(Al::QSSAlgorithm{:qss,O},CommonqssData::CommonQSS_data{Z}, odep::NLODEProblem{PRTYPE,T,Z,Y,CS},f::Function,jac::Function,SD::Function) where {PRTYPE,O,T,Z,Y,CS}
 
-  ft = CommonqssData.finalTime;initTime = CommonqssData.initialTime;relQ = CommonqssData.dQrel;absQ = CommonqssData.dQmin;maxErr=CommonqssData.maxErr;
+  ft = CommonqssData.finalTime;initTime = CommonqssData.initialTime;relQ = CommonqssData.dQrel;absQ = CommonqssData.dQmin;maxErr=CommonqssData.maxErr;;maxStepsAllowed=CommonqssData.maxStepsAllowed
 
   #savetimeincrement=CommonqssData.savetimeincrement;savetime = savetimeincrement
   quantum = CommonqssData.quantum;nextStateTime = CommonqssData.nextStateTime;nextEventTime = CommonqssData.nextEventTime;nextInputTime = CommonqssData.nextInputTime
@@ -17,9 +17,9 @@ function integrate(Al::QSSAlgorithm{:qss,O},CommonqssData::CommonQSS_data{Z}, od
   SZ=odep.SZ
   evDep = odep.eventDependencies
 
-  if DEBUG2 @show HD,HZ,SZ,zc_SimpleJac,d end
-  if DEBUG2 @show evDep end
-  if DEBUG2 @show f end
+  if DEBUG @show HD,HZ,SZ,zc_SimpleJac,d end
+  if DEBUG @show evDep end
+  if DEBUG @show f end
   
   #********************************helper values*******************************  
 
@@ -60,7 +60,10 @@ end
 ####################################################################################################################################################################
 simt = initTime ;totalSteps=0;prevStepTime=initTime;modifiedIndex=0;statestep=0; countEvents=0;#needSaveEvent=false
   
-while simt<ft && totalSteps < 50000000
+while simt < ft && totalSteps < maxStepsAllowed
+  if totalSteps==maxStepsAllowed-1
+    @warn("The algorithm qss$O is taking too long to converge. The simulation will be stopped. Consider using a different algorithm!")
+  end
   sch = updateScheduler(Val(T),nextStateTime,nextEventTime, nextInputTime)
   simt = sch[2];index = sch[1];stepType=sch[3]
    if  simt>ft  

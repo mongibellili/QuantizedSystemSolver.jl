@@ -147,3 +147,42 @@ end
 
 (p::Taylor0)(x) = evaluate(p, x)
 (p::Taylor0)() = evaluate(p)
+
+
+function differentiate(a::Taylor0)
+    res = Taylor0(zero(a[0]), a.order(a)-1)
+    for ord in eachindex(res)
+        differentiate!(res, a, ord)
+    end
+    return res
+end
+
+function differentiate!(p::Taylor0, a::Taylor0, k::Int)
+    if k < a.order
+        @inbounds p[k] = (k+1)*a[k+1]
+    end
+    return nothing
+end
+function differentiate!(::Val{O},cache::Taylor0, a::Taylor0)where {O}
+    for k=0:O-1
+       # differentiate!(res, a, ord)
+       # if k < a.order
+          @inbounds cache[k] = (k+1)*a[k+1]
+      #end
+    end
+    cache[O]=0.0  #cache Letter O not zero
+    nothing
+end
+function ndifferentiate!(cache::Taylor0,a::Taylor0, n::Int) 
+    if n > a.order
+        cache.coeffs.=0.0
+    elseif n==0
+        cache.coeffs.=a.coeffs
+    else
+        differentiate!(Val(a.order),cache,a)
+        for i = 2:n
+            differentiate!(Val(a.order),cache, cache)
+        end
+        #return Taylor0(view(res.coeffs, 1:a.order-n+1))
+    end
+end

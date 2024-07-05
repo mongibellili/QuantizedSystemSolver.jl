@@ -2,7 +2,7 @@
 function integrate(Al::QSSAlgorithm{:nmliqss,O},CommonqssData::CommonQSS_data{0},liqssdata::LiQSS_data{O,false}, odep::NLODEProblem{PRTYPE,T,0,0,CS},f::Function,jac::Function,SD::Function,exactA::Function) where {PRTYPE,CS,O,T}
   cacheA=liqssdata.cacheA
 
-  ft = CommonqssData.finalTime;initTime = CommonqssData.initialTime;relQ = CommonqssData.dQrel;absQ = CommonqssData.dQmin;maxErr=CommonqssData.maxErr;
+  ft = CommonqssData.finalTime;initTime = CommonqssData.initialTime;relQ = CommonqssData.dQrel;absQ = CommonqssData.dQmin;maxErr=CommonqssData.maxErr;;maxStepsAllowed=CommonqssData.maxStepsAllowed
   
   #savetimeincrement=CommonqssData.savetimeincrement;savetime = savetimeincrement
   quantum = CommonqssData.quantum;nextStateTime = CommonqssData.nextStateTime;nextEventTime = CommonqssData.nextEventTime;  nextInputTime = CommonqssData.nextInputTime
@@ -89,28 +89,26 @@ end
   #simul=false
 printonce=0
 
-  while simt < ft && totalSteps < 30000000
+while simt < ft && totalSteps < maxStepsAllowed
+  if totalSteps==maxStepsAllowed-1
+    @warn("The algorithm nmliqss$O is taking too long to converge. The simulation will be stopped. Consider using a different algorithm!")
+  end
     sch = updateScheduler(Val(T),nextStateTime,nextEventTime, nextInputTime)
     simt = sch[2];index = sch[1]
     if simt>ft
       break # 
     end
     numSteps[index]+=1;totalSteps+=1
-#=     if (simt>ft/2 || totalSteps==40000) && printonce==0
-      printonce=1
-    end
-    if printonce==1
-      @show "half",simt
-      printonce=2
-    end =#
+
    
     t[0]=simt
     ##########################################state########################################
     if sch[3] == :ST_STATE
+   
         xitemp=x[index][0]
         elapsed = simt - tx[index];integrateState(Val(O),x[index],elapsed);tx[index] = simt 
         quantum[index] = relQ * abs(x[index].coeffs[1]) ;quantum[index]=quantum[index] < absQ ? absQ : quantum[index];quantum[index]=quantum[index] > maxErr ? maxErr : quantum[index] 
-        if abs(x[index].coeffs[2])>1e6 quantum[index]=10*quantum[index] end  # i added this for the case a function is climbing (up/down) fast     
+       # if abs(x[index].coeffs[2])>1e6 quantum[index]=10*quantum[index] end  # i added this for the case a function is climbing (up/down) fast     
         #dirI=x[index][0]-savedVars[index][end]  
         dirI=x[index][0]-xitemp
         for b in (jac(index)  )    # update Qb : to be used to calculate exacte Aindexb...move below updateQ
@@ -118,6 +116,7 @@ printonce=0
           if elapsedq>0 integrateState(Val(O-1),q[b],elapsedq);tq[b]=simt end
         end
         firstguess=updateQ(Val(O),index,x,q,quantum,exactA,d,cacheA,dxaux,qaux,tx,tq,simt,ft,nextStateTime) ;tq[index] = simt   
+      
         #----------------------------------------------------check dependecy cycles---------------------------------------------   
         trackSimul[1]=0 
         #= for i =1:5
@@ -138,9 +137,10 @@ printonce=0
              
               if nmisCycle_and_simulUpdate(cacheRootsi,cacheRootsj,acceptedi,acceptedj,aij,aji,respp,pp,trackSimul,Val(O),index,j,dirI,firstguess,x,q,quantum,exactA,d,cacheA,dxaux,qaux,tx,tq,simt,ft)
                 simulStepCount+=1
+                 
                clearCache(taylorOpsCache,Val(CS),Val(O));f(index,q,t,taylorOpsCache);computeDerivative(Val(O), x[index], taylorOpsCache[1])
              
-   
+             
                 for k in SD(j)  #j influences k
                     if k!=index && k!=j
                         elapsedx = simt - tx[k]; x[k].coeffs[1] = x[k](elapsedx);tx[k] = simt
@@ -182,7 +182,7 @@ printonce=0
           clearCache(taylorOpsCache,Val(CS),Val(O)); f(c,q,t,taylorOpsCache);computeDerivative(Val(O), x[c], taylorOpsCache[1])
           Liqss_reComputeNextTime(Val(O), c, simt, nextStateTime, x, q, quantum)
         end#end for SD
-    
+      
        #=  if  11.163688670259043<simt<12.165
           @show simt,index,x[index],q[index],nextStateTime
         end =#
