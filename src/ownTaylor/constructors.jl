@@ -11,7 +11,11 @@
 
 ## Constructors ##
 
-
+"""Taylor0
+A struct that defines a Taylor Variable. It has the following fields:\n
+    - coeffs: An array of Float64 that holds the coefficients of the Taylor series\n
+    - order: The order of the Taylor series
+"""
 struct Taylor0 #<: AbstractSeries{Float64}
     coeffs :: Array{Float64,1}
     order :: Int

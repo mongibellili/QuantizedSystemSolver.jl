@@ -1,5 +1,9 @@
 # Solution Extension
+ 
+```@docs
+QuantizedSystemSolver.Sol{T,O}
+```
 
 ```@docs
-LightSol{T,O}
+QuantizedSystemSolver.LightSol{T,O}
 ```

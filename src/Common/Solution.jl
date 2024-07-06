@@ -1,6 +1,17 @@
 """LightSol{T,O}
-calls the modified imlicit quantized state system solver with order 3.
-It is efficient when the system contains large entries outside the main diagonal of the Jacobian .
+A struct that holds the solution of a system of ODEs. It has the following fields:\n
+    - size: The number of continuous variables T\n
+    - order: The order of the algorithm O\n
+    - savedTimes: A vector of vectors of Float64 that holds the times at which the continuous variables were saved\n
+    - savedVars: A vector of vectors of Float64 that holds the values of the continuous variables at the times they were saved\n
+    - algName: The name of the algorithm used to solve the system\n
+    - sysName: The name of the system\n
+    - absQ: The absolute tolerance used in the simulation\n
+    - totalSteps: The total number of steps taken by the algorithm\n
+    - simulStepCount: The number of simultaneous updates during the simulation\n
+    - evCount: The number of events that occurred during the simulation\n
+    - numSteps: A vector of Int that holds the number of steps taken by the algorithm for each continuous variable\n
+    - ft: The final time of the simulation
 """
 struct LightSol{T,O}<:Sol{T,O}
   size::Val{T}

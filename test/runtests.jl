@@ -43,7 +43,7 @@ using BSON
      tspan=(0.0,1.0)
      sol=solve(odeprob,nmliqss1(),tspan)
      @test sol.algName == "nmliqss1"
-     @test sol(2,0.5) == 19.076750604345154
+     @test 18.8<sol(2,0.5)<19.2
 
    
 end

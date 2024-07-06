@@ -116,3 +116,7 @@ cache3=Taylor0([0.0,0.0,0.0],2)
 @test    powerT(t2,3.0,cache1)[0]≈1.0
 @test    sqrt(t2,cache1)[0]≈1.0 =#
 
+
+#= using Test
+x=3.0*6.0+1.5
+@test 19.0<x<19.4 =#

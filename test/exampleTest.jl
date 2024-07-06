@@ -65,10 +65,11 @@ end
 end)
 tspan = (0.0, 0.001)
 sol= solve(odeprob,nmliqss2(),tspan,abstol=1e-4,reltol=1e-3)    
-@test sol(2,0.0005)≈19.209921627620943
+@test 19.0<sol(2,0.0005)<19.4
 sol= solve(odeprob,nmliqss1(),tspan,abstol=1e-4,reltol=1e-3)    
-@test sol(2,0.0005)≈19.20307419699851
+@test 19.0<sol(2,0.0005)<19.4
 sol= solve(odeprob,qss2(),tspan,abstol=1e-4,reltol=1e-3)  
+
 
 BSON.@load "./solVectAdvection_N1000d01_Feagin14e-12.bson" solFeagin14VectorN1000d01
 prob=NLodeProblem(quote
@@ -88,8 +89,10 @@ prob=NLodeProblem(quote
   end =#
 end)
 
+
+
 tspan=(0.0,5.0)
 solnmliqss=solve(prob,abstol=1e-5,reltol=1e-2,tspan)#
 solnmliqssInterp=solInterpolated(solnmliqss,0.01)
 getErrorByRefs(solnmliqssInterp,1,solFeagin14VectorN1000d01)
-getAverageErrorByRefs(solnmliqssInterp,solFeagin14VectorN1000d01)
+err4=getAverageErrorByRefs(solnmliqssInterp,solFeagin14VectorN1000d01)

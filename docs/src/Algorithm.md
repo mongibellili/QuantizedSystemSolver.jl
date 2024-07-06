@@ -1,5 +1,5 @@
 # Algorithms
-## Functions
+
 ```@docs
  qss1()  
 ```

@@ -56,11 +56,18 @@
     @__dot__ cache.coeffs=a.coeffs
      return cache
    end
+   """createT(a::T,cache::Taylor0) where {T<:Number}
+   
+    creates a Taylor0 from a constant. In case of order 2, cache=[a,0,0]
+"""
    function createT(a::T,cache::Taylor0) where {T<:Number} # requires cache1 clean
         cache[0]=a
      return cache
    end
+   """addsub(a::Taylor0, b::Taylor0,c::Taylor0,cache::Taylor0) 
 
+   cache=a+b-c
+"""
   function addsub(a::Taylor0, b::Taylor0,c::Taylor0,cache::Taylor0) 
    @__dot__ cache.coeffs=(-)((+)(a.coeffs,b.coeffs),c.coeffs)
     return cache
@@ -71,6 +78,10 @@
    @__dot__ cache.coeffs = (+)(cache.coeffs, a.coeffs)
     return cache
   end
+  """addsub(a::T, b::Taylor0,c::Taylor0,cache::Taylor0) where {T<:Number} 
+
+  Order2 case: cache=[a+b[0]-c[0],b[1]-c[1],b[2]-c[2]]
+"""
   function addsub(a::T, b::Taylor0,c::Taylor0,cache::Taylor0) where {T<:Number}
             cache.coeffs.=b.coeffs  
             cache[0]=a+ cache[0]
@@ -98,6 +109,10 @@ end
 end
 
 ###########"negate###########
+"""negateT(a::Taylor0,cache::Taylor0)
+
+cache=-a
+"""
 function negateT(a::Taylor0,cache::Taylor0) #where {T<:Number}
   @__dot__ cache.coeffs = (-)(a.coeffs)
   return cache
@@ -107,6 +122,10 @@ function negateT(a::T,cache::Taylor0) where {T<:Number} # requires cache1 clean
 return cache
 end
 #################################################subsub########################################################"
+"""subsub(a::Taylor0, b::Taylor0,c::Taylor0,cache::Taylor0) 
+
+cache=a-b-c
+"""
 function subsub(a::Taylor0, b::Taylor0,c::Taylor0,cache::Taylor0) 
   @__dot__ cache.coeffs = subsub(a.coeffs, b.coeffs,c.coeffs)
   return cache
@@ -154,6 +173,10 @@ function subadd(a::P,b::Q,c::R,cache::Taylor0) where {P,Q,R <:Union{Taylor0,Numb
 end
 
 ##################################""subT################################
+"""subT(a::Taylor0, b::Taylor0,cache::Taylor0)
+
+cache=a-b
+"""
 function subT(a::Taylor0, b::Taylor0,cache::Taylor0)# where {T<:Number}
   @__dot__ cache.coeffs = (-)(a.coeffs, b.coeffs)
   return cache
@@ -181,6 +204,10 @@ end =#
 @__dot__ a.coeffs = (+)(a.coeffs, b.coeffs)
         return a
 end =#
+"""addT(a::Taylor0, b::Taylor0,cache::Taylor0) 
+
+cache=a+b
+"""
 function addT(a::Taylor0, b::Taylor0,cache::Taylor0) 
         @__dot__ cache.coeffs = (+)(a.coeffs, b.coeffs)
          return cache
@@ -225,13 +252,17 @@ function addT( a::T,b::T,c::T,cache::Taylor0) where {T<:Number}#require clean ca
 end
 
 ####################mul uses one cache when the original mul has only two elemnts a * b
+
 function mulT(a::Taylor0, b::T,cache1::Taylor0) where {T<:Number}
   fill!(cache1.coeffs, b)##I fixed broadcast dimension mismatch
   @__dot__ cache1.coeffs = a.coeffs * cache1.coeffs  ##I fixed broadcast dimension mismatch
   return cache1
 end
 mulT(a::T,b::Taylor0, cache1::Taylor0) where {T<:Number} = mulT(b , a,cache1)
+"""mulT(a::Taylor0, b::Taylor0,cache1::Taylor0) 
 
+cache1=a*b
+"""
 function mulT(a::Taylor0, b::Taylor0,cache1::Taylor0) 
    for k in eachindex(a)
       @inbounds cache1[k] = a[0] * b[k]
@@ -287,12 +318,18 @@ end
   @__dot__ cache1.coeffs = cache2.coeffs
    return cache1
 end =#
+"""muladdT(a::P,b::Q,c::R,cache1::Taylor0) where {P,Q,R <:Union{Taylor0,Number}}
 
+cache1=a*b+c
+"""
 function muladdT(a::P,b::Q,c::R,cache1::Taylor0) where {P,Q,R <:Union{Taylor0,Number}}
       addT(mulT(a, b,cache1),c,cache1) # improvement of added performance not tested: there is one extra step of 
                                        #puting cache in itself
 end
+"""mulsub(a::P,b::Q,c::R,cache1::Taylor0) where {P,Q,R <:Union{Taylor0,Number}}
 
+cache1=a*b-c
+"""
  function mulsub(a::P,b::Q,c::R,cache1::Taylor0) where {P,Q,R <:Union{Taylor0,Number}}
   subT(mulT(a, b,cache1),c,cache1)
 end
@@ -318,7 +355,10 @@ function divT(a::T, b::Taylor0,cache1::Taylor0) where {T<:Number}
   return cache1
 end
 #divT(a::Taylor0, b::Taylor0{S}) where {T<:Number,S<:Number} = divT(promote(a,b)...)
+"""divT(a::Taylor0, b::Taylor0,cache1::Taylor0) 
 
+cache1=a/b
+"""
 function divT(a::Taylor0, b::Taylor0,cache1::Taylor0) 
   iszero(a) && !iszero(b) && return cache1 # this op has its own clean cache2
   ordfact, cdivfact = divfactorization(a, b)

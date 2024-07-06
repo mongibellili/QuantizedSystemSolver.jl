@@ -1,6 +1,11 @@
 
 #macro NLodeProblem(odeExprs)
-function NLodeProblem(odeExprs)
+"""NLodeProblem(odeExprs) 
+
+This function parses the user code to dispatches on a specific problem construction.
+It returns a Problem object to be passed to the solve function.
+"""
+function NLodeProblem(odeExprs) 
     Base.remove_linenums!(odeExprs)
     if VERBOSE println("starting prob parsing...") end 
     probHelper=arrangeProb(odeExprs)# replace symbols and params , extract info about size,symbols,initconds

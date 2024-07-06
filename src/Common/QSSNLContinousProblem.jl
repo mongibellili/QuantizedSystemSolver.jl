@@ -1,4 +1,18 @@
-
+"""NLODEContProblem{PRTYPE,T,Z,Y,CS}
+A struct that holds the Problem of a system of ODEs. It has the following fields:\n
+    - prname: The name of the problem\n
+    - prtype: The type of the problem\n
+    - a: The size of the problem\n
+    - b: The number of zero crossing functions\n
+    - c: The number of discrete events\n
+    - cacheSize: The size of the cache\n
+    - initConditions: The initial conditions of the problem\n
+    - eqs: The function that holds all the ODEs\n
+    - jac: The Jacobian dependency\n
+    - SD: The state derivative dependency\n
+    - exactJac: The exact Jacobian function\n
+    - jacDim: The Jacobian dimension (if sparsity to be exploited)
+"""
 struct NLODEContProblem{PRTYPE,T,Z,Y,CS}<: NLODEProblem{PRTYPE,T,Z,Y,CS} 
     prname::Symbol # problem name used to distinguish printed results
     prtype::Val{PRTYPE} # problem type: not used but created in case in the future we want to handle problems differently
