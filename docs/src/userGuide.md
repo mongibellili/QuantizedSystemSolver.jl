@@ -144,6 +144,6 @@ Save the plot: save_Sol(sol, "solution_plot.png") saves the plot to a file named
 
 ## [Interface code documentation](./interface.md#interface)
 
-## [Algorithms](./algorithm.md#algorithms)
+## [QSS Algorithms](./algorithm.md#algorithms)
 
 
