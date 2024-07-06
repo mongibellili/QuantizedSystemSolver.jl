@@ -158,6 +158,10 @@ function simpleSolInterpolated(sol::Sol,index::Int,step::Float64,ft::Float64)
   push!(interpValues,sol[2][index][numPoints][0]) #last pt @ft
   (interpTimes,interpValues)
 end
+
+
+
+
 (sol::Sol)(index::Int,t::Float64) = evaluateSol(sol,index,t)
 ####################################################################################################
   

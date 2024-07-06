@@ -1,7 +1,7 @@
 # Solution Extension
  
 ```@docs
-QuantizedSystemSolver.Sol{T,O}
+Sol{T,O}
 ```
 
 ```@docs

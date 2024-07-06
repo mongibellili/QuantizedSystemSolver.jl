@@ -98,7 +98,17 @@ function plot_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::
   p1
   #savefig(p1, "plot_$(sol.sysName)_$(sol.algName)_$(sol.absQ)_$(note)_ft_$(sol.ft)_$(timestamp).png")
 end
+"""save_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}
 
+Save the plot of the solution of the system for the variables xvars.
+  With the exception of the solution object, all arguments are optional.
+  The default values are:\n
+  - note = " "\n
+  - xlims = (0.0,0.0)\n
+  - ylims = (0.0,0.0)\n
+  - legend = true
+
+"""
 function save_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}
   
   p1= plot_Sol(sol,xvars...;note=note,xlims=xlims,ylims=ylims,legend=legend)
@@ -144,7 +154,10 @@ end =#
 
 
 
+"""getPlot(sol::Sol{T,O}) where{T,O}
 
+  This function generates a plot of the solution of the system (returned as a plot object).
+"""
 function getPlot(sol::Sol{T,O}) where{T,O}
   p1=plot(title="$(sol.sysName)")#;p2=nothing
   for k=1:T

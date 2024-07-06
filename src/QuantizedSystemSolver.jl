@@ -20,7 +20,7 @@ module QuantizedSystemSolver
     zero, one, zeros, ones, isinf, isnan, iszero,
     convert, promote_rule, promote, show,abs
    ##### list of public (API) 
-  export NLodeProblem,solve ,NLODEProblem,QSSAlgorithm# docs used NLODEProblem, QSSAlgorithm
+  export NLodeProblem,solve ,NLODEProblem,QSSAlgorithm,Sol# docs used NLODEProblem, QSSAlgorithm
   export qss1,qss2,qss3,liqss1,liqss2,liqss3,saveat,nmliqss1,nmliqss2,nmliqss3
   export save_Sol,plot_Sol,getPlot,getPlot!,save_SolSum,solInterpolated
   export getError,getErrorByRodas,getAllErrorsByRefs,getAverageErrorByRefs,getErrorByRefs
