@@ -29,7 +29,6 @@ struct NLODEContProblem{PRTYPE,T,Z,Y,CS}<: NLODEProblem{PRTYPE,T,Z,Y,CS}
     jacDim::Function # if sparsity to be exploited: gives length of each row
 end
 
-
 # to create NLODEContProblem above
 function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{0},::Val{0}, initConditions::Vector{Float64} ,du::Symbol,symDict::Dict{Symbol,Expr})where {T}
     if VERBOSE println("nlodeprobfun  T= $T") end
@@ -38,7 +37,6 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{0},::Val{0}, initConditi
     exacteJacExpr = Dict{Expr,Union{Float64,Int,Symbol,Expr}}()
     # NO need to constrcut SD...SDVect will be extracted from Jac
     num_cache_equs=1#initial cachesize::will hold the number of caches (vectors) of the longest equation
-  
     for argI in odeExprs.args
         #only diff eqs: du[]= number || ref || call 
         if argI isa Expr &&  argI.head == :(=)  && argI.args[1] isa Expr && argI.args[1].head == :ref && argI.args[1].args[1]==du#expr LHS=RHS and LHS is du
@@ -79,16 +77,8 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{0},::Val{0}, initConditi
         fname= odeExprs.args[1].args[2].args[1]
         #path=odeExprs.args[1].args[2].args[2]
     end
- 
     exacteJacfunction=createExactJacFun(exacteJacExpr,fname)
-    
-   #=  open("./temp.jl", "a") do io    
-        println(io,string(exacteJacfunction)) 
-    end =#
-
     exactJacfunctionF=@RuntimeGeneratedFunction(exacteJacfunction)
-    
-   
     diffEqfunction=createContEqFun(equs,fname)# diff equations before this are stored in a dict:: now we have a giant function that holds all diff equations
     jacVect=createJacVect(jac,Val(T)) #jacobian dependency
     SDVect=createSDVect(jac,Val(T))  # state derivative dependency
@@ -98,10 +88,7 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{0},::Val{0}, initConditi
    # mapFunF=@RuntimeGeneratedFunction(mapFun)
     jacDimFunctionF=@RuntimeGeneratedFunction(jacDimFunction)
     prob=NLODEContProblem(fname,Val(1),Val(T),Val(0),Val(0),Val(num_cache_equs),initConditions,diffEqfunctionF,jacVect,SDVect,exactJacfunctionF,jacDimFunctionF)# prtype type 1...prob not saved and struct contains vects
-
 end
-
-
 
 function createContEqFun(equs::Dict{Union{Int,Expr},Expr},funName::Symbol)
     s="if i==0 return nothing\n"  # :i is the mute var
@@ -124,24 +111,18 @@ function createContEqFun(equs::Dict{Union{Int,Expr},Expr},funName::Symbol)
     def[:args] = [:(i::Int),:(q::Vector{Taylor0}),:(t::Taylor0),:(cache::Vector{Taylor0})]
     def[:body] = myex1  
     functioncode=combinedef(def)
-   # @show functioncode;functioncode
 end
 
 function createJacDimensionFun(jac:: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},funName::Symbol)
     ss="if i==0 return 0\n"
     for dictElement in jac
-    #=  Base.remove_linenums!(dictElement[1])
-        Base.remove_linenums!(dictElement[2]) =#
-       # counterJac=1
         if dictElement[1] isa Int
             ss*="elseif i==$(dictElement[1])  \n"
             ss*="return $(length(dictElement[2]))  \n"
            # ss*=" return nothing \n"
         elseif dictElement[1] isa Expr
             ss*="elseif $(dictElement[1].args[1])<=i<=$(dictElement[1].args[2])  \n"
-            
-                ss*="return $(length(dictElement[2]))  \n"
-              
+            ss*="return $(length(dictElement[2]))  \n"
         end     
     end
     ss*=" end \n"         
@@ -155,7 +136,8 @@ function createJacDimensionFun(jac:: Dict{Union{Int,Expr},Set{Union{Int,Symbol,E
     functioncode1=combinedef(def1)
 end
 
-function createMapFun(jac:: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},funName::Symbol)
+#do not delete next commented function...needed for future code extension
+#= function createMapFun(jac:: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},funName::Symbol)
     ss="if i==0 return nothing\n"
     for dictElement in jac
     #=  Base.remove_linenums!(dictElement[1])
@@ -201,23 +183,19 @@ function createMapFun(jac:: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},fu
     def1[:args] = [:(cache::MVector{1,Int}),:(i::Int),:(j::Int)]
     def1[:body] = myex1
     functioncode1=combinedef(def1)
-end
+end =#
 
 function createExactJacFun(jac:: Dict{Expr,Union{Float64,Int,Symbol,Expr}},funName::Symbol)
     ss="if i==0 return nothing\n"
     for dictElement in jac
         if dictElement[1].args[1] isa Int
             ss*="elseif i==$(dictElement[1].args[1]) && j==$(dictElement[1].args[2]) \n"
-          
             ss*="cache[1]=$(dictElement[2]) \n"
             ss*=" return nothing \n"
-           
         elseif dictElement[1].args[1] isa Expr
             ss*="elseif $(dictElement[1].args[1].args[1])<=i<=$(dictElement[1].args[1].args[2]) && j==$(dictElement[1].args[2]) \n"
-           
             ss*="cache[1]=$(dictElement[2]) \n"
             ss*=" return nothing \n"
-           
         end     
     end
     ss*=" end \n"         
@@ -236,16 +214,12 @@ function createExactJacDiscreteFun(jac:: Dict{Expr,Union{Float64,Int,Symbol,Expr
     for dictElement in jac
         if dictElement[1].args[1] isa Int
             ss*="elseif i==$(dictElement[1].args[1]) && j==$(dictElement[1].args[2]) \n"
-          
             ss*="cache[1]=$(dictElement[2]) \n"
             ss*=" return nothing \n"
-           
         elseif dictElement[1].args[1] isa Expr
             ss*="elseif $(dictElement[1].args[1].args[1])<=i<=$(dictElement[1].args[1].args[2]) && j==$(dictElement[1].args[2]) \n"
-           
             ss*="cache[1]=$(dictElement[2]) \n"
             ss*=" return nothing \n"
-           
         end     
     end
     ss*=" end \n"         
@@ -313,8 +287,8 @@ function createSDVect(jac:: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},::
 end
 
 
-#helper funs used in lines 136 and 150
-function Base.isless(ex1::Expr, ex2::Expr)#:i is the mute var that prob is now using
+
+#= function Base.isless(ex1::Expr, ex2::Expr)#:i is the mute var that prob is now using
     fa= postwalk(a -> a isa Symbol && a==:i ? 1 : a, ex1)# check isa symbol not needed
     fb=postwalk(a -> a isa Symbol && a==:i ? 1 : a, ex2)
     eval(fa)<eval(fb)
@@ -326,4 +300,4 @@ function Base.isless(ex1::Expr, ex2::Expr)#:i is the mute var that prob is now u
   function Base.isless(ex1::Symbol, ex2::Expr)
     fa= postwalk(a -> a isa Symbol && a==:i ? 1 : a, ex2)
     1<eval(fa)
-  end
+  end =#

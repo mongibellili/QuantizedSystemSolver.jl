@@ -12,7 +12,6 @@
   
   function transformF(ex)# name to be changed later....i call this funciton in the docs the function that does the transformation
    cachexpr_lengthtracker = Expr(:mongi)# an expr to track the number of distributed caches
-   
     prewalk(ex) do x
       #############################minus sign#############################################
       if x isa Expr && x.head == :call && x.args[1] == :- && length(x.args) == 3  && !(x.args[2] isa Int) && !(x.args[3] isa Int) #last 2 to avoid changing u[i-1]  #MacroTools.isexpr(x, :call) replaces the begining
@@ -164,19 +163,8 @@
     #return ex ########################################************************
     ex.args[2]=length(cachexpr_lengthtracker.args)# return the number of caches distributed...later clean the max of all these
   
-     return ex
+    return ex
   # end #end if number else prewalk
   
   end#end function
   
-  #this macro is to be deleted : created for testing
-  #= macro changeAST(ex)
-    Base.remove_linenums!(ex)
-    # dump(ex; maxdepth=18)
-    transformF(ex)
-   
-  # dump( ex.args[1])
-  #=   @show ex.args[1]# return  
-  return nothing =#
-  esc(ex.args[1])# return 
-  end =#

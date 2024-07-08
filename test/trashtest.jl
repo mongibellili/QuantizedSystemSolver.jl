@@ -1,16 +1,61 @@
-#using QuantizedSystemSolver
-#= 
-odeprob = NLodeProblem(quote
-    name=(sysb1,)
+using QuantizedSystemSolver
+
+
+
+#= odeprob = NLodeProblem(quote
+    name=(sysb53,)
     u = [-1.0, -2.0]
-    du[1] = -2.0
+    du[1] = -20.0*u[1]-80.0*u[2]+1600.0
     du[2] =1.24*u[1]-0.01*u[2]+0.2
 end)  
-tspan=(0.0,1.0)
+tspan=(0.0,10.0)
+
+sol=solve(odeprob,nmliqss2(),tspan)
+
+u1, u2 = -8.73522174738572, -7.385745994549763
+λ1, λ2 = -10.841674966758294, -9.168325033241706
+c1, c2 = 121.14809142478035, -143.14809142478035
+xp1, xp2 = 0.0, 20.0
+x1(t)=c1*u1*exp(λ1*t)+c2*u2*exp(λ2*t)+xp1
+x2(t)=c1*exp(λ1*t)+c2*exp(λ2*t)+xp2
+
+
+solnmliqssInterp=solInterpolated(sol,0.01)
+er1=getError(solnmliqssInterp,1,x1)  
+er2=getError(solnmliqssInterp,2,x2) 
+@show er1,er2 =#
+
+
+
+
+odeprob = NLodeProblem(quote
+    name=(sysN12,)
+    u = [1.0, 0.0,1.0, 0.0,1.0]
+    discrete = [0.5]
+    du[1] = t
+    
+    for k in 2:5 
+        du[k]=discrete[1]*(u[k]-u[k-1]) ;
+    end 
+    if t-5.0>0.0
+        discrete[1]=0.0
+    end
+    if u[1]-3.0>0.0
+        u[1] = 1.0
+        u[2] = 0.0
+        u[3] = 1.0
+        u[4] = 0.0
+        u[5] = 1.0
+        discrete[1]=1.0
+        
+    end
+end)  
+tspan=(0.0,6.0)
 sol=solve(odeprob,nmliqss2(),tspan)
 save_Sol(sol)
 xp=sol(2,0.5)
-@test   xp  
+@show   xp  
+#= 
 odeprob = NLodeProblem(quote
     name=(sysb2,)
     u = [-1.0, -2.0]
@@ -120,3 +165,29 @@ cache3=Taylor0([0.0,0.0,0.0],2)
 #= using Test
 x=3.0*6.0+1.5
 @test 19.0<x<19.4 =#
+#= jac=[Int64[], [1]]
+for i = 1:2
+    @test !isempty(jac[i])
+end =#
+
+
+#= t2=1.0
+    cache1=Taylor0([0.0,0.0,0.0],2)
+    cache2=Taylor0([0.0,0.0,0.0],2)
+@show one(cache1) =#
+#= using Test
+acceptedi=Vector{Vector{Float64}}(undef,3)
+for i =1:3
+acceptedi[i]=[0.0,0.0]#zeros(2)
+end
+
+constructIntrval(acceptedi,-1.0,-2.0,-3.0,4.0)
+@test acceptedi[1]==[0.0, 4.0]
+
+constructIntrval(acceptedi,-1.0,2.0,3.0,4.0)
+@test acceptedi[1]==[0.0, 2.0]
+@test acceptedi[2]==[3.0, 4.0]
+constructIntrval(acceptedi,1.0,2.0,3.0,4.0)
+@test acceptedi[1]  ==[0.0, 1.0]
+@test acceptedi[2]==[2.0, 3.0]
+@test acceptedi[3] ==[4.0, Inf] =#

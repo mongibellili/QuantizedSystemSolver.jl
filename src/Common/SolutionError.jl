@@ -39,26 +39,6 @@ function getErrorByRefs(sol::Sol{T,O},index::Int,solRef::Vector{Any})where{T,O}
   return relerror
 end
 
-
-#= function getAllErrorsByRefs(sol::Sol{T,O},solRef::Vector{Any})where{T,O}
-  numPoints=length(sol.savedTimes[1])
-  allErrors=Array{Float64}(undef, T)
-  for index=1:T
-      sumTrueSqr=0.0
-      sumDiffSqr=0.0
-      relerror=0.0
-      for i = 1:numPoints-1 #each point is a taylor
-          ts=solRef[i][index]
-          Ns=getX_fromSavedVars(sol.savedVars,index,i)
-          sumDiffSqr+=(Ns-ts)*(Ns-ts)
-          sumTrueSqr+=ts*ts
-      end
-      relerror=sqrt(sumDiffSqr/sumTrueSqr)
-      
-      allErrors[index]= relerror
-  end
-  return allErrors
-end =#
 @inline function getX_fromSavedVars(savedVars :: Vector{Array{Taylor0}},index::Int,i::Int)
   return savedVars[index][i].coeffs[1]
 end

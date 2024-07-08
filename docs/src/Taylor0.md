@@ -1,5 +1,5 @@
 # Taylor0 
-
+These are just some examples. Taylor0 is defined for many other functions. However, other functions can also be added.
 
 ```@docs
 Taylor0

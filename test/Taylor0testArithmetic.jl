@@ -33,9 +33,17 @@ addT(4.3,5.2,cache1)
 @test cache1[0]==9.5
 addT(t1,5.6,cache1)
 @test cache1[0]==6.6
+addT(5.6,t1,cache1)
+@test cache1[0]==6.6
 addT(t1,t2,cache1)
 @test cache1[0]==3.0
 addT(t1,t2,4.8,cache1)
+@test cache1[0]==7.8
+addT(1.0,1.0,4.8,cache1)
+@test cache1[0]==6.8
+addT(t1,4.8,t2,cache1)
+@test cache1[0]==7.8
+addT(4.8,t2,t1,cache1)
 @test cache1[0]==7.8
 addT(t1,t2,t3,cache1)
 @test cache1[0]==4.0
@@ -43,6 +51,9 @@ addT(t1,t2,t3,1.2,cache1)
 @test cache1[0]==5.2
 addT(t1,t2,t3,1.2,1.0,cache1)
 @test cache1[0]==6.2
+addT(t1,t2,t3,1.2,1.0,1.0,cache1)
+@test cache1[0]==7.2
+
 subT(4.3,5.3,cache1)
 @test cache1[0]==-1.0
 
@@ -76,8 +87,12 @@ subsub(t1,t2,t3,cache1)
 @test cache1[0]==-2.0
 subsub(t1,5.0,t2,cache1)
 @test cache1[0]==-6.0
+subsub(5.0,t1,t2,cache1)
+@test cache1[0]==2.0
 subsub(0.5,5.0,t2,cache1)
 @test cache1[0]==-6.5
+subsub(t1,1.0,1.0,cache1)
+@test cache1[0]==-1.0
 #mulT
 mulT(4.3,5.2,cache1)
 @test cache1[0]==22.36

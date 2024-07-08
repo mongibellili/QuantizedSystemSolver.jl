@@ -6,6 +6,7 @@ using BSON
     include("./Taylor0testFunctions.jl")
     include("./Taylor0testArithmetic.jl")
     include("./exampleTest.jl")
+    include("./constructIntervalTest.jl")
     odeprob = NLodeProblem(quote
         #sys b53
         name=(sysb53,)
@@ -45,5 +46,6 @@ using BSON
      @test sol.algName == "nmliqss1"
      @test 18.8<sol(2,0.5)<19.2
 
+ 
    
 end

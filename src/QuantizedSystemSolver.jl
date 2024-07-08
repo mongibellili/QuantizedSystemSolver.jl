@@ -22,9 +22,9 @@ module QuantizedSystemSolver
    ##### list of public (API) 
   export NLodeProblem,solve ,NLODEProblem,QSSAlgorithm,Sol# docs used NLODEProblem, QSSAlgorithm
   export qss1,qss2,qss3,liqss1,liqss2,liqss3,saveat,nmliqss1,nmliqss2,nmliqss3
-  export save_Sol,plot_Sol,getPlot,getPlot!,save_SolSum,solInterpolated
+  export save_Sol,plot_Sol,getPlot,getPlot!,save_SolSum,solInterpolated,plot_SolSum
   export getError,getErrorByRodas,getAllErrorsByRefs,getAverageErrorByRefs,getErrorByRefs
-  export Taylor0,mulT,mulTT,createT,addsub,negateT,subsub,subadd,subT,addT,muladdT,mulsub,divT,powerT # for testing
+  export Taylor0,mulT,mulTT,createT,addsub,negateT,subsub,subadd,subT,addT,muladdT,mulsub,divT,powerT,constructIntrval # for testing
    ##### include section of Taylor series subcomponent
   include("ownTaylor/constructors.jl") 
   include("ownTaylor/arithmetic.jl")
@@ -53,7 +53,7 @@ module QuantizedSystemSolver
   include("dense/NL_integrators/NL_QSS_discreteIntegrator.jl")
   # implicit integrator when large entries on the main diagonal of the jacobian
   include("dense/NL_integrators/NL_LiQSS_Integrator.jl")
-  #  include("dense/NL_integrators/NL_LiQSS_discreteIntegrator.jl")
+    include("dense/NL_integrators/NL_LiQSS_discreteIntegrator.jl")
   # implicit integrator when large entries NOT on the main diagonal of the jacobian
   include("dense/NL_integrators/NL_nmLiQSS_Integrator.jl")
   include("dense/NL_integrators/NL_nmLiQSS_discreteIntegrator.jl")

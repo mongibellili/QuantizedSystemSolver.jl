@@ -128,14 +128,22 @@ Finally, we can plot the solution to visualize the results. We have two options:
 
 
 ``` julia
-# Generate a plot object
+# Generate a plot object for all variables of the solution
 plot_obj = getPlot(sol)
-
+# Generate a plot object for variable 1 of the solution
+getPlot(sol,1)
 # Display the plot
 display(plot_obj)
 
+
+#plot  variables 1 and 2 of the solution
+plot_Sol(sol,1,2,note=" ",xlims=(0.0,1.0),ylims=(-0.5,0.5),legend=false) 
+#plot  the sum of variables 1 and 2 of the solution
+plot_SolSum(sol,1,2)
+
 # Save the plot to a file
-save_Sol(sol, "solution_plot.png")
+save_Sol(sol, note=" ",xlims=(0.0,1.0),ylims=(-0.5,0.5),legend=false)
+
 ```
 ### Explanation:
 Generate plot object: getPlot(sol) creates a plot object from the solution data.
@@ -144,8 +152,8 @@ Save the plot: save_Sol(sol, "solution_plot.png") saves the plot to a file named
 
 
 
-
-More about the user documentation can be found in
+## User Documentation
+More about the user documentation can be found in:
 
 ```@contents
 Pages = ["interface.md", "algorithm.md"]

@@ -21,6 +21,7 @@ cache2=Taylor0([1.0,1.0,1.0],2)
 @test  acosh(t3)[0]≈1.3169578969248166
 @test  atanh(t2)[0]≈0.5493061443340549
 @test  abs(t2)[0]≈0.5
+@test  abs(-t2)[0]≈0.5
 
 cache3=Taylor0([0.0,0.0,0.0],2)
 @test   exp(t2,cache1)[0]≈1.6487212707001282
@@ -33,9 +34,16 @@ cache3=Taylor0([0.0,0.0,0.0],2)
 @test   atan(t2,cache1,cache2)[0]≈0.4636476090008061
 @test   abs(t2,cache1)[0]≈0.5
 
-
+@test   (t2^0)[0]≈1.0
+@test   (t2^1)[0]≈0.5
 @test   (t2^2)[0]≈0.25
+@test   (t2^3)[0]≈0.125
+@test   (t2^0.0)[0]≈1.0
+@test   (t2^1.0)[0]≈0.5
+@test   (t2^2.0)[0]≈0.25
 @test   (t2^3.0)[0]≈0.125
+
+@test   (t2^0.5)[0]≈0.7071067811865476
 @test   sqrt(t2)[0]≈0.7071067811865476
 @test   powerT(t2,2,cache1)[0]≈0.25
 @test   powerT(t2,3.0,cache1)[0]≈0.125

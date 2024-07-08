@@ -1,7 +1,5 @@
-
 #macro NLodeProblem(odeExprs)
 """NLodeProblem(odeExprs) 
-
 This function parses the user code to dispatches on a specific problem construction.
 It returns a Problem object to be passed to the solve function.
 """
@@ -31,8 +29,6 @@ function NLodeProblem(odeExprs)
    # @show odeExprs
     NLodeProblemFunc(odeExprs,Val(probSize),Val(discSize),Val(zcSize),initConds,du,symDict)     #returns  prob   
 end
-
-
 struct probHelper #helper struct to return stuff from arrangeProb
     problemSize::Int
     discreteSize::Int
@@ -65,7 +61,6 @@ function arrangeProb(x::Expr) # replace symbols and params , extract info about 
                     stateVarName=y.args[1]   #extract var name
                     if du==:nothing du=Symbol(:d,stateVarName) end # construct symbol du
                     if  y.args[2] isa Expr && y.args[2].args[1]== :(:)  #u[a:b]=N
-
                            # length(y.args[2].args)==3 || error(" use syntax u[a:b]") # not needed
                             savedInitCond[:(($(y.args[2].args[2]),$(y.args[2].args[3])))]=rhs# dict {expr->float}
                             if problemSize < y.args[2].args[3]
@@ -111,6 +106,3 @@ function arrangeProb(x::Expr) # replace symbols and params , extract info about 
     end#end for argI in args
     p=probHelper(problemSize,discreteSize,numZC,savedInitCond,initConditions,du,symDict)
 end#end function
-
-
-

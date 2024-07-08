@@ -1,4 +1,4 @@
-# Algorithms
+# Algorithm
 
 ```@docs
  qss1()  
@@ -6,24 +6,17 @@
 ```@docs
  qss2()  
 ```
-```@docs
- qss3()  
-```
+
 ```@docs
  liqss1()  
 ```
 ```@docs
  liqss2()  
 ```
-```@docs
- liqss3()  
-```
+
 ```@docs
  nmliqss1()  
 ```
 ```@docs
  nmliqss2()  
-```
-```@docs
- nmliqss3()  
 ```

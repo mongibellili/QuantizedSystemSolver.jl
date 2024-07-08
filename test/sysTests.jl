@@ -21,11 +21,9 @@ function test(solvr,absTol,relTol)
     if sol.totalSteps<1000000
         save_Sol(sol)
     end =#
-    odeprob = NLodeProblem(quote
+ #=    odeprob = NLodeProblem(quote
     name=(sysN1,)
     u = [0.0, 1.0]
-  #=   du[1] = cos(u[2])
-    du[2] = sin(u[1]) =#
     du[1] = (u[2])
     du[2] = -(u[1])
     end)  
@@ -35,14 +33,32 @@ function test(solvr,absTol,relTol)
     @show sol.totalSteps, sol.simulStepCount
     if sol.totalSteps<1000000
         save_Sol(sol)
+    end  =#
+    odeprob = NLodeProblem(quote
+    name=(sysN7,)
+    u = [1.0, 0.0]
+    du[1] = -(u[2]+t^2)
+    du[2] = (u[1])
+    #= du[1] = -(u[2])
+    du[2] = (u[1]) =#
+   #=  du[1] = acos(sin(u[2]))
+        du[2] = (u[1]) =#
+    end)  
+    tspan=(0.0,1.0)
+    #@show odeprob
+    sol=solve(odeprob,solvr,abstol=absTol,reltol=relTol,tspan)
+    println("start saving plot")
+    @show sol.totalSteps, sol.simulStepCount
+    @show sol(1,0.5)
+    if sol.totalSteps<1000000
+       # save_Sol(sol)
     end 
-
 end
 
 absTol=1e-5
 relTol=1e-2
 
-solvrs=[#= qss1(), =##= qss2() , =##= liqss2() =##= ,liqss2() =##= ,nmliqss1(), =#nmliqss2()]
+solvrs=[#= qss1(), =##= qss2() , =##= liqss2() =##= ,liqss2() =##= ,nmliqss1(), =#qss2()]
 for solvr in solvrs
     test(solvr,absTol,relTol)
 end

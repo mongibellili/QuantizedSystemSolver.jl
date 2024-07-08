@@ -8,10 +8,8 @@ function changeExprToFirstValue(ex::Expr)##
       end
       return a
   end
-
   newEx
-  end
-
+end
 function eliminateRef(a)#q[i] -> qi
   if a.args[2] isa Expr 
     if a.args[2].args[1]==:+
@@ -71,7 +69,6 @@ function restoreRef(coefExpr,symDict)
     return element
   end#end postwalk
   newEx
- 
 end
 function changeVarNames_params(ex::Expr,stateVarName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Expr}},symDict::Dict{Symbol,Expr})#
   newEx=postwalk(ex) do element#postwalk to change var names and parameters
@@ -98,7 +95,6 @@ function changeVarNames_params(ex::Expr,stateVarName::Symbol,muteVar::Symbol,par
     end#end postwalk
   newEx
 end
-
 function changeVarNames_params(ex::Expr,stateVarName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Expr}})######special for if statements and events
   newEx=postwalk(ex) do element#postwalk to change var names and parameters
       if element isa Symbol   
@@ -110,8 +106,6 @@ function changeVarNames_params(ex::Expr,stateVarName::Symbol,muteVar::Symbol,par
               element=:d
           elseif element==muteVar #symbol is a mute var
               element=:i
-          #= else  # + - * /
-               =#
           end
       end
       return element
@@ -132,21 +126,14 @@ function extractJacDepNormal(varNum::Int,rhs::Union{Int,Expr},jac :: Dict{Union{
   basi = convert(Basic, m)
   for i in jacSet
     symarg=symbolFromRef(i) # specific to elements in jacSet: get q1 from 1 for exple
-   
     coef = diff(basi, symarg) # symbolic differentiation: returns type Basic
     coefstr=string(coef);coefExpr=Meta.parse(coefstr)#convert from basic to expression
-   
     jacEntry=restoreRef(coefExpr,symDict)# get back ref: qi->q[i][0]  ...0 because later in exactJac fun cache[1]::Float64=jacEntry
- 
     exacteJacExpr[:(($varNum,$i))]=jacEntry # entry (varNum,i) is jacEntry
   end
-
   if length(jacSet)>0 jac[varNum]=jacSet end # jac={1->(2,5)}
   #@show jac
 end
-
-
-
 
 function extractJacDepLoop(b::Int,niter::Int,rhs::Union{Int,Expr},jac :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}} ,exacteJacExpr :: Dict{Expr,Union{Float64,Int,Symbol,Expr}},symDict::Dict{Symbol,Expr}) 
   jacSet=Set{Union{Int,Symbol,Expr}}()
@@ -160,17 +147,8 @@ function extractJacDepLoop(b::Int,niter::Int,rhs::Union{Int,Expr},jac :: Dict{Un
   basi = convert(Basic, m)
   for i in jacSet
     symarg=symbolFromRef(i);
-
     coef = diff(basi, symarg)
     coefstr=string(coef);
-
-    #= coef1 = diff(basi, symarg)#df
-    coef2 = diff(coef1, symarg)#ddf
-    coefstr=string(coef1,-,"(",coef2,")*",symarg,*,0.5) =#
-
-   
-   # coefstr=string("(",basi,")/",symarg) 
-
     coefExpr=Meta.parse(coefstr)
     jacEntry=restoreRef(coefExpr,symDict)
     exacteJacExpr[:((($b,$niter),$i))]=jacEntry

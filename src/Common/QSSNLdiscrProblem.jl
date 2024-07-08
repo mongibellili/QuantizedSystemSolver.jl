@@ -1,13 +1,4 @@
 
-#helper struct that holds dependency metadata of an event (which vars exist on which side lhs=rhs
-
-#= struct EventDependencyStruct
-    id::Int
-    evCont::Vector{Int}
-    evDisc::Vector{Int}
-    evContRHS::Vector{Int}
-end =#
-
 #struct that holds prob data 
 struct NLODEDiscProblem{PRTYPE,T,Z,D,CS}<: NLODEProblem{PRTYPE,T,Z,D,CS} 
     prname::Symbol
@@ -28,14 +19,12 @@ struct NLODEDiscProblem{PRTYPE,T,Z,D,CS}<: NLODEProblem{PRTYPE,T,Z,D,CS}
     SZ::Vector{Vector{Int}}#  I have a var and I want the ZC that are affected by it
     exactJac::Function #used only in the implicit integration: linear approximation
 end
-
 function getInitCond(prob::NLODEDiscProblem,i::Int)
     return prob.initConditions[i]
 end
 #= function getInitCond(prob::savedNLODEDiscProblem,i::Int)
     return prob.initConditions(i)
 end =#
-
 # receives user code and creates the problem struct
 function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Vector{Float64},du::Symbol,symDict::Dict{Symbol,Expr})where {T,D,Z}
     if VERBOSE println("discrete nlodeprobfun  T D Z= $T $D $Z") end
@@ -49,9 +38,7 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Ve
     exacteJacExpr = Dict{Expr,Union{Float64,Int,Symbol,Expr}}()
     zcequs=Vector{Expr}()#vect to collect if-statements
     eventequs=Vector{Expr}()#vect to collect events
-
     ZCjac=Vector{Vector{Int}}()#zeros(SVector{Z,SVector{T,Int}}) # bad when T is large...it is a good idea to use Vector{Vector{Int}}(undef, Z)
-  
     ZCFCounter=0
     #SZ=Vector{Vector{Int}}()#zeros(SVector{T,SVector{Z,Int}}) # bad when T is large...(opposite of ZCjac)...many vars dont influence zcf so it is better to use dict
    # dZ=Vector{Vector{Int}}()#zeros(SVector{D,SVector{Z,Int}})# usually D (num of disc vars) and Z (num of zcfunctions) are small even for real problems 
@@ -60,33 +47,26 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Ve
    evsArr = EventDependencyStruct[]
     num_cache_equs=1#cachesize
     for argI in odeExprs.args
-        
         if argI isa Expr &&  argI.head == :(=) && argI.args[1]== :discrete
             discrVars = Vector{Float64}(argI.args[2].args)
          #only diff eqs: du[]= number/one ref/call  
         elseif argI isa Expr &&  argI.head == :(=)  && argI.args[1] isa Expr && argI.args[1].head == :ref && argI.args[1].args[1]==du#&& ((argI.args[2] isa Expr && (argI.args[2].head ==:ref || argI.args[2].head ==:call ))||argI.args[2] isa Number)
             y=argI.args[1];rhs=argI.args[2]
             varNum=y.args[2] # order of variable
-
             if rhs isa Number || rhs isa Symbol # rhs of equ =number  or symbol
                 equs[varNum]=:($((transformFSimplecase(:($(rhs))))))
             elseif rhs isa Expr && rhs.head==:ref && rhs.args[1]==:q #rhs is only one var...#  rhs.args[1]==:q # check not needed?
-               
-                
                 extractJacDepNormal(varNum,rhs,jac,exacteJacExpr ,symDict,dD )
                # end
                 equs[varNum ]=:($((transformFSimplecase(:($(rhs))))))
-            #elseif rhs isa Symbol #time t
             else #rhs head==call...to be tested later for  math functions and other possible scenarios or user erros                 
-               
                 extractJacDepNormal(varNum,rhs,jac,exacteJacExpr ,symDict,dD )
                 temp=(transformF(:($(rhs),1))).args[2]  #number of caches distibuted   ...no need interpolation and wrap in expr?....before was cuz quote....
                 if num_cache_equs<temp 
                         num_cache_equs=temp
                 end 
                 equs[varNum]=rhs
-            end 
-           
+            end  
         elseif @capture(argI, for counter_ in b_:niter_ loopbody__ end)
              specRHS=loopbody[1].args[2]
             # extractJacDepLoop(b,niter,specRHS,jac ,jacDiscrete ,SD,dD  )   
@@ -103,7 +83,6 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Ve
             if zcf.head==:ref  #if one_Var
                   push!(zcequs,(transformFSimplecase(:($(zcf)))))    
                 ########################push!(zcequs,:($((transformFSimplecase(:($(zcf))))))) 
-              #  push!(num_cache_zcequs,1) #to be deleted later 
             else # if whole expre ops with many vars            
                 temp=:($((transformF(:($(zcf),1))).args[2]))   #number of caches distibuted, given 1 place holder for ex.args[2] to be filled inside and returned
                 if num_cache_equs<temp 
@@ -120,9 +99,6 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Ve
                 push!(argI.args, nothingexpr)
                 Base.remove_linenums!(argI.args[3])
             end
-      #  end#end temporary if
-      # end#end temporay for argI
-     
             #pos event
             newPosEventExprToFunc=changeExprToFirstValue(argI.args[2])  #change u[1] to u[1][0]  # pos ev can't be a symbol ...later maybe add check anyway
             push!(eventequs,newPosEventExprToFunc) 
@@ -169,7 +145,6 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Ve
             negEv_conArrLHS= Vector{Int}()#@SVector fill(NaN, T)  
             negEv_conArrRHS=Vector{Int}()#@SVector zeros(T)    #to be used inside intgrator to updateOtherQs (intgrateState) before executing the event there is no discArrRHS because d is not changing overtime to be updated      
             if negEvExp.args[1] != :nothing
-               
                 for j = 1:length(negEvExp.args)  # j coressponds the number of statements under one negEvent
                    # !(negEvExp.args[j]  isa Expr &&  negEvExp.args[j].head == :(=))  && error("event should be A=B")
                     neglhs=negEvExp.args[j].args[1];negrhs=negEvExp.args[j].args[1]
@@ -196,13 +171,8 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Ve
         end #end cases 
  
     end #end for #########################################################################################################
-   ############@show evsArr
-  
-    #println("end of useless convesrion to svector")
     allEpxpr=Expr(:block)
     ##############diffEqua######################
-   #=  io = IOBuffer() # i guess this is a sys of diff equ solver so I am not optimizing for case 1 equ
-    write(io, "if j==1  $(equs[1]) ;return nothing") =#
     s="if i==0 return nothing\n"  # :i is the mute var
     for elmt in equs
         Base.remove_linenums!(elmt[1])
@@ -215,12 +185,9 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Ve
         end
     end
     s*=" end "
-  
     myex1=Meta.parse(s)
     push!(allEpxpr.args,myex1)
-
      ##############ZCF######################
-     
     if length(zcequs)>0
        #=  io = IOBuffer()
         write(io, "if zc==1  $(zcequs[1]) ;return nothing") =#
@@ -230,31 +197,26 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Ve
         end
         # write(io, " else  $(zcequs[length(zcequs)]) ;return nothing end ")
         s*= " end "
-       
         myex2=Meta.parse(s)
         push!(allEpxpr.args,myex2)
     end
     ##############events######################
     if length(eventequs)>0
-       
         s= "if ev==1  $(eventequs[1]) ;return nothing"
         for i=2:length(eventequs)
             s*= " elseif ev==$i $(eventequs[i]) ;return nothing"
         end
         # write(io, " else  $(zcequs[length(zcequs)]) ;return nothing end ")
         s*= " end "
-       
         myex3=Meta.parse(s)
         push!(allEpxpr.args,myex3)
     end
-
     fname= :f #default problem name
     #path="./temp.jl" #default path 
     if odeExprs.args[1] isa Expr && odeExprs.args[1].args[2] isa Expr && odeExprs.args[1].args[2].head == :tuple#user has to enter problem info in a tuple
         fname= odeExprs.args[1].args[2].args[1]
         #path=odeExprs.args[1].args[2].args[2]
     end
-
     Base.remove_linenums!(allEpxpr)
     def=Dict{Symbol,Any}()
     def[:head] = :function
@@ -264,74 +226,34 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Ve
     #def[:rtype]=:nothing# test if cache1 always holds sol  
     functioncode=combinedef(def)
     functioncodeF=@RuntimeGeneratedFunction(functioncode)
-  
-
-
-#=   
-jac = Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(1 => Set([2]))     
-SD = Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(2 => Set([1]))      
-jacDiscrete = Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(1 => Set())
-dD = Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}()
-ZCjac = [[1], [2]]
-
-ZCFCounter = 2
-SZ = Dict{Int64, Set{Int64}}(2 => Set([2]), 1 => Set([1]))
-dZ = Dict{Int64, Set{Int64}}(1 => Set([1])) =#
-
 jacVect=createJacVect(jac,Val(T))
 SDVect=createSDVect(jac,Val(T))
-#@show dD
 dDVect =createdDvect(dD,Val(D))
-#jacDiscreteVect=createJacVect(jacDiscrete,Val(T)) #
 SZvect=createSZvect(SZ,Val(T))
-#@show evsArr
-#@show jacVect,SDVect,dDVect,SZvect
-#= SDVect = [Int64[], [2, 1], [3], [4], Int64[]]    
-jacVect = [[2], [2], [3], [4], Int64[]]
-jacDiscreteVect = [[2, 1], [1], [1], [1], [2, 1]]
-dDVect = [[5, 2, 3, 4, 1], [5, 1]] =#
-
     # temporary dependencies to be used to determine HD and HZ...determine HD: event-->Derivative   && determine HZ:Event-->ZCfunction....influence of events on derivatives and zcfunctions:
     #an event is a discrteVar change or a cont Var change. So HD=HD1 UNION HD2  (same for HZ=HZ1 UNION HZ2)
     # (1) through a discrete Var: 
     #  ============================
     # HD1=Hd-->dD  where Hd  comes from the eventDependecies Struct. 
-
     # HZ1=Hd-->dZ  where Hd  comes from the eventDependecies Struct. 
     HZ1HD1=createDependencyToEventsDiscr(dDVect,dZ,evsArr) 
-  # @show HZ1HD1
     # (2) through a continous Var: 
     # ==============================
      #  HD2=Hs-->sD where  Hs comes from the eventDependecies Struct.(sd already created) 
      #  HZ2=Hs-->sZ where  Hs comes from the eventDependecies Struct.(sZ already created) 
     HZ2HD2=createDependencyToEventsCont(SDVect,SZ,evsArr) 
-  #  @show HZ2HD2
     ##########UNION##############
     HZ=unionDependency(HZ1HD1[1],HZ2HD2[1])
-   # @show HZ
     HD=unionDependency(HZ1HD1[2],HZ2HD2[2])
-  # @show HD
- 
-   # mapFun=createMapFun(jac,fname)
-   # mapFunF=@RuntimeGeneratedFunction(mapFun)
-   exacteJacfunction=createExactJacDiscreteFun(exacteJacExpr,fname)
+    # mapFun=createMapFun(jac,fname)
+    # mapFunF=@RuntimeGeneratedFunction(mapFun)
+    exacteJacfunction=createExactJacDiscreteFun(exacteJacExpr,fname)
     exacteJacfunctionF=@RuntimeGeneratedFunction(exacteJacfunction)
-
-
-    
     if VERBOSE println("discrete problem created") end
-    
     myodeProblem = NLODEDiscProblem(fname,Val(1),Val(T),Val(Z),Val(D),Val(num_cache_equs),initCond, discrVars, jacVect ,ZCjac  ,functioncodeF, evsArr,SDVect,HZ,HD,SZvect,exacteJacfunctionF)
-  
-
 end
 
-
-
-
-
 function createdDvect(dD::Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}},::Val{D})where{D}
-   
     dDVect = Vector{Vector{Int}}(undef, D)
     for ii=1:D
         dDVect[ii]=Vector{Int}()# define it so i can push elements as i find them below
@@ -351,7 +273,6 @@ function createdDvect(dD::Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol
     end
     dDVect
 end
-
 
 function createSZvect(SZ :: Dict{Int64, Set{Int64}},::Val{T})where{T}
     szVect = Vector{Vector{Int}}(undef, T)
