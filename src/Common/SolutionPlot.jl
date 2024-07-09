@@ -1,8 +1,15 @@
-"""plot_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}
+"""plot_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool,marker=:circle::Symbol) where{T,O}
 
   This function generates a plot of the solution of the system (returned as a plot object).
+    With the exception of the solution object, all arguments are optional.
+  The default values are:\n
+  - note = " "\n
+  - xlims = (0.0,0.0)\n
+  - ylims = (0.0,0.0)\n
+  - legend = true\n
+  - marker=:circle
 """
-function plot_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}
+function plot_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool,marker=:circle::Symbol) where{T,O}
   p1=plot()
   if xvars!=()
     for k in xvars
@@ -22,7 +29,7 @@ function plot_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::
         sze=1
         stle=:solid
       end
-      p1=plot!(p1,sol.savedTimes[k], sol.savedVars[k],line=(sze,stle),marker=(:circle),label="x$k $(sol.numSteps[k])"#= ,legend=:right =#)
+      p1=plot!(p1,sol.savedTimes[k], sol.savedVars[k],line=(sze,stle),marker=(marker),label="x$k $(sol.numSteps[k])"#= ,legend=:right =#)
     end
   else
     for k=1:T
@@ -31,7 +38,7 @@ function plot_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::
       else
         mycolor=:purple
       end
-      p1=plot!(p1,sol.savedTimes[k], sol.savedVars[k],marker=(:circle),markersize=2,label="x$k $(sol.numSteps[k])"#= ,legend=:false =#)
+      p1=plot!(p1,sol.savedTimes[k], sol.savedVars[k],marker=(marker),markersize=2,label="x$k $(sol.numSteps[k])"#= ,legend=:false =#)
     end
   end
   if xlims!=(0.0,0.0) && ylims!=(0.0,0.0) 

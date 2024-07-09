@@ -1,5 +1,5 @@
 
-# Examples
+# Examples 
 
 ### Systems of 2 Linear Time Invariant Differential equations
 ```julia
@@ -93,6 +93,55 @@ This model also is stiff and it needs a stiff method, but also the normal liqss 
 ![plot_vanderpol_mliqss2](./assets/img/plot_vanderpol_mliqss2.png)
 
 ![plot_loktavoltera_mliqss3](./assets/img/plot_loktavoltera_mliqss3.png)
+
+### Bouncing Ball
+
+```julia
+odeprob = NLodeProblem(quote 
+    name=(sysd0,)
+    u = [50.0,0.0]
+    discrete=[0.0]
+    du[1] = u[2]
+    du[2] = -9.8#+discrete[1]*u[1]
+  
+    if -u[1]>0.0
+        u[2]=-u[2]
+    end
+end)  
+tspan=(0.0,15.0)
+sol=solve(odeprob,qss2(),tspan)
+```
+![BBall](./assets/img/BBall.png)
+
+### Conditional Dosing in Pharmacometrics
+
+This section shows [the Conditional Dosing in Pharmacometrics](https://docs.sciml.ai/DiffEqDocs/stable/examples/conditional_dosing/) example tested using the Tsit5() of the DifferentialEquations.jl
+
+```julia
+odeprob = NLodeProblem(quote 
+    name=(sysd0,)
+    u = [10.0]
+    discrete=[-1e5]
+    du[1] =-u[1]
+    if t-4.0>0.0
+        discrete[1]=0.0
+    end
+    if t-4.00000001>0.0
+        discrete[1]=-1e5
+    end
+    if discrete[1]+(4.0-u[1])>0.0
+        u[1]=u[1]+10.0
+    end
+end)  
+tspan=(0.0,10.0)
+sol=solve(odeprob,nmliqss2(),tspan)
+save_Sol(sol)
+```
+
+The condition t == 4 && u[1] < 4 can be replaced by using another discrete variable (flag) that is triggered when t==4 , and it triggers the check of  u[1] < 4.
+
+![dosingPharma](./assets/img/dosingPharma.png)
+
 
 
 

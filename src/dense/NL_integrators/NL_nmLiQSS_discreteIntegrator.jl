@@ -312,14 +312,14 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_data{Z
         end
       end
       clearCache(taylorOpsCache, Val(CS), Val(O))
-      f(-1, index, -1, q, d, t, taylorOpsCache)    # run ZCF-------- 
-      if oldsignValue[index, 2] * taylorOpsCache[1][0] >= 0
-        if abs(taylorOpsCache[1][0]) > 1e-9 * absQ # if both have same sign and zcf is not very small: zc=1e-9*absQ is allowed as an event
+      f(-1, index, -1, q, d, t, taylorOpsCache)    # run ZCF again to verify-------- 
+      if oldsignValue[index, 2] * taylorOpsCache[1][0] >= 0 # if computeNextEvent errored 
+        if abs(taylorOpsCache[1][0]) > 1e-9 * absQ # if error is negligeable then ok consider as event, else reject....if both have same sign and zcf is not very small: zc==1e-9*absQ is allowed as an event
           computeNextEventTime(Val(O), index, taylorOpsCache[1], oldsignValue, simt, nextEventTime, quantum, absQ)
-          continue
+          continue #event rejected
         end
       end
-      if abs(oldsignValue[index, 2]) <= 1e-9 * absQ  #earlier zc=1e-9*absQ was considered event , so now it should be prevented from passing
+      if abs(oldsignValue[index, 2]) <= 1e-9 * absQ  #earlier zc==1e-9*absQ was considered event , so now it should be prevented from passing
         nextEventTime[index] = Inf # at this instant next zc will be triggered now, and this will lead to infinite events, so cannot computenextevent here
         continue
       end
