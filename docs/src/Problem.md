@@ -1,4 +1,4 @@
-# Problem
+# Problem Extension
 Problem extension can be achieved easily via PRTYPE which is of type Val, or another subtype of the superclass can be created.
 
 

@@ -150,11 +150,15 @@ Generate plot object: plot_Sol(sol) creates a plot object from the solution data
 Display the plot: display(plot_obj) shows the plot in the current environment.
 Save the plot: save_Sol(sol, ...) saves the plot to a file *.png.
 
-
+![plot_buck_qss2](./assets/img/plot_buck_qss2.png)
 
 ## User Documentation
 More about the user documentation can be found in:
 
-### [API](./Interface.md#application-programming-interface)
 
-### [Available algorithms](./algorithm.md#available-algorithms)
+### [Application Programming Interface](@ref)
+
+### [Available Algorithms](@ref)
+
+
+
