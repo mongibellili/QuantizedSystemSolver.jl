@@ -22,6 +22,7 @@ t4=t1+t3
 @test t4-5.0==Taylor0([-3.0,2.0,0.0],2)
 @test 5.0-t4==Taylor0([3.0,-2.0,-0.0],2)
 @test 5.0*t4==Taylor0([10.0,10.0,0.0],2)
+@test t4*5.0==Taylor0([10.0,10.0,0.0],2)
 @test t4/2.0==Taylor0([1.0,1.0,0.0],2)
 @test t1*t2 ==  Taylor0([2.0, 4.0, 5.0], 2)
 @test t4/t1 ==Taylor0([2.0, 0.0, 0.0], 2)
@@ -45,6 +46,10 @@ addT(t1,4.8,t2,cache1)
 @test cache1[0]==7.8
 addT(4.8,t2,t1,cache1)
 @test cache1[0]==7.8
+addT(4.8,t2,1.0,cache1)
+@test cache1[0]==7.8
+addT(4.8,1.0,t2,cache1)
+@test cache1[0]==7.8
 addT(t1,t2,t3,cache1)
 @test cache1[0]==4.0
 addT(t1,t2,t3,1.2,cache1)
@@ -53,7 +58,14 @@ addT(t1,t2,t3,1.2,1.0,cache1)
 @test cache1[0]==6.2
 addT(t1,t2,t3,1.2,1.0,1.0,cache1)
 @test cache1[0]==7.2
-
+addT(t1,t2,t3,1.2,1.0,1.0,t1,cache1)
+@test cache1[0]==8.2
+addT(t1,t2,t3,1.2,1.0,1.0,t1,1.0,cache1)
+@test cache1[0]==9.2
+addT(t1,t2,t3,1.2,1.0,1.0,t1,1.0,0.3,cache1)
+@test cache1[0]==9.5
+addT(t1,0.5,t2,t3,1.2,1.0,1.0,t1,1.0,0.3,cache1)
+@test cache1[0]==10.0
 subT(4.3,5.3,cache1)
 @test cache1[0]==-1.0
 
@@ -77,6 +89,10 @@ addsub(t1,5.0,t2,cache1)
 @test cache1[0]==4.0
 addsub(0.5,5.0,t2,cache1)
 @test cache1[0]==3.5
+addsub(t2,1.0,0.5,cache1)
+@test cache1[0]==2.5
+addsub(1.0,t2,0.5,cache1)
+@test cache1[0]==2.5
 
 subadd(5.0,1.5,2.0,cache1)
 @test cache1[0]==5.5
@@ -110,6 +126,14 @@ mulTT(t1,5.0,t2,cache1,cache2)
 @test cache1[0]==10.0
 mulTT(0.5,5.0,t2,cache1,cache2)
 @test cache1[0]==5.0
+mulTT(0.5,5.0,t2,1.0,cache1,cache2)
+@test cache1[0]==5.0
+mulTT(0.5,5.0,t2,1.0,t1,cache1,cache2)
+@test cache1[0]==5.0
+mulTT(0.5,5.0,t2,1.0,t1,0.5,cache1,cache2)
+@test cache1[0]==2.5
+mulTT(0.5,5.0,t2,1.0,t1,0.5,1.0,cache1,cache2)
+@test cache1[0]==2.5
 
 #muladdT
 muladdT(5.0,1.5,2.0,cache1)

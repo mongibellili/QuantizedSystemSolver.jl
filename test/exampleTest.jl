@@ -103,18 +103,32 @@ prob=NLodeProblem(quote
   discrete[1]=1.0
   end =#
 end)
-
-
-
 tspan=(0.0,5.0)
+solnmliqss=solve(prob,nmliqss1(),abstol=1e-5,reltol=1e-2,tspan)#
 solnmliqss=solve(prob,abstol=1e-5,reltol=1e-2,tspan)#
 solnmliqssInterp=solInterpolated(solnmliqss,0.01)
 getErrorByRefs(solnmliqssInterp,1,solFeagin14VectorN1000d01)
 err4=getAverageErrorByRefs(solnmliqssInterp,solFeagin14VectorN1000d01)
 
 odeprob = NLodeProblem(quote
+name=(tyson,)
+u = [0.0,0.75,0.25,0.0,0.0,0.0]
+du[1] = u[4]-1e6*u[1]+1e3*u[2]
+du[2] =-200.0*u[2]*u[5]+1e6*u[1]-1e3*u[2]
+du[3] = 200.0*u[2]*u[5]-u[3]*(0.018+180.0*(u[4]/(u[1]+u[2]+u[3]+u[4]))^2)
+du[4] =u[3]*(0.018+180.0*(u[4]/(u[1]+u[2]+u[3]+u[4]))^2)-u[4]
+du[5] = 0.015-200.0*u[2]*u[5]
+du[6] =u[4]-0.6*u[6]
+end ) 
+tspan=(0.0,25.0)
+sol=solve(odeprob,nmliqss2(),tspan)
+
+
+odeprob = NLodeProblem(quote
     name=(sysbN5,)
-    u = [1.0, 0.0]
+    #u = [1.0, 0.0]
+    u[1]=1.0
+    u[2] = 0.0
     du[1] = -sin(t)
     du[2] = (u[1])
 end)  
@@ -136,6 +150,7 @@ odeprob = NLodeProblem(quote
 end)  
 tspan=(0.0,1.0)
 sol=solve(odeprob,qss1(),tspan)
+sol=solve(odeprob,liqss1(),tspan)
 odeprob = NLodeProblem(quote
     name=(sysbN8,)
     u = [1.0, 0.0]
@@ -177,6 +192,7 @@ du[1] = t
 du[2] =1.24*u[1]-0.01*u[2]+0.2
 if t-2.0>0.0
     u[1] = 0.0
+else
     u[2] = 0.0
 end
 end)  
@@ -211,9 +227,14 @@ sol=solve(odeprob,nmliqss2(),tspan)
 
 plot_SolSum(sol,1,2,xlims=(0.0,1.0),ylims=(0.0,2.0))
 plot_SolSum(sol,1,2,xlims=(0.0,1.0),ylims=(0.0,0.0))
+plot_SolSum(sol,1,2,xlims=(0.0,0.0),ylims=(0.0,1.0))
 plot_SolSum(sol,1,2)
 save_Sol(sol,1,2,3,4,5)
-
+save_SolSum(sol,1,2) 
+plot_Sol(sol,1,2,)
+plot_Sol(sol,1,2,xlims=(0.0,1.0),ylims=(0.0,2.0))
+plot_Sol(sol,1,2,xlims=(0.0,1.0),ylims=(0.0,0.0))
+plot_Sol(sol,1,2,xlims=(0.0,0.0),ylims=(0.0,1.0))
 
 
 odeprob = NLodeProblem(quote
@@ -257,7 +278,7 @@ odeprob = NLodeProblem(quote
     if t-5.0>0.0
         discrete[1]=0.0
     end
-    if u[1]-3.0>0.0
+    if u[1]-2.0>0.0
         u[1] = 1.0
         u[2] = 0.0
         u[3] = 1.0
@@ -270,11 +291,11 @@ end)
 tspan=(0.0,6.0)
 sol=solve(odeprob,nmliqss2(),tspan)
 @test -0.35<sol(2,0.5)<-0.2
-
+sol=solve(odeprob,liqss2(),tspan)
 
 odeprob = NLodeProblem(quote
     name=(sysN14,)
-    u = [1.0, 0.0,1.0, 0.0,1.0,1.0]
+    u = [1.0, 1.0,1.0, 0.0,1.0,1.0]
     discrete = [0.5,1.0,1.0,1.0,1.0,1.0]
     du[1] = t+u[2]
     
@@ -284,17 +305,17 @@ odeprob = NLodeProblem(quote
     if t-5.0>0.0
         discrete[2]=0.0
     end
-    if u[1]-3.0>0.0
+    if u[1]+u[2]-3.0>0.0
         u[1] = 1.0
-        u[2] = 0.0
         u[3] = 1.0
         u[4] = 0.0
-        u[5] = 1.0
         discrete[1]=1.0
     end
-    if discrete[1]-5.0>0.0
+    if discrete[1]-u[4]+u[5]>0.0
         u[2]=0.0
     end
 end)  
 tspan=(0.0,6.0)
+sol=solve(odeprob,qss2(),tspan)
+sol=solve(odeprob,liqss2(),tspan)
 sol=solve(odeprob,nmliqss2(),tspan)

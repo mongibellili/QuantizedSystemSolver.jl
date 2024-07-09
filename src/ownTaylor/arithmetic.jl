@@ -39,9 +39,7 @@ function (+)(a::Taylor0, b::T) where {T<:Number}
 end
 (+)(b::T, a::Taylor0) where {T<:Number} = (+)(a, b)
 function (-)(a::Taylor0, b::Taylor0)
-    if a.order != b.order
-        a, b = fixorder(a, b)
-    end
+    #if a.order != b.order a, b = fixorder(a, b) end
     v = similar(a.coeffs)
     @__dot__ v = (-)(a.coeffs, b.coeffs)
     return Taylor0(v, a.order)
@@ -90,9 +88,7 @@ function /(a::Taylor0, b::T) where {T<:Number}
 end
 function /(a::Taylor0, b::Taylor0)
     iszero(a) && !iszero(b) && return zero(a)
-    if a.order != b.order
-        a, b = fixorder(a, b)
-    end
+    #if a.order != b.order a, b = fixorder(a, b) end
     ordfact, cdivfact = divfactorization(a, b)
     c = Taylor0(cdivfact, a.order - ordfact)
     for ord in eachindex(c)

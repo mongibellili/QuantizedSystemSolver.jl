@@ -12,9 +12,9 @@ function ^(a::Taylor0, n::Integer)
     n < 0 && throw(DomainError("taylor^n & n<0 !!"))
     return power_by_squaring(a, n)
 end
-^(a::Taylor0, x::Rational) = a^(x.num / x.den)
+#^(a::Taylor0, x::Rational) = a^(x.num / x.den)
 ^(a::Taylor0, b::Taylor0) = exp(b * log(a))
-^(a::Taylor0, x::T) where {T<:Complex} = exp(x * log(a))
+#^(a::Taylor0, x::T) where {T<:Complex} = exp(x * log(a))
 function power_by_squaring(x::Taylor0, p::Integer)
     p == 1 && return (x)
     p == 0 && return one(x)
@@ -57,16 +57,6 @@ function ^(a::Taylor0, r::S) where {S<:Real}
     return c
 end
 @inline function pow!(c::Taylor0, a::Taylor0, r::S, k::Int) where {S<:Real}
-    if r == 0.0
-        return one!(c, a, k)
-    elseif r == 1.0
-        return identity!(c, a, k)
-    elseif r == 2.0
-        return sqr!(c, a, k)
-    elseif r == 0.5
-        return sqrt!(c, a, k)
-    end
-    # First non-zero coefficient
     l0 = findfirst(a)
     if l0 < 0
         c[k] = zero(a[0])

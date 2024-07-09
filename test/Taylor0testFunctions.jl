@@ -57,8 +57,9 @@ t2=1.0
 @test    sin(t2,cache1,cache2)[0]≈0.8414709848078965
 @test    cos(t2,cache1,cache2)[0]≈0.5403023058681398
 @test    tan(t2,cache1,cache2)[0]≈1.5574077246549023
- 
 @test    abs(t2,cache1)[0]≈1.0
+t4=Taylor0([-2.0,1.0,0.0],2)
+@test    abs(t4,cache1)[0]≈2.0
 
 
 @test    (t2^2)≈1.0

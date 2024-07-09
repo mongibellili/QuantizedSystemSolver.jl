@@ -332,7 +332,7 @@ end
     constructIntrval2(cache, res1, res2)
   elseif res1 > 0.0 && res3 > 0.0 && res2 <= 0.0 && res4 <= 0.0
     constructIntrval2(cache, res1, res3)
-  elseif res1 > 0.0 && res4 > 0.0 && res2 <= 0.0 && res4 <= 0.0
+  elseif res1 > 0.0 && res4 > 0.0 && res2 <= 0.0 && res3 <= 0.0
     constructIntrval2(cache, res1, res4)
   elseif res2 > 0.0 && res3 > 0.0 && res1 <= 0.0 && res4 <= 0.0
     constructIntrval2(cache, res2, res3)

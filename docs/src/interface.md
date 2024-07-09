@@ -1,5 +1,5 @@
 
-# Interface 
+# Application Programming Interface
 
 ```@docs
 NLodeProblem(odeExprs) 

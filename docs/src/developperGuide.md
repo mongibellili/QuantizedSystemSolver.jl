@@ -5,14 +5,13 @@ While the package is optimized to be fast, extensibility is not compromised. It 
 
 
 
-## [Problem extension](./Problem.md#problem)
+### [Problem extension](./Problem.md#problem)
 
-## [Algorithm extension](./algorithmDev.md#algorithm-extension)
+### [Algorithm extension](./algorithmDev.md#algorithm-extension)
 
-## [Solution extension](./solutionDev.md#solution-extension)
+### [Solution extension](./solutionDev.md#solution-extension)
 
-## [Taylor0 extension](./Taylor0.md#taylor0)
+### [Taylor0 extension](./Taylor0.md#taylor0)
 
 
 
-- Home [Quantized System Solver](@ref)

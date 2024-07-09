@@ -59,9 +59,7 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{0}, o
   totalSteps = 0
   prevStepTime = initTime
   while simt < ft && totalSteps < maxStepsAllowed
-    if totalSteps == maxStepsAllowed - 1
-      @warn("The algorithm qss$O is taking too long to converge. The simulation will be stopped. Consider using a different algorithm!")
-    end
+    if totalSteps == maxStepsAllowed - 1 @warn("The algorithm qss$O is taking too long to converge. The simulation will be stopped. Consider using a different algorithm!") end
     sch = updateScheduler(Val(T), nextStateTime, nextEventTime, nextInputTime)
     simt = sch[2]
     index = sch[1]
@@ -114,13 +112,10 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{0}, o
         q[index].coeffs[k] = x[index].coeffs[k]
       end
       tq[index] = simt
-      for b in jac(index)
+     #=  for b in jac(index)
         elapsedq = simt - tq[b]
-        if elapsedq > 0
-          integrateState(Val(O - 1), q[b], elapsedq)
-          tq[b] = simt
-        end
-      end
+        if elapsedq > 0 ;integrateState(Val(O - 1), q[b], elapsedq) ;tq[b] = simt end
+      end =#
       clearCache(taylorOpsCache, Val(CS), Val(O))
       f(index, q, t, taylorOpsCache)
       computeDerivative(Val(O), x[index], taylorOpsCache[1])
@@ -146,10 +141,7 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{0}, o
         end
         for b in jac(j)
           elapsedq = simt - tq[b]
-          if elapsedq > 0
-            integrateState(Val(O - 1), q[b], elapsedq)
-            tq[b] = simt
-          end
+          if elapsedq > 0 integrateState(Val(O - 1), q[b], elapsedq) ;tq[b] = simt end
         end
         clearCache(taylorOpsCache, Val(CS), Val(O))
         f(j, q, t, taylorOpsCache)

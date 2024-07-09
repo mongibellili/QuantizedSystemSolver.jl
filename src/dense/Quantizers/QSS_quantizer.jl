@@ -177,9 +177,9 @@ function computeNextEventTime(::Val{O},j::Int,ZCFun::Taylor0,oldsignValue,simt, 
       mpr=1e-12
      end
     nextEventTime[j] =simt + mpr
-     #=  if DEBUG
+      if DEBUG
          println("qss quantizer:zcf$j at simt= $simt ****scheduled**** event at $(simt + mpr) oldzcf value= $(oldsignValue[j,2])  newZCF value= $(ZCFun[0])") 
-        end =#
+        end
     oldsignValue[j,1]=sign(ZCFun[0])#update the values
     oldsignValue[j,2]=ZCFun[0]
   end

@@ -12,7 +12,14 @@ constructIntrval(acceptedi,1.0,4.0,3.0,2.0)
 
 constructIntrval(acceptedi,2.0,1.0,3.0,4.0)
 constructIntrval(acceptedi,2.0,1.0,4.0,3.0)
-constructIntrval(acceptedi,4.0,1.0,3.0,1.0)
+constructIntrval(acceptedi,4.0,1.0,3.0,2.0)
+
+constructIntrval(acceptedi,4.0,3.0,1.0,2.0)
+constructIntrval(acceptedi,3.0,4.0,1.0,2.0)
+
+constructIntrval(acceptedi,4.0,3.0,2.0,1.0)
+constructIntrval(acceptedi,3.0,4.0,2.0,1.0)
+constructIntrval(acceptedi,2.0,3.0,4.0,1.0)
 
 constructIntrval(acceptedi,-1.0,2.0,3.0,4.0)
 constructIntrval(acceptedi,-1.0,4.0,3.0,2.0)
@@ -25,6 +32,7 @@ constructIntrval(acceptedi,-1.0,-2.0,3.0,4.0)
 constructIntrval(acceptedi,-1.0,2.0,-3.0,4.0)
 constructIntrval(acceptedi,-1.0,2.0,3.0,-4.0)
 constructIntrval(acceptedi,1.0,-2.0,-3.0,4.0)
+constructIntrval(acceptedi,1.0,-2.0,3.0,-4.0)
 constructIntrval(acceptedi,1.0,2.0,-3.0,-4.0)
 
 constructIntrval(acceptedi,-1.0,-2.0,-3.0,4.0)

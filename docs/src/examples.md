@@ -1,5 +1,5 @@
 
-# Examples:
+# Examples
 
 ### Systems of 2 Linear Time Invariant Differential equations
 ```julia

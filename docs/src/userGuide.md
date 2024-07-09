@@ -1,6 +1,6 @@
 
 
-# Tutorial: 
+# Tutorial
 
 ## Solving a Nonlinear ODE Problem with NLodeProblem in Julia
 In this tutorial, we will go through the process of setting up, solving, querying, and plotting a nonlinear ordinary differential equation (ODE) problem using the NLodeProblem function. We will use a buck converter circuit model as an example.
@@ -155,7 +155,6 @@ Save the plot: save_Sol(sol, ...) saves the plot to a file *.png.
 ## User Documentation
 More about the user documentation can be found in:
 
-```@contents
-Pages = ["interface.md", "algorithm.md"]
-Depth = 1
-```
+### [API](./Interface.md#application-programming-interface)
+
+### [Available algorithms](./algorithm.md#available-algorithms)

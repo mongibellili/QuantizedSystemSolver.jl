@@ -47,7 +47,7 @@ function plot_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::
 end
 """save_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}
 
-Save the plot of the solution of the system for the variables xvars.
+Save the plot of the system solution for the variables xvars.
   With the exception of the solution object, all arguments are optional.
   The default values are:\n
   - note = " "\n

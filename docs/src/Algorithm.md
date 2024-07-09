@@ -1,4 +1,4 @@
-# Algorithm
+# Available Algorithms
 
 ```@docs
  qss1()  

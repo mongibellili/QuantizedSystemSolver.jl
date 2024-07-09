@@ -76,9 +76,7 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{Z}, o
   statestep = 0
   countEvents = 0
   while simt < ft && totalSteps < maxStepsAllowed
-    if totalSteps == maxStepsAllowed - 1
-      @warn("The algorithm qss$O is taking too long to converge. The simulation will be stopped. Consider using a different algorithm!")
-    end
+    if totalSteps == maxStepsAllowed - 1 @warn("The algorithm qss$O is taking too long to converge. The simulation will be stopped. Consider using a different algorithm!") end
     sch = updateScheduler(Val(T), nextStateTime, nextEventTime, nextInputTime)
     simt = sch[2]
     index = sch[1]
@@ -97,9 +95,9 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{Z}, o
       quantum[index] = relQ * abs(x[index].coeffs[1])
       quantum[index] = quantum[index] < absQ ? absQ : quantum[index]
       quantum[index] = quantum[index] > maxErr ? maxErr : quantum[index]
-      if abs(x[index].coeffs[2]) > 1e7
+     #=  if abs(x[index].coeffs[2]) > 1e7
         quantum[index] = 10 * quantum[index]
-      end
+      end =#
       for k = 1:O
         q[index].coeffs[k] = x[index].coeffs[k]
       end
@@ -131,10 +129,7 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{Z}, o
       for j in (SZ[index])
         for b in zc_SimpleJac[j]
           elapsedq = simt - tq[b]
-          if elapsedq > 0
-            integrateState(Val(O - 1), q[b], elapsedq)
-            tq[b] = simt
-          end
+          if elapsedq > 0 integrateState(Val(O - 1), q[b], elapsedq) ;tq[b] = simt end
         end
         clearCache(taylorOpsCache, Val(CS), Val(O))
         f(-1, j, -1, q, d, t, taylorOpsCache)
@@ -151,13 +146,10 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{Z}, o
         q[index].coeffs[k] = x[index].coeffs[k]
       end
       tq[index] = simt
-      for b in jac(index)
+      #= for b in jac(index)
         elapsedq = simt - tq[b]
-        if elapsedq > 0
-          integrateState(Val(O - 1), q[b], elapsedq)
-          tq[b] = simt
-        end
-      end
+        if elapsedq > 0 ;integrateState(Val(O - 1), q[b], elapsedq) ;tq[b] = simt end
+      end =#
       clearCache(taylorOpsCache, Val(CS), Val(O))
       f(index, -1, -1, q, d, t, taylorOpsCache)
       computeDerivative(Val(O), x[index], taylorOpsCache[1])
@@ -183,10 +175,7 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{Z}, o
         end
         for b in jac(j)
           elapsedq = simt - tq[b]
-          if elapsedq > 0
-            integrateState(Val(O - 1), q[b], elapsedq)
-            tq[b] = simt
-          end
+          if elapsedq > 0 integrateState(Val(O - 1), q[b], elapsedq) ;tq[b] = simt end
         end
         clearCache(taylorOpsCache, Val(CS), Val(O))
         f(j, -1, -1, q, d, t, taylorOpsCache)
@@ -195,21 +184,12 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{Z}, o
       end
       for j in (SD(index))
         elapsedx = simt - tx[j]
-        if elapsedx > 0
-          x[j].coeffs[1] = x[j](elapsedx)
-          tx[j] = simt
-        end
+        if elapsedx > 0 x[j].coeffs[1] = x[j](elapsedx) ;tx[j] = simt  end
         elapsedq = simt - tq[j]
-        if elapsedq > 0
-          integrateState(Val(O - 1), q[j], elapsedq)
-          tq[j] = simt
-        end
+        if elapsedq > 0 integrateState(Val(O - 1), q[j], elapsedq) ;tq[j] = simt end
         for b in jac(j)
           elapsedq = simt - tq[b]
-          if elapsedq > 0
-            integrateState(Val(O - 1), q[b], elapsedq)
-            tq[b] = simt
-          end
+          if elapsedq > 0 integrateState(Val(O - 1), q[b], elapsedq) ;tq[b] = simt end
         end
         clearCache(taylorOpsCache, Val(CS), Val(O))
         f(j, -1, -1, q, d, t, taylorOpsCache)
@@ -271,9 +251,7 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{Z}, o
         quantum[i] = relQ * abs(x[i].coeffs[1])
         quantum[i] = quantum[i] < absQ ? absQ : quantum[i]
         quantum[i] = quantum[i] > maxErr ? maxErr : quantum[i]
-        for k = 0:O-1
-          q[i][k] = x[i][k]
-        end
+        for k = 0:O-1 q[i][k] = x[i][k]  end
         tx[i] = simt
         tq[i] = simt
         computeNextTime(Val(O), i, simt, nextStateTime, x, quantum)
@@ -281,10 +259,7 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{Z}, o
       computeNextEventTime(Val(O), index, taylorOpsCache[1], oldsignValue, simt, nextEventTime, quantum, absQ)
       for j in (HD[modifiedIndex])
         elapsedx = simt - tx[j]
-        if elapsedx > 0
-          x[j].coeffs[1] = x[j](elapsedx)
-          tx[j] = simt
-        end
+        if elapsedx > 0 x[j].coeffs[1] = x[j](elapsedx) ;tx[j] = simt  end
         elapsedq = simt - tq[j]
         if elapsedq > 0
           integrateState(Val(O - 1), q[j], elapsedq)
@@ -327,7 +302,7 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{Z}, o
         push!(savedTimes[j], simt)
       end
     end
-    prevStepTime = simt
+    #prevStepTime = simt
   end
   createSol(Val(T), Val(O), savedTimes, savedVars, "qss$O", string(odep.prname), absQ, totalSteps, 0, countEvents, numSteps, ft)
 end

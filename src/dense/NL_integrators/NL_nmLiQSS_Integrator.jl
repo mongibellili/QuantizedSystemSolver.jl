@@ -144,10 +144,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_data{0
                 x[k].coeffs[1] = x[k](elapsedx)
                 tx[k] = simt
                 elapsedq = simt - tq[k]
-                if elapsedq > 0
-                  integrateState(Val(O - 1), q[k], elapsedq)
-                  tq[k] = simt
-                end
+                if elapsedq > 0 integrateState(Val(O - 1), q[k], elapsedq) ;tq[k] = simt end
                 for b in (jac(k))
                   elapsedq = simt - tq[b]
                   if elapsedq > 0
@@ -172,15 +169,9 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_data{0
       #-------------------------------------------------------------------------------------
       for c in SD(index)   #index influences c       
         elapsedx = simt - tx[c]
-        if elapsedx > 0
-          x[c].coeffs[1] = x[c](elapsedx)
-          tx[c] = simt
-        end # 
+        if elapsedx > 0 x[c].coeffs[1] = x[c](elapsedx) ;tx[c] = simt end # 
         elapsedq = simt - tq[c]
-        if elapsedq > 0
-          integrateState(Val(O - 1), q[c], elapsedq)
-          tq[c] = simt
-        end   # c never been visited 
+        if elapsedq > 0 integrateState(Val(O - 1), q[c], elapsedq) ;tq[c] = simt end   # c never been visited 
         clearCache(taylorOpsCache, Val(CS), Val(O))
         f(c, q, t, taylorOpsCache)
         computeDerivative(Val(O), x[c], taylorOpsCache[1])
@@ -198,13 +189,10 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_data{0
         q[index].coeffs[k] = x[index].coeffs[k]
       end
       tq[index] = simt
-      for b in jac(index)
+      #= for b in jac(index)
         elapsedq = simt - tq[b]
-        if elapsedq > 0
-          integrateState(Val(O - 1), q[b], elapsedq)
-          tq[b] = simt
-        end
-      end
+        if elapsedq > 0 ;integrateState(Val(O - 1), q[b], elapsedq) ;tq[b] = simt end
+      end =#
       clearCache(taylorOpsCache, Val(CS), Val(O))
       f(index, q, t, taylorOpsCache)
       computeDerivative(Val(O), x[index], taylorOpsCache[1])
@@ -230,9 +218,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_data{0
         end#q needs to be updated here for recomputeNext                 
         for b in jac(j)
           elapsedq = simt - tq[b]
-          if elapsedq > 0
-            integrateState(Val(O - 1), q[b], elapsedq)
-            tq[b] = simt
+          if elapsedq > 0 integrateState(Val(O - 1), q[b], elapsedq) ;tq[b] = simt
           end
         end
         clearCache(taylorOpsCache, Val(CS), Val(O))

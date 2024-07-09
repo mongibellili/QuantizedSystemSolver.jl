@@ -39,9 +39,9 @@ function getErrorByRefs(sol::Sol{T,O},index::Int,solRef::Vector{Any})where{T,O}
   return relerror
 end
 
-@inline function getX_fromSavedVars(savedVars :: Vector{Array{Taylor0}},index::Int,i::Int)
+#= @inline function getX_fromSavedVars(savedVars :: Vector{Array{Taylor0}},index::Int,i::Int)
   return savedVars[index][i].coeffs[1]
-end
+end =#
 @inline function getX_fromSavedVars(savedVars :: Vector{Vector{Float64}},index::Int,i::Int)
   return savedVars[index][i]
 end

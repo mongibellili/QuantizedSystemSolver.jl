@@ -1,7 +1,5 @@
 function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_data{Z}, liqssdata::LiQSS_data{O,false}, odep::NLODEProblem{PRTYPE,T,Z,D,CS}, f::Function, jac::Function, SD::Function, exactA::Function) where {PRTYPE,O,T,Z,D,CS}
-  if VERBOSE
-    println("begining of intgrate function")
-  end
+  if VERBOSE println("begining of intgrate function") end
   cacheA = liqssdata.cacheA
   ft = CommonqssData.finalTime
   initTime = CommonqssData.initialTime
@@ -110,13 +108,9 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_data{Z},
   statestep = 0
   simulStepCount = 0
   ft < savetime && error("ft<savetime")
-  if VERBOSE
-    println("start integration")
-  end
+  if VERBOSE println("start integration") end
   while simt < ft && totalSteps < maxStepsAllowed
-    if totalSteps == maxStepsAllowed - 1
-      @warn("The algorithm liqss$O is taking too long to converge. The simulation will be stopped. Consider using a different algorithm!")
-    end
+    if totalSteps == maxStepsAllowed - 1 @warn("The algorithm liqss$O is taking too long to converge. The simulation will be stopped. Consider using a different algorithm!") end
     sch = updateScheduler(Val(T), nextStateTime, nextEventTime, nextInputTime)
     simt = sch[2]
     index = sch[1]
@@ -182,14 +176,10 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_data{Z},
         q[index].coeffs[k] = x[index].coeffs[k]
       end
       tq[index] = simt
-      for b in jac(index)
-        #@show b
+     #=  for b in jac(index)
         elapsedq = simt - tq[b]
-        if elapsedq > 0
-          integrateState(Val(O - 1), q[b], elapsedq)
-          tq[b] = simt
-        end
-      end
+        if elapsedq > 0 ;integrateState(Val(O - 1), q[b], elapsedq) ;tq[b] = simt end
+      end =#
       clearCache(taylorOpsCache, Val(CS), Val(O))
       f(index, -1, -1, q, d, t, taylorOpsCache)
       computeDerivative(Val(O), x[index], taylorOpsCache[1])
@@ -216,10 +206,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_data{Z},
         # elapsed update all other vars that this derj depends upon.
         for b in jac(j)
           elapsedq = simt - tq[b]
-          if elapsedq > 0
-            integrateState(Val(O - 1), q[b], elapsedq)
-            tq[b] = simt
-          end
+          if elapsedq > 0 integrateState(Val(O - 1), q[b], elapsedq); tq[b] = simt end
         end
         clearCache(taylorOpsCache, Val(CS), Val(O))
         f(j, -1, -1, q, d, t, taylorOpsCache)
@@ -228,15 +215,9 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_data{Z},
       end#end for
       for j in (SD(index))
         elapsedx = simt - tx[j]
-        if elapsedx > 0
-          x[j].coeffs[1] = x[j](elapsedx)
-          tx[j] = simt
-        end
+        if elapsedx > 0 x[j].coeffs[1] = x[j](elapsedx) ;tx[j] = simt end
         elapsedq = simt - tq[j]
-        if elapsedq > 0
-          integrateState(Val(O - 1), q[j], elapsedq)
-          tq[j] = simt
-        end#q needs to be updated here for recomputeNext                 
+        if elapsedq > 0 integrateState(Val(O - 1), q[j], elapsedq) ;tq[j] = simt end#q needs to be updated here for recomputeNext                 
         # elapsed update all other vars that this derj depends upon.
         for b in jac(j)
           elapsedq = simt - tq[b]

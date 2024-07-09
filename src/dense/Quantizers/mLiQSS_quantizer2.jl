@@ -19,16 +19,12 @@ function nmisCycle_and_simulUpdate(cacheRootsi::Vector{Float64},cacheRootsj::Vec
   uji2=uj2-aji*qaux[index][2]#
   dxj=aji*qi+ajj*qaux[j][1]+uji
   ddxj=aji*qi1+ajj*qj1+uji2
-  if abs(ddxj)==0.0
-    ddxj=1e-30
-  end
+  if abs(ddxj)==0.0 ddxj=1e-30 end
   iscycle=false
     qjplus=xj-sign(ddxj)*quanj
     hj=sqrt(2*quanj/abs(ddxj))#
     α1=1-hj*ajj
-    if abs(α1)==0.0
-      α1=1e-30
-    end
+    if abs(α1)==0.0 α1=1e-30 end
     dqjplus=(aji*(qi+hj*qi1)+ajj*qjplus+uji+hj*uji2)/α1
     uij=uii-aij*qaux[j][1]
      uij2=ui2-aij*qj1#########qaux[j][2] updated in normal Qupdate..ft=20 slightly shifts up
@@ -36,9 +32,7 @@ function nmisCycle_and_simulUpdate(cacheRootsi::Vector{Float64},cacheRootsj::Vec
       ddxithrow=aii*qi1+aij*qj1+uij2
       dxi=aii*qi+aij*qjplus+uij
       ddxi=aii*qi1+aij*dqjplus+uij2
-      if abs(ddxi)==0.0
-        ddxi=1e-30
-      end
+      if abs(ddxi)==0.0 ddxi=1e-30 end
       hi=sqrt(2*quani/abs(ddxi))
       βidir=dxi+hi*ddxi/2
       βjdir=dxj+hj*ddxj/2

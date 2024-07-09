@@ -160,37 +160,9 @@ function atanh(a::Taylor0)
     end
     return c
 end
-# Recursive functions (homogeneous coefficients)
-@inline function identity!(c::Taylor0, a::Taylor0, k::Int)
-    @inbounds c[k] = identity(a[k])
-    return nothing
-end
-@inline function zero!(c::Taylor0, a::Taylor0, k::Int)
-    @inbounds c[k] = zero(a[k])
-    return nothing
-end
-@inline function one!(c::Taylor0, a::Taylor0, k::Int)
-    if k == 0
-        @inbounds c[0] = one(a[0])
-    else
-        @inbounds c[k] = zero(a[k])
-    end
-    return nothing
-end
-@inline function abs!(c::Taylor0, a::Taylor0, k::Int)
-    z = zero(constant_term(a))
-    if constant_term(constant_term(a)) > constant_term(z)
-        return add!(c, a, k)
-    elseif constant_term(constant_term(a)) < constant_term(z)
-        return subst!(c, a, k)
-    else
-        throw(DomainError(a,
-            """The 0th order coefficient must be non-zero
-            (abs(x) is not differentiable at x=0)."""))
-    end
-    return nothing
-end
-@inline abs2!(c::Taylor0, a::Taylor0, k::Int) = sqr!(c, a, k)
+
+
+
 @inline function exp!(c::Taylor0, a::Taylor0, k::Int)
     if k == 0
         @inbounds c[0] = exp(constant_term(a))  #this was already computed before!!no need to do anything if k==0
