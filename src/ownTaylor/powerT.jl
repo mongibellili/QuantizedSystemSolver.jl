@@ -12,8 +12,8 @@ function powerT(a::Taylor0, r::S, cache1::Taylor0) where {S<:Real}
         cache1[0] = 1.0
         return cache1
     end
-    r == 1 && return a
-    r == 2 && return square(a, cache1)
+    r == 1.0 && return a
+    r == 2.0 && return square(a, cache1)
     r == 1 / 2 && return sqrt(a, cache1)
     l0 = findfirst(a)
     lnull = trunc(Int, r * l0)

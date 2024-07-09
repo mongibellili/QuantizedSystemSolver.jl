@@ -41,7 +41,7 @@ sol=solve(odeprob,nmliqss1(),tspan)
 sol=solve(odeprob,nmliqss2(),tspan)
 plot_Sol(sol)
 plot_Sol(sol,1)
-getPlot(sol)
+
 
 u1, u2 = -8.73522174738572, -7.385745994549763
 λ1, λ2 = -10.841674966758294, -9.168325033241706
@@ -161,8 +161,11 @@ odeprob = NLodeProblem(quote
     du[2] =1.24*u[1]-0.01*u[2]+0.2
 end)  
 tspan=(0.0,5.0)
+sol=solve(odeprob,qss1(),tspan)
 sol=solve(odeprob,qss2(),tspan)
+sol=solve(odeprob,liqss1(),tspan)
 sol=solve(odeprob,liqss2(),tspan)
+sol=solve(odeprob,nmliqss1(),tspan)
 sol=solve(odeprob,nmliqss2(),tspan)
 @test 0.6<sol(2,0.5)<0.8
 
@@ -204,9 +207,13 @@ tspan=(0.0,6.0)
 sol=solve(odeprob,qss2(),tspan)
 sol=solve(odeprob,liqss2(),tspan)
 sol=solve(odeprob,nmliqss2(),tspan)
-getPlot(sol,1)
-plot_SolSum(sol,1,2)
 @test -0.75<sol(2,0.5)<-0.6
+
+plot_SolSum(sol,1,2,xlims=(0.0,1.0),ylims=(0.0,2.0))
+plot_SolSum(sol,1,2,xlims=(0.0,1.0),ylims=(0.0,0.0))
+plot_SolSum(sol,1,2)
+save_Sol(sol,1,2,3,4,5)
+
 
 
 odeprob = NLodeProblem(quote
@@ -263,3 +270,31 @@ end)
 tspan=(0.0,6.0)
 sol=solve(odeprob,nmliqss2(),tspan)
 @test -0.35<sol(2,0.5)<-0.2
+
+
+odeprob = NLodeProblem(quote
+    name=(sysN14,)
+    u = [1.0, 0.0,1.0, 0.0,1.0,1.0]
+    discrete = [0.5,1.0,1.0,1.0,1.0,1.0]
+    du[1] = t+u[2]
+    
+    for k in 2:5 
+        du[k]=discrete[k]*(u[k*1]-u[k-1]-u[k+1])+(discrete[k+1]+discrete[k-1])*discrete[k*1] ;
+    end 
+    if t-5.0>0.0
+        discrete[2]=0.0
+    end
+    if u[1]-3.0>0.0
+        u[1] = 1.0
+        u[2] = 0.0
+        u[3] = 1.0
+        u[4] = 0.0
+        u[5] = 1.0
+        discrete[1]=1.0
+    end
+    if discrete[1]-5.0>0.0
+        u[2]=0.0
+    end
+end)  
+tspan=(0.0,6.0)
+sol=solve(odeprob,nmliqss2(),tspan)

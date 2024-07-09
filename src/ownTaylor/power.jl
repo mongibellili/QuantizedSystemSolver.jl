@@ -57,11 +57,11 @@ function ^(a::Taylor0, r::S) where {S<:Real}
     return c
 end
 @inline function pow!(c::Taylor0, a::Taylor0, r::S, k::Int) where {S<:Real}
-    if r == 0
+    if r == 0.0
         return one!(c, a, k)
-    elseif r == 1
+    elseif r == 1.0
         return identity!(c, a, k)
-    elseif r == 2
+    elseif r == 2.0
         return sqr!(c, a, k)
     elseif r == 0.5
         return sqrt!(c, a, k)

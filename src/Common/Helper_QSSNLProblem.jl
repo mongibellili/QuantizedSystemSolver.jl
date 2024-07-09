@@ -19,7 +19,8 @@ function eliminateRef(a)#q[i] -> qi
     elseif a.args[2].args[1]==:*
       a=Symbol((a.args[1]),(a.args[2].args[2]), "times",(a.args[2].args[3]))
     elseif a.args[2].args[1]==:/
-      a=Symbol((a.args[1]),(a.args[2].args[2]), "over",(a.args[2].args[3]))
+      #a=Symbol((a.args[1]),(a.args[2].args[2]), "over",(a.args[2].args[3]))
+      Error("parameter_index division is not implemented Yet")
     end
   else
     a=Symbol((a.args[1]),(a.args[2]))
@@ -34,8 +35,9 @@ function symbolFromRef(refEx)#refEx is i+1 in q[i+1] for example
       refEx=Symbol("q",(refEx.args[2]), "minus",(refEx.args[3]))
     elseif refEx.args[1]==:*
       refEx=Symbol("q",(refEx.args[2]), "times",(refEx.args[3]))
-    elseif refEx.args[1]==:/
-      refEx=Symbol("q",(refEx.args[2]), "over",(refEx.args[3]))
+    #= elseif refEx.args[1]==:/
+      #refEx=Symbol("q",(refEx.args[2]), "over",(refEx.args[3]))
+      Error("parameter_index division is not implemented Yet") =#
     end
   else
     refEx=Symbol("q",(refEx))
@@ -50,8 +52,9 @@ function symbolFromRefd(refEx)#refEx is i+1 in q[i+1] for example
       refEx=Symbol("d",(refEx.args[2]), "minus",(refEx.args[3]))
     elseif refEx.args[1]==:*
       refEx=Symbol("d",(refEx.args[2]), "times",(refEx.args[3]))
-    elseif refEx.args[1]==:/
-      refEx=Symbol("d",(refEx.args[2]), "over",(refEx.args[3]))
+    #= elseif refEx.args[1]==:/
+      #refEx=Symbol("d",(refEx.args[2]), "over",(refEx.args[3]))
+      Error("parameter_index division is not implemented Yet") =#
     end
   else
     refEx=Symbol("d",(refEx))

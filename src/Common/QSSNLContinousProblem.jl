@@ -247,7 +247,7 @@ function createJacVect(jac:: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},:
                 for element in dictElement[2]
                     if element isa Expr || element isa Symbol#can split symbol alone since no need to postwalk
                         fa= postwalk(a -> a isa Symbol && a==:i ? j_ : a, element) # change each symbol i to exact number 
-                        push!(temp,eval(fa))
+                        push!(temp,Int(eval(fa)))
                     else #element is int
                         push!(temp,element)
                     end
@@ -274,7 +274,7 @@ function createSDVect(jac:: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},::
                 for element in dictElement[2]
                     if element isa Expr || element isa Symbol#element=
                     fa= postwalk(a -> a isa Symbol && a==:i ? j_ : a, element)
-                    push!(sdVect[eval(fa)],j_)
+                    push!(sdVect[Int(eval(fa))],j_)
                     else#element is int
                         push!(sdVect[element],j_)
                     end

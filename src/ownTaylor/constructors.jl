@@ -22,18 +22,17 @@ function Taylor0(x::Float64, order::Int)
     v[1] = x
     return Taylor0(v, order)
 end
-getcoeff(a::Taylor0, n::Int) = (@assert 0 ≤ n ≤ a.order;
-return a[n])
+getcoeff(a::Taylor0, n::Int) = (@assert 0 ≤ n ≤ a.order;return a[n])
 getindex(a::Taylor0, n::Int) = a.coeffs[n+1]
 setindex!(a::Taylor0, x::T, n::Int) where {T<:Number} = a.coeffs[n+1] = x
-@inline iterate(a::Taylor0, state=0) = state > a.order ? nothing : (a.coeffs[state+1], state + 1)
+#@inline iterate(a::Taylor0, state=0) = state > a.order ? nothing : (a.coeffs[state+1], state + 1)
 @inline length(a::Taylor0) = length(a.coeffs)
 @inline firstindex(a::Taylor0) = 0
 @inline lastindex(a::Taylor0) = a.order
 @inline eachindex(a::Taylor0) = firstindex(a):lastindex(a)
 @inline size(a::Taylor0) = size(a.coeffs)
 @inline get_order(a::Taylor0) = a.order
-numtype(a) = eltype(a)
+#numtype(a) = eltype(a)
 # Finds the first non zero entry; extended to Taylor0
 function Base.findfirst(a::Taylor0)
     first = findfirst(x -> !iszero(x), a.coeffs)
@@ -55,12 +54,12 @@ function evaluate(a::Taylor0, dx::T) where {T<:Number}
     suma
 end
 (p::Taylor0)(x) = evaluate(p, x)
-function differentiate!(p::Taylor0, a::Taylor0, k::Int)
+#= function differentiate!(p::Taylor0, a::Taylor0, k::Int)
     if k < a.order
         @inbounds p[k] = (k + 1) * a[k+1]
     end
     return nothing
-end
+end =#
 function differentiate!(::Val{O}, cache::Taylor0, a::Taylor0) where {O}
     for k = 0:O-1
         @inbounds cache[k] = (k + 1) * a[k+1]
@@ -80,4 +79,13 @@ function ndifferentiate!(cache::Taylor0, a::Taylor0, n::Int)
         end
         #return Taylor0(view(res.coeffs, 1:a.order-n+1))
     end
+end
+
+function testTaylor(a::Taylor0)
+    Taylor0(a) 
+    getcoeff(a,1)
+    length(a)
+    size(a)
+    get_order(a)
+
 end

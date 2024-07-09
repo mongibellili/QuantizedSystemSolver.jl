@@ -130,10 +130,6 @@ function minPosRoot(coeff::Taylor0, ::Val{2}) # credit goes to github.com/CIFASI
       end
     end
   end
-  if DEBUG && mpr != Inf
-    sl = c + mpr * b + a * mpr * mpr
-    @show sl
-  end
   return mpr
 end
 function quadRootv2(coeff::NTuple{3,Float64}) # call from mliqss1/simultupdate1

@@ -11,6 +11,7 @@ odeprob = NLodeProblem(quote
 end)  
 tspan=(0.0,1.0)
 ```
+This is a great example that shows when we need to use the explicit qss, the implicit liqss, or the modified implicit nmliqss. This is a stiff problem so we need to use the implicit methods, but it also contains larger entries outside the main diagonal of the Jacobian. Therefore, nmliqss should the most appropriate algorithm to use. The nmliqss plot does not finish at the final time because it terminated when it reached the equilibrium in which the values are the same as the values at the final time.
 
 ```julia
 sol=solve(odeprob,qss1(),tspan)
@@ -71,6 +72,7 @@ for solvr in solvrs
     test(solvr,absTol,relTol)
 end
 ```
+This model also is stiff and it needs a stiff method, but also the normal liqss will produce unnecessary cycles. Hence, the nmliqss is again the most appropriate.
 
 ![plot_tyson_qss1](./assets/img/plot_tyson_qss1.png)
 

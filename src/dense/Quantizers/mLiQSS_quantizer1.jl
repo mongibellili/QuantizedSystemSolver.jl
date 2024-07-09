@@ -136,7 +136,7 @@ function nmisCycle_and_simulUpdate(cacheRootsi::Vector{Float64}, cacheRootsj::Ve
   end
   return iscycle
 end
-function getQfromAsymptote(simt, x::Float64, β::P, c::P, α::P, b::P) where {P<:Union{BigFloat,Float64}}
+function getQfromAsymptote(simt, x::Float64, β::P, c::P, α::P, b::P) where {P<:Union{BigFloat,Float64}} 
   q = 0.0
   if β == 0.0 && c != 0.0
     println("report bug: β==0 && c!=0.0: this leads to asym=Inf while this code came from asym<Delta at $simt")

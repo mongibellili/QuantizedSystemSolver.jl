@@ -130,3 +130,6 @@ end
     end
     return nothing
 end
+
+
+#/(a::Int,b::Int)=Int(Float64(a)/b)

@@ -49,7 +49,7 @@ end
 """getAverageErrorByRefs(sol::Sol{T,O},solRef::Vector{Any}) where{T,O}
 
   This function calculates the average relative error of the solution with respect to a reference solution.
-  The relative error is calculated for each variable and then averaged over all variables.
+  The relative error is calculated for each variable, and then it is averaged over all variables.
 """
 function getAverageErrorByRefs(sol::Sol{T,O},solRef::Vector{Any}) where{T,O}
   numPoints=length(sol.savedTimes[1])

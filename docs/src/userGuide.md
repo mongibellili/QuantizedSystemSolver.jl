@@ -129,9 +129,9 @@ Finally, we can plot the solution to visualize the results. We have two options:
 
 ``` julia
 # Generate a plot object for all variables of the solution
-plot_obj = getPlot(sol)
+plot_obj = plot_Sol(sol)
 # Generate a plot object for variable 1 of the solution
-getPlot(sol,1)
+plot_Sol(sol,1)
 # Display the plot
 display(plot_obj)
 
@@ -146,9 +146,9 @@ save_Sol(sol, note=" ",xlims=(0.0,1.0),ylims=(-0.5,0.5),legend=false)
 
 ```
 ### Explanation:
-Generate plot object: getPlot(sol) creates a plot object from the solution data.
+Generate plot object: plot_Sol(sol) creates a plot object from the solution data.
 Display the plot: display(plot_obj) shows the plot in the current environment.
-Save the plot: save_Sol(sol, "solution_plot.png") saves the plot to a file named solution_plot.png.
+Save the plot: save_Sol(sol, ...) saves the plot to a file *.png.
 
 
 

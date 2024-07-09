@@ -25,20 +25,26 @@ er1=getError(solnmliqssInterp,1,x1)
 er2=getError(solnmliqssInterp,2,x2) 
 @show er1,er2 =#
 
+#= import Base:  *, /
 
 
+/(a::Int,b::Int)=Int(Float64(a)/b)
+a=5;b=1
+@show a*b
+@show a/b =#
 
+#= using Plots
 odeprob = NLodeProblem(quote
-    name=(sysN12,)
-    u = [1.0, 0.0,1.0, 0.0,1.0]
-    discrete = [0.5]
-    du[1] = t
+    name=(sysN14,)
+    u = [1.0, 0.0,1.0, 0.0,1.0,1.0]
+    discrete = [0.5,1.0,1.0,1.0,1.0,1.0]
+    du[1] = t+u[2]
     
     for k in 2:5 
-        du[k]=discrete[1]*(u[k]-u[k-1]) ;
+        du[k]=discrete[k]*(u[k*1]-u[k-1]-u[k+1])+(discrete[k+1]+discrete[k-1])*discrete[k*1] ;
     end 
     if t-5.0>0.0
-        discrete[1]=0.0
+        discrete[2]=0.0
     end
     if u[1]-3.0>0.0
         u[1] = 1.0
@@ -47,14 +53,20 @@ odeprob = NLodeProblem(quote
         u[4] = 0.0
         u[5] = 1.0
         discrete[1]=1.0
-        
+    end
+    if discrete[1]-5.0>0.0
+        u[2]=0.0
     end
 end)  
 tspan=(0.0,6.0)
 sol=solve(odeprob,nmliqss2(),tspan)
-save_Sol(sol)
+p1=plot_SolSum(sol,1,2,xlims=(0.0,5.0),ylims=(-5.0,20.0))
+ savefig(p1, "plot1")
+p2=getPlot(sol,1,xlims=(0.0,5.0),ylims=(-6.0,20.0))
+savefig(p2, "plot2") =#
+#= save_Sol(sol)
 xp=sol(2,0.5)
-@show   xp  
+@show   xp   =#
 #= 
 odeprob = NLodeProblem(quote
     name=(sysb2,)
@@ -191,3 +203,5 @@ constructIntrval(acceptedi,1.0,2.0,3.0,4.0)
 @test acceptedi[1]  ==[0.0, 1.0]
 @test acceptedi[2]==[2.0, 3.0]
 @test acceptedi[3] ==[4.0, Inf] =#
+
+@show 1==1.0

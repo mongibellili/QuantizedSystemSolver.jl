@@ -1,7 +1,7 @@
 #get .cov files
 #= using Pkg
-Pkg.test("QuantizedSystemSolver"; coverage=true) # run this then comment and run next code =#
-
+Pkg.test("QuantizedSystemSolver"; coverage=true) # run this then comment and run next code
+ =#
  # get lcov from .cov files (summary)
  using Coverage
 coverage = process_folder()

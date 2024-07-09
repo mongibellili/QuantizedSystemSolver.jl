@@ -14,7 +14,7 @@ module QuantizedSystemSolver
   import Base: ==, +, -, *, /, ^                
   #import Base: Base.gc_enable
   import Base: iterate, size, eachindex, firstindex, lastindex,
-    eltype, length, getindex, setindex!, axes, copyto!
+     length, getindex, setindex!
   import Base:  sqrt, exp, log, sin, cos, sincos, tan,
     asin, acos, atan, sinh, cosh, tanh, atanh, asinh, acosh,
     zero, one, zeros, ones, isinf, isnan, iszero,
@@ -24,7 +24,7 @@ module QuantizedSystemSolver
   export qss1,qss2,qss3,liqss1,liqss2,liqss3,saveat,nmliqss1,nmliqss2,nmliqss3
   export save_Sol,plot_Sol,getPlot,getPlot!,save_SolSum,solInterpolated,plot_SolSum
   export getError,getErrorByRodas,getAllErrorsByRefs,getAverageErrorByRefs,getErrorByRefs
-  export Taylor0,mulT,mulTT,createT,addsub,negateT,subsub,subadd,subT,addT,muladdT,mulsub,divT,powerT,constructIntrval # for testing
+  export Taylor0,mulT,mulTT,createT,addsub,negateT,subsub,subadd,subT,addT,muladdT,mulsub,divT,powerT,constructIntrval,getQfromAsymptote,iterationH,testTaylor # for testing
    ##### include section of Taylor series subcomponent
   include("ownTaylor/constructors.jl") 
   include("ownTaylor/arithmetic.jl")

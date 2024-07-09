@@ -79,7 +79,7 @@ sol.savedVars
 
 ```julia
 # If the user wants to perform other tasks with the plot:
-getPlot(sol)
+plot_Sol(sol)
 ```
 ```julia
 # If the user wants to save the plot to a file:

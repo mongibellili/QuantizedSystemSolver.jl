@@ -8,7 +8,7 @@ function computeNextTime(::Val{1}, i::Int, simt::Float64, nextTime::Vector{Float
         else#usual (quant/der) is very small
           x[i].coeffs[2]=sign(x[i].coeffs[2])*(abs(quantum[i])/absDeltaT)# adjust  derivative if it is too high
           nextTime[i] = simt + tempTime
-          if DEBUG  println("*************qssQuantizer: smalldelta in compute next") end
+          #if DEBUG  println("*************qssQuantizer: smalldelta in compute next") end
         end
     else
       nextTime[i] = Inf
@@ -24,7 +24,7 @@ function computeNextTime(::Val{2}, i::Int, simt::Float64, nextTime::Vector{Float
           else#usual sqrt(quant/der) is very small
             x[i].coeffs[3]=sign(x[i].coeffs[3])*(abs(quantum[i])/(absDeltaT*absDeltaT))/2# adjust second derivative if it is too high
             nextTime[i] = simt + tempTime
-            if DEBUG  println("qssQuantizer: smalldelta in compute next") end
+            #if DEBUG  println("qssQuantizer: smalldelta in compute next") end
           end
       else
         if (x[i].coeffs[2]) != 0
@@ -34,7 +34,7 @@ function computeNextTime(::Val{2}, i::Int, simt::Float64, nextTime::Vector{Float
           else#usual (quant/der) is very small
             x[i].coeffs[2]=sign(x[i].coeffs[2])*(abs(quantum[i])/absDeltaT)# adjust  derivative if it is too high
             nextTime[i] = simt + tempTime
-            if DEBUG  println("qssQuantizer: smalldelta in compute next") end
+            #if DEBUG  println("qssQuantizer: smalldelta in compute next") end
           end
         else
           nextTime[i] = Inf
@@ -115,12 +115,12 @@ function computeNextInputTime(::Val{2}, i::Int, simt::Float64,elapsed::Float64, 
       ddf=(newDerDerX-oldDerDerX)/(elapsed)
   else
       ddf= quantum[i]*1e6#*1e12
-      if DEBUG  println("QSS quantizer elapsed=0!") end
+      #if DEBUG  println("QSS quantizer elapsed=0!") end
   end       
   if ddf!=0.0
       nextInputTime[i]=simt+cbrt((abs(quantum[i]/df)))    #ddf mimics 3rd der 
   else #df=0->newddx=oldddx ->
-    if DEBUG  println("QSS quantizer ddf=0 ") end
+    #if DEBUG  println("QSS quantizer ddf=0 ") end
     oldDerX=((x[i].coeffs[2]))
      newDerX=(tt.coeffs[1])# 1st der of tt cuz tt itself is derx=f
      if elapsed > 0.0
@@ -177,9 +177,9 @@ function computeNextEventTime(::Val{O},j::Int,ZCFun::Taylor0,oldsignValue,simt, 
       mpr=1e-12
      end
     nextEventTime[j] =simt + mpr
-      if DEBUG
+     #=  if DEBUG
          println("qss quantizer:zcf$j at simt= $simt ****scheduled**** event at $(simt + mpr) oldzcf value= $(oldsignValue[j,2])  newZCF value= $(ZCFun[0])") 
-        end
+        end =#
     oldsignValue[j,1]=sign(ZCFun[0])#update the values
     oldsignValue[j,2]=ZCFun[0]
   end

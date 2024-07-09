@@ -5,6 +5,7 @@ t2=Taylor0([0.5,2.0,3.0],2)
 t3=Taylor0([2.0,1.0,0.0],2)
 cache1=Taylor0([1.0,1.0,1.0],2)
 cache2=Taylor0([1.0,1.0,1.0],2)
+testTaylor(t1)
 @test  exp(t2)[0]≈1.6487212707001282
 @test  log(t2)[0]≈-0.6931471805599453
 @test  sin(t2)[0]≈0.479425538604203
@@ -45,6 +46,8 @@ cache3=Taylor0([0.0,0.0,0.0],2)
 
 @test   (t2^0.5)[0]≈0.7071067811865476
 @test   sqrt(t2)[0]≈0.7071067811865476
+@test   powerT(t2,0,cache1)[0]≈1.0
+@test   powerT(t2,1,cache1)[0]≈0.5
 @test   powerT(t2,2,cache1)[0]≈0.25
 @test   powerT(t2,3.0,cache1)[0]≈0.125
 @test   sqrt(t2,cache1)[0]≈0.7071067811865476

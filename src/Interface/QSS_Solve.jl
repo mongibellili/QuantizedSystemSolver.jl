@@ -3,8 +3,9 @@ function solve(prob::NLODEProblem{PRTYPE,T,Z,D,CS},tspan::Tuple{Float64, Float64
    solve(prob,QSSAlgorithm(Val(:nmliqss),Val(2)),tspan;sparsity=sparsity,saveat=saveat,abstol=abstol,reltol=reltol,maxErr=maxErr,maxStepsAllowed=maxStepsAllowed)  
 end
 """solve(prob::NLODEProblem{PRTYPE,T,Z,D,CS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};sparsity::Val{Sparsity}=Val(false),saveat=1e-9::Float64,abstol=1e-4::Float64,reltol=1e-3::Float64,maxErr=Inf::Float64,maxStepsAllowed=10000000) where{PRTYPE,T,Z,D,CS,SolverType,OrderType,Sparsity}  
+
 This function dispatches on a specific integrator based on the algorithm provided.
-With the exception of the argument prob and tspan, all other arguments are optional and have default values.\n
+With the exception of the argument prob and tspan, all other arguments are optional and have default values:\n
 -The algorithm defaults to nmliqss2, and it is specified by the QSSAlgorithm type, which is a composite type that has a name and an order. It can be extended independently of the solver.\n
 -The sparsity argument defaults to false. If true, the integrator will use a sparse representation of the Jacobian matrix (not implemented).\n
 -The saveat argument defaults to 1e-9. It specifies the time step at which the integrator will save the solution (not implemented).\n

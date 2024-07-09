@@ -1,3 +1,7 @@
+"""plot_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}
+
+  This function generates a plot of the solution of the system (returned as a plot object).
+"""
 function plot_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}
   p1=plot()
   if xvars!=()
@@ -65,23 +69,6 @@ function save_SolSum(sol::Sol{T,O},xvars::Int...;interp=0.0001,note=" "::String,
   savefig(p1, "plot_$(sol.sysName)_$(sol.algName)_$(xvars)_$(sol.absQ)_$(note)_ft_$(sol.ft)_$(timestamp).png")
 end
 
-
-
-
-"""getPlot(sol::Sol{T,O}) where{T,O}
-
-  This function generates a plot of the solution of the system (returned as a plot object).
-"""
-function getPlot(sol::Sol{T,O}) where{T,O}
-  p1=plot(title="$(sol.sysName)")#;p2=nothing
-  for k=1:T
-    p1=plot!(p1,sol.savedTimes[k], sol.savedVars[k],marker=(:circle),markersize=2,label="x$k $(sol.numSteps[k]) ")
-  end
-  p1
-end
-function getPlot(sol::Sol{T,O},k::Int) where{T,O}
-  p1=plot!(sol.savedTimes[k], sol.savedVars[k],marker=(:circle),markersize=2,#= title="$(sol.sysName)_$(sol.algName)_$(sol.absQ)_$(sol.simulStepCount) ", =#label="x$k ")
-end
 
 #plot the sum of variables
 function plot_SolSum(sol::Sol{T,O},xvars::Int...;interp=0.0001,note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}
