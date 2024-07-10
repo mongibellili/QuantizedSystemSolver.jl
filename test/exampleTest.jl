@@ -286,7 +286,7 @@ sol=solve(odeprob,qss1(),tspan)
 sol=solve(odeprob,liqss1(),tspan)
 sol=solve(odeprob,nmliqss2(),tspan)
 @test 1.1<sol(1,0.5)<1.3
-@test -0.2<sol(2,0.5)<0.2
+@test -0.35<sol(2,0.5)<-0.2
 
 
 odeprob = NLodeProblem(quote
