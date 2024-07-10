@@ -1,7 +1,7 @@
 name = "QuantizedSystemSolver"
 uuid = "1012ed6b-4eb4-43ec-b9f7-8dc4179649a3"
 authors = ["mongi bellili"]
-
+version = "1.0.0"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
