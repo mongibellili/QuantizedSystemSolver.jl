@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Examples · Quantized System Solver</title><meta name="title" content="Examples · Quantized System Solver"/><meta property="og:title" content="Examples · Quantized System Solver"/><meta property="twitter:title" content="Examples · Quantized System Solver"/><meta name="description" content="Documentation for Quantized System Solver."/><meta property="og:description" content="Documentation for Quantized System Solver."/><meta property="twitter:description" content="Documentation for Quantized System Solver."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img src="../assets/logo.png" alt="Quantized System Solver logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../">Quantized System Solver</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../userGuide/">Tutorial</a></li><li><a class="tocitem" href="../developperGuide/">developper Guide</a></li><li class="is-active"><a class="tocitem" href>Examples</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Examples</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Examples</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/mongibellili/QuantizedSystemSolver" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/mongibellili/QuantizedSystemSolver/blob/main/docs/src/examples.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h1><h3 id="Systems-of-2-Linear-Time-Invariant-Differential-equations"><a class="docs-heading-anchor" href="#Systems-of-2-Linear-Time-Invariant-Differential-equations">Systems of 2 Linear Time Invariant Differential equations</a><a id="Systems-of-2-Linear-Time-Invariant-Differential-equations-1"></a><a class="docs-heading-anchor-permalink" href="#Systems-of-2-Linear-Time-Invariant-Differential-equations" title="Permalink"></a></h3><pre><code class="language-julia hljs">odeprob = NLodeProblem(quote
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Examples · Quantized System Solver</title><meta name="title" content="Examples · Quantized System Solver"/><meta property="og:title" content="Examples · Quantized System Solver"/><meta property="twitter:title" content="Examples · Quantized System Solver"/><meta name="description" content="Documentation for Quantized System Solver."/><meta property="og:description" content="Documentation for Quantized System Solver."/><meta property="twitter:description" content="Documentation for Quantized System Solver."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img src="../assets/logo.png" alt="Quantized System Solver logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../">Quantized System Solver</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../userGuide/">Tutorial</a></li><li><a class="tocitem" href="../developerGuide/">Developer Guide</a></li><li class="is-active"><a class="tocitem" href>Examples</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Examples</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Examples</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/mongibellili/QuantizedSystemSolver" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/mongibellili/QuantizedSystemSolver/blob/main/docs/src/examples.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h1><h3 id="Systems-of-2-Linear-Time-Invariant-Differential-equations"><a class="docs-heading-anchor" href="#Systems-of-2-Linear-Time-Invariant-Differential-equations">Systems of 2 Linear Time Invariant Differential equations</a><a id="Systems-of-2-Linear-Time-Invariant-Differential-equations-1"></a><a class="docs-heading-anchor-permalink" href="#Systems-of-2-Linear-Time-Invariant-Differential-equations" title="Permalink"></a></h3><pre><code class="language-julia hljs">odeprob = NLodeProblem(quote
      name=(sysb53,)
     u = [-1.0, -2.0]
     du[1] = -20.0*u[1]-80.0*u[2]+1600.0
     du[2] =1.24*u[1]-0.01*u[2]+0.2
 end)  
-tspan=(0.0,1.0)</code></pre><p>This is a great example that shows when we need to use the explicit qss, the implicit liqss, or the modified implicit nmliqss. This is a stiff problem so we need to use the implicit methods, but it also contains larger entries outside the main diagonal of the Jacobian. Therefore, nmliqss should the most appropriate algorithm to use. The nmliqss plot does not finish at the final time because it terminated when it reached the equilibrium in which the values are the same as the values at the final time.</p><pre><code class="language-julia hljs">sol=solve(odeprob,qss1(),tspan)
+tspan=(0.0,1.0)</code></pre><p>This is a great example that shows when we need to use the explicit qss, the implicit liqss, or the modified implicit nmliqss. This is a stiff problem so we need to use the implicit methods, but it also contains larger entries outside the main diagonal of the Jacobian. Therefore, nmliqss should the most appropriate algorithm to use. </p><pre><code class="language-julia hljs">sol=solve(odeprob,qss1(),tspan)
 save_Sol(sol)</code></pre><p><img src="../assets/img/plot_sysb53_qss1.png" alt="plot_sysb53_qss1"/></p><pre><code class="language-julia hljs">sol=solve(odeprob,qss2(),tspan)
 save_Sol(sol)</code></pre><p><img src="../assets/img/plot_sysb53_qss2.png" alt="plot_sysb53_qss2"/></p><pre><code class="language-julia hljs">sol=solve(odeprob,liqss1(),tspan)
 save_Sol(sol)</code></pre><p><img src="../assets/img/plot_sysb53_liqss1.png" alt="plot_sysb53_liqss1"/></p><pre><code class="language-julia hljs">sol=solve(odeprob,liqss2(),tspan)
 save_Sol(sol)</code></pre><p><img src="../assets/img/plot_sysb53_liqss2.png" alt="plot_sysb53_liqss2"/></p><pre><code class="language-julia hljs">sol=solve(odeprob,nmliqss1(),tspan)
 save_Sol(sol)</code></pre><p><img src="../assets/img/plot_sysb53_nmliqss1.png" alt="plot_sysb53_nmliqss1"/></p><pre><code class="language-julia hljs">sol=solve(odeprob,nmliqss2(),tspan)
-save_Sol(sol)</code></pre><p><img src="../assets/img/plot_sysb53_nmliqss2.png" alt="plot_sysb53_nmliqss2"/></p><h3 id="The-Tyson-Model"><a class="docs-heading-anchor" href="#The-Tyson-Model">The Tyson Model</a><a id="The-Tyson-Model-1"></a><a class="docs-heading-anchor-permalink" href="#The-Tyson-Model" title="Permalink"></a></h3><pre><code class="language-julia hljs">function test(solvr,absTol,relTol)
+save_Sol(sol)</code></pre><p><img src="../assets/img/plot_sysb53_nmliqss2.png" alt="plot_sysb53_nmliqss2"/> The nmliqss plot does not finish at the final time because it terminated when it reached the equilibrium in which the values are the same as the values at the final time.</p><h3 id="The-Tyson-Model"><a class="docs-heading-anchor" href="#The-Tyson-Model">The Tyson Model</a><a id="The-Tyson-Model-1"></a><a class="docs-heading-anchor-permalink" href="#The-Tyson-Model" title="Permalink"></a></h3><pre><code class="language-julia hljs">function test(solvr,absTol,relTol)
 odeprob = NLodeProblem(quote
     name=(tyson,)
     u = [0.0,0.75,0.25,0.0,0.0,0.0]
@@ -34,13 +34,30 @@ relTol=1e-2
 solvrs=[qss1(),liqss1(),nmliqss1(),nmliqss2()]
 for solvr in solvrs
     test(solvr,absTol,relTol)
-end</code></pre><p>This model also is stiff and it needs a stiff method, but also the normal liqss will produce unnecessary cycles. Hence, the nmliqss is again the most appropriate.</p><p><img src="../assets/img/plot_tyson_qss1.png" alt="plot_tyson_qss1"/></p><p><img src="../assets/img/plot_tyson_liqss1.png" alt="plot_tyson_liqss1"/></p><p><img src="../assets/img/plot_tyson_nmliqss1.png" alt="plot_tyson_nmliqss1"/></p><p><img src="../assets/img/plot_tyson_nmliqss2.png" alt="plot_tyson_nmliqss2"/></p><h3 id="Oregonator;-Vanderpl;-Loktavoltera"><a class="docs-heading-anchor" href="#Oregonator;-Vanderpl;-Loktavoltera">Oregonator; Vanderpl; Loktavoltera</a><a id="Oregonator;-Vanderpl;-Loktavoltera-1"></a><a class="docs-heading-anchor-permalink" href="#Oregonator;-Vanderpl;-Loktavoltera" title="Permalink"></a></h3><p><img src="../assets/img/plot_oregonator_mliqss1.png" alt="plot_oregonator_mliqss1"/></p><p><img src="../assets/img/plot_vanderpol_mliqss2.png" alt="plot_vanderpol_mliqss2"/></p><p><img src="../assets/img/plot_loktavoltera_mliqss3.png" alt="plot_loktavoltera_mliqss3"/></p><h3 id="Bouncing-Ball"><a class="docs-heading-anchor" href="#Bouncing-Ball">Bouncing Ball</a><a id="Bouncing-Ball-1"></a><a class="docs-heading-anchor-permalink" href="#Bouncing-Ball" title="Permalink"></a></h3><pre><code class="language-julia hljs">odeprob = NLodeProblem(quote 
+end</code></pre><p>This model also is stiff and it needs a stiff method, but also the normal liqss will produce unnecessary cycles. Hence, the nmliqss is again the most appropriate. <img src="../assets/img/plot_tyson_qss1.png" alt="plot_tyson_qss1"/> <img src="../assets/img/plot_tyson_liqss1.png" alt="plot_tyson_liqss1"/> <img src="../assets/img/plot_tyson_nmliqss1.png" alt="plot_tyson_nmliqss1"/> <img src="../assets/img/plot_tyson_nmliqss2.png" alt="plot_tyson_nmliqss2"/></p><h3 id="Oregonator;-Vanderpl"><a class="docs-heading-anchor" href="#Oregonator;-Vanderpl">Oregonator; Vanderpl</a><a id="Oregonator;-Vanderpl-1"></a><a class="docs-heading-anchor-permalink" href="#Oregonator;-Vanderpl" title="Permalink"></a></h3><pre><code class="language-julia hljs">odeprob = NLodeProblem(quote
+    name=(vanderpol,)
+    u  = [0.0,1.7]
+    du[1] = u[2]
+    du[2] = (1.0-u[1]*u[1])*u[2]-u[1] 
+    
+end)  
+tspan=(0.0,10.0)
+sol=solve(odeprob,nmliqss2(),tspan)
+save_Sol(sol)</code></pre><p><img src="../assets/img/plot_vanderpol_nmliqss2.png" alt="plot_vanderpol_nmliqss2"/></p><pre><code class="language-julia hljs">odeprob = NLodeProblem(quote
+    name=(oregonator,)
+    u  = [1.0,1.0,0.0]
+    du[1] = 100.8*(9.523809523809524e-5*u[2]-u[1]*u[2]+u[1]*(1.0-u[1]))
+    du[2] =40320.0*(-9.523809523809524e-5*u[2]-u[1]*u[2]+u[3])
+    du[3] = u[1] -u[3]
+end)  
+tspan=(0.0,10.0)
+sol=solve(odeprob,nmliqss2(),tspan)
+save_Sol(sol)</code></pre><p><img src="../assets/img/plot_oregonator_nmliqss2.png" alt="plot_oregonator_nmliqss2"/></p><h3 id="Bouncing-Ball"><a class="docs-heading-anchor" href="#Bouncing-Ball">Bouncing Ball</a><a id="Bouncing-Ball-1"></a><a class="docs-heading-anchor-permalink" href="#Bouncing-Ball" title="Permalink"></a></h3><pre><code class="language-julia hljs">odeprob = NLodeProblem(quote 
     name=(sysd0,)
     u = [50.0,0.0]
     discrete=[0.0]
     du[1] = u[2]
     du[2] = -9.8#+discrete[1]*u[1]
-  
     if -u[1]&gt;0.0
         u[2]=-u[2]
     end
@@ -63,4 +80,66 @@ sol=solve(odeprob,qss2(),tspan)</code></pre><p><img src="../assets/img/BBall.png
 end)  
 tspan=(0.0,10.0)
 sol=solve(odeprob,nmliqss2(),tspan)
-save_Sol(sol)</code></pre><p>The condition t == 4 &amp;&amp; u[1] &lt; 4 can be replaced by using another discrete variable (flag) that is triggered when t==4 , and it triggers the check of  u[1] &lt; 4.</p><p><img src="../assets/img/dosingPharma.png" alt="dosingPharma"/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../developperGuide/">« developper Guide</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.4.1 on <span class="colophon-date" title="Tuesday 9 July 2024 21:56">Tuesday 9 July 2024</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+save_Sol(sol)</code></pre><p>The condition t == 4 &amp;&amp; u[1] &lt; 4 can be replaced by using another discrete variable (flag) that is triggered when t==4 , and it triggers the check of  u[1] &lt; 4. <img src="../assets/img/dosingPharma.png" alt="dosingPharma"/></p><h3 id="Four-stage-Cuk-Converter-:"><a class="docs-heading-anchor" href="#Four-stage-Cuk-Converter-:">Four stage Cuk Converter :</a><a id="Four-stage-Cuk-Converter-:-1"></a><a class="docs-heading-anchor-permalink" href="#Four-stage-Cuk-Converter-:" title="Permalink"></a></h3><p><img src="../assets/img/cuk4circuit.png" alt="cuk4circuit"/></p><pre><code class="language-julia hljs">odeprob = NLodeProblem(quote
+name=(cuk4sym,)
+   C = 1e-4; L = 1e-4; R = 10.0;U = 24.0; T = 1e-4; DC = 0.25; ROn = 1e-5;ROff = 1e5;L1=1e-4;C1=1e-4;C2 = 1e-4;L2 = 1e-4;
+   #discrete Rd(start=1e5), Rs(start=1e-5), nextT(start=T),lastT,diodeon;
+   discrete = [1e5,1e-5,1e-4,0.0,0.0]
+   Rd=discrete[1];Rs=discrete[2];nextT=discrete[3];lastT=discrete[4];diodeon=discrete[5]
+   u[1:13]=0.0
+   uc2=u[13]
+   il2_1=u[i] ;il2_2=u[i-4] ;il2_3=u[i-8] ;il1_1=u[i+4] ;il1_2=u[i] ;il1_3=u[i-4] ;uc1_1=u[i+8];uc1_2=u[i+4] ;uc1_3=u[i] ;
+   id1=(((il2_1+il1_1)*Rs-uc1_1)/(Rd+Rs))
+   id2=(((il2_2+il1_2)*Rs-uc1_2)/(Rd+Rs))
+   id3=(((il2_3+il1_3)*Rs-uc1_3)/(Rd+Rs))
+  for i=1:4    #il2
+    du[i] =(-uc2-Rs*id1)/L2
+  end
+  for i=5:8    #il1
+    du[i]=(U-uc1_2-id2*Rs)/L1
+  end
+  for i=9:12    #uc1
+    du[i]=(id3-il2_3)/C1
+  end
+  du[13]=(u[1]+u[2]+u[3]+u[4]-uc2/R)/C2
+  if t-nextT&gt;0.0 
+    lastT=nextT
+    nextT=nextT+T
+    Rs=ROn
+   
+end
+if t-lastT-DC*T&gt;0.0 
+    Rs=ROff
+end                          
+if diodeon*(((u[1]+u[5])*Rs-u[9])/(Rd+Rs))+(1.0-diodeon)*(((u[1]+u[5])*Rs-u[9])*Rd/(Rd+Rs))&gt;0
+  Rd=ROn
+  diodeon=1.0
+else
+  Rd=ROff
+  diodeon=0.0
+end 
+if diodeon*(((u[2]+u[6])*Rs-u[10])/(Rd+Rs))+(1.0-diodeon)*(((u[2]+u[6])*Rs-u[10])*Rd/(Rd+Rs))&gt;0
+  Rd=ROn
+  diodeon=1.0
+else
+  Rd=ROff
+  diodeon=0.0
+end 
+if diodeon*(((u[3]+u[7])*Rs-u[11])/(Rd+Rs))+(1.0-diodeon)*(((u[3]+u[7])*Rs-u[11])*Rd/(Rd+Rs))&gt;0
+  Rd=ROn
+  diodeon=1.0
+else
+  Rd=ROff
+  diodeon=0.0
+end 
+if diodeon*(((u[4]+u[8])*Rs-u[12])/(Rd+Rs))+(1.0-diodeon)*(((u[4]+u[8])*Rs-u[12])*Rd/(Rd+Rs))&gt;0
+  Rd=ROn
+  diodeon=1.0
+else
+  Rd=ROff
+  diodeon=0.0
+end 
+end)
+
+tspan=(0.0,0.0005)
+sol= solve(odeprob,nmliqss2(),abstol=1e-4,reltol=1e-3,tspan)</code></pre><p><img src="../assets/img/plot_cuk4sym_nmLiqss2.png" alt="plot_cuk4sym_nmLiqss2"/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../developerGuide/">« Developer Guide</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.4.1 on <span class="colophon-date" title="Wednesday 10 July 2024 16:09">Wednesday 10 July 2024</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
