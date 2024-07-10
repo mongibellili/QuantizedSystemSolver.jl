@@ -13,7 +13,7 @@ using QuantizedSystemSolver
         pages = [
             "Home" => "index.md",
             "Tutorial" => "userGuide.md",
-            "developper Guide" => "developperGuide.md",
+            "Developer Guide" => "developerGuide.md",
             "Examples" => "examples.md",
         ]
     )

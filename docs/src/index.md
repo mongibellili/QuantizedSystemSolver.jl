@@ -1,7 +1,7 @@
 # Quantized System Solver
 
 ```@contents
-Pages = ["userGuide.md", "developperGuide.md","examples.md"]
+Pages = ["userGuide.md", "developerGuide.md","examples.md"]
 Depth = 1
 ```
 

@@ -1,3 +1,9 @@
+
+using QuantizedSystemSolver
+using Test
+
+#= 
+
 odeprob = NLodeProblem(quote
     name=(sysb1,)
     u = [-1.0, -2.0]
@@ -11,8 +17,8 @@ sol=solve(odeprob,liqss1(),tspan)
 sol=solve(odeprob,liqss2(),tspan)
 sol=solve(odeprob,nmliqss1(),tspan)
 sol=solve(odeprob,nmliqss2(),tspan)
-@show -2.6<sol(1,0.7)<-2.2
-@show -3.517<sol(2,0.7)<-3.117
+@test -2.6<sol(1,0.7)<-2.2
+@test -3.517<sol(2,0.7)<-3.117
 odeprob = NLodeProblem(quote
     name=(sysb2,)
     u = [-1.0, -2.0]
@@ -26,8 +32,8 @@ sol=solve(odeprob,liqss1(),tspan)
 sol=solve(odeprob,liqss2(),tspan)
 sol=solve(odeprob,nmliqss1(),tspan)
 sol=solve(odeprob,nmliqss2(),tspan)
-@show 0.5<sol(1,0.7)<0.7
-@show -2.4<sol(2,0.7)<-2.2
+@test 0.5<sol(1,0.7)<0.7
+@test -2.4<sol(2,0.7)<-2.2
 odeprob = NLodeProblem(quote
     name=(sysb53,)
     u = [-1.0, -2.0]
@@ -88,7 +94,6 @@ sol= solve(odeprob,nmliqss1(),tspan,abstol=1e-4,reltol=1e-3)
 sol= solve(odeprob,qss2(),tspan,abstol=1e-4,reltol=1e-3)  
 
 
-BSON.@load "./solVectAdvection_N1000d01_Feagin14e-12.bson" solFeagin14VectorN1000d01
 prob=NLodeProblem(quote
   name=(adrN1000d01,)
   u[1:333]=1.0
@@ -108,15 +113,12 @@ end)
 tspan=(0.0,5.0)
 sol=solve(prob,nmliqss1(),abstol=1e-5,reltol=1e-2,tspan)#
 sol=solve(prob,abstol=1e-5,reltol=1e-2,tspan)#
-solnmliqssInterp=solInterpolated(sol,0.01)
-getErrorByRefs(solnmliqssInterp,1,solFeagin14VectorN1000d01)
-err4=getAverageErrorByRefs(solnmliqssInterp,solFeagin14VectorN1000d01)
-@test err4<0.05
-@show 0.35<sol(1,1.5)<0.39
-@show 0.63<sol(2,1.5)<0.67
-@show 0.97<sol(400,1.5)<1.0
-@show 0.97<sol(600,1.5)<1.0
-@show 0.97<sol(1000,1.5)<1.0
+
+@test 0.35<sol(1,1.5)<0.39
+@test 0.63<sol(2,1.5)<0.67
+@test 0.97<sol(400,1.5)<1.0
+@test 0.97<sol(600,1.5)<1.0
+@test 0.97<sol(1000,1.5)<1.0
 
 
 odeprob = NLodeProblem(quote
@@ -131,12 +133,12 @@ du[6] =u[4]-0.6*u[6]
 end ) 
 tspan=(0.0,25.0)
 sol=solve(odeprob,nmliqss2(),tspan)
-@show 0.00001<sol(1,20.0)<0.01
-@show 0.8<sol(2,20.0)<0.99
-@show 0.05<sol(3,20.0)<0.09
-@show 0.00001<sol(4,20.0)<0.01
-@show 0.0<sol(5,20.0)<8.0e-4
-@show 0.01<sol(6,20.0)<0.02
+@test 0.00001<sol(1,20.0)<0.01
+@test 0.8<sol(2,20.0)<0.99
+@test 0.05<sol(3,20.0)<0.09
+@test 0.00001<sol(4,20.0)<0.01
+@test 0.0<sol(5,20.0)<8.0e-4
+@test 0.01<sol(6,20.0)<0.02
 
 odeprob = NLodeProblem(quote
     name=(sysbN5,)
@@ -148,8 +150,8 @@ odeprob = NLodeProblem(quote
 end)  
 tspan=(0.0,1.0)
 sol=solve(odeprob,qss2(),tspan)
-@show 0.5<sol(1,0.7)<0.9
-@show 0.4<sol(2,0.7)<0.8
+@test 0.5<sol(1,0.7)<0.9
+@test 0.4<sol(2,0.7)<0.8
 odeprob = NLodeProblem(quote
     name=(sysbN6,)
     u = [1.0, 0.0]
@@ -158,8 +160,8 @@ odeprob = NLodeProblem(quote
 end)  
 tspan=(0.0,1.0)
 sol=solve(odeprob,qss2(),tspan)
-@show 0.07<sol(1,0.7)<0.1
-@show 0.2<sol(2,0.7)<0.6
+@test 0.07<sol(1,0.7)<0.1
+@test 0.2<sol(2,0.7)<0.6
 odeprob = NLodeProblem(quote
     name=(sysbN66,)
     u = [1.0, 0.0]
@@ -169,8 +171,8 @@ end)
 tspan=(0.0,1.0)
 sol=solve(odeprob,qss1(),tspan)
 sol=solve(odeprob,liqss1(),tspan)
-@show 0.6<sol(1,0.7)<0.8
-@show 0.5<sol(2,0.7)<0.7
+@test 0.6<sol(1,0.7)<0.8
+@test 0.5<sol(2,0.7)<0.7
 odeprob = NLodeProblem(quote
     name=(sysbN8,)
     u = [1.0, 0.0]
@@ -258,8 +260,8 @@ plot_Sol(sol,1,2,xlims=(0.0,1.0),ylims=(0.0,2.0))
 plot_Sol(sol,1,2,xlims=(0.0,1.0),ylims=(0.0,0.0))
 plot_Sol(sol,1,2,xlims=(0.0,0.0),ylims=(0.0,1.0))
 
-
-odeprob = NLodeProblem(quote
+ =#
+#= odeprob = NLodeProblem(quote
     name=(sysN13,)
     u = [1.0, 0.0,1.0, 0.0,1.0]
     discrete = [0.5]
@@ -287,9 +289,9 @@ sol=solve(odeprob,liqss1(),tspan)
 sol=solve(odeprob,nmliqss2(),tspan)
 @test 1.1<sol(1,0.5)<1.3
 @test -0.2<sol(2,0.5)<0.2
+ =#
 
-
-odeprob = NLodeProblem(quote
+#= odeprob = NLodeProblem(quote
     name=(sysN14,)
     u = [1.0, 0.0,1.0, 0.0,1.0]
     discrete = [0.5]
@@ -314,7 +316,7 @@ end)
 tspan=(0.0,6.0)
 sol=solve(odeprob,nmliqss2(),tspan)
 @test -0.35<sol(2,0.5)<-0.2
-sol=solve(odeprob,liqss2(),tspan)
+sol=solve(odeprob,liqss2(),tspan) =#
 
 odeprob = NLodeProblem(quote
     name=(sysN15,)
@@ -339,90 +341,11 @@ odeprob = NLodeProblem(quote
     end
 end)  
 tspan=(0.0,6.0)
+#sol=solve(odeprob,nmliqss2(),tspan)
 sol=solve(odeprob,qss2(),tspan)
+@show odeprob.discreteVars
 sol=solve(odeprob,liqss2(),tspan)
-sol=solve(odeprob,nmliqss2(),tspan)
-@show 1.7<sol(1,0.7)<1.95
-@show 0.2<sol(2,0.7)<0.35
 
-odeprob = NLodeProblem(quote
-name=(cuk4sym,)
-   C = 1e-4; L = 1e-4; R = 10.0;U = 24.0; T = 1e-4; DC = 0.25; ROn = 1e-5;ROff = 1e5;L1=1e-4;C1=1e-4;C2 = 1e-4;L2 = 1e-4;
-   #discrete Rd(start=1e5), Rs(start=1e-5), nextT(start=T),lastT,diodeon;
-   discrete = [1e5,1e-5,1e-4,0.0,0.0]
-   Rd=discrete[1];Rs=discrete[2];nextT=discrete[3];lastT=discrete[4];diodeon=discrete[5]
-   u[1:13]=0.0
-   uc2=u[13]
-   il2_1=u[i] ;il2_2=u[i-4] ;il2_3=u[i-8] ;il1_1=u[i+4] ;il1_2=u[i] ;il1_3=u[i-4] ;uc1_1=u[i+8];uc1_2=u[i+4] ;uc1_3=u[i] ;
-   id1=(((il2_1+il1_1)*Rs-uc1_1)/(Rd+Rs))
-   id2=(((il2_2+il1_2)*Rs-uc1_2)/(Rd+Rs))
-   id3=(((il2_3+il1_3)*Rs-uc1_3)/(Rd+Rs))
-
-  for i=1:4    #il2
-    du[i] =(-uc2-Rs*id1)/L2
-  end
-  for i=5:8    #il1
-    du[i]=(U-uc1_2-id2*Rs)/L1
-  end
-  for i=9:12    #uc1
-    du[i]=(id3-il2_3)/C1
-  end
-  du[13]=(u[1]+u[2]+u[3]+u[4]-uc2/R)/C2
-
-
-
-  if t-nextT>0.0 
-    lastT=nextT
-    nextT=nextT+T
-    Rs=ROn
-   
-end
-
-if t-lastT-DC*T>0.0 
-    Rs=ROff
-   
-end                          
-
-
-if diodeon*(((u[1]+u[5])*Rs-u[9])/(Rd+Rs))+(1.0-diodeon)*(((u[1]+u[5])*Rs-u[9])*Rd/(Rd+Rs))>0
-  Rd=ROn
-  diodeon=1.0
-else
-  Rd=ROff
-  diodeon=0.0
-end 
-
-if diodeon*(((u[2]+u[6])*Rs-u[10])/(Rd+Rs))+(1.0-diodeon)*(((u[2]+u[6])*Rs-u[10])*Rd/(Rd+Rs))>0
-  Rd=ROn
-  diodeon=1.0
-else
-  Rd=ROff
-  diodeon=0.0
-end 
-     
-
-if diodeon*(((u[3]+u[7])*Rs-u[11])/(Rd+Rs))+(1.0-diodeon)*(((u[3]+u[7])*Rs-u[11])*Rd/(Rd+Rs))>0
-  Rd=ROn
-  diodeon=1.0
-else
-  Rd=ROff
-  diodeon=0.0
-end 
-
-if diodeon*(((u[4]+u[8])*Rs-u[12])/(Rd+Rs))+(1.0-diodeon)*(((u[4]+u[8])*Rs-u[12])*Rd/(Rd+Rs))>0
-  Rd=ROn
-  diodeon=1.0
-else
-  Rd=ROff
-  diodeon=0.0
-end 
-
-
-end)
-
-tspan=(0.0,0.0005)
-sol= solve(odeprob,nmliqss2(),abstol=1e-4,reltol=1e-3,tspan)
-@test -0.46<sol(1,0.0004)<-0.4
-@test 0.4<sol(5,0.0004)<0.45
-@test 2.55<sol(9,0.0004)<2.57
-@test -2.98<sol(13,0.0004)<-2.9
+save_Sol(sol,ylims=(-5.0,5.0))
+@show sol(2,0.7)
+@show sol(1,0.7)

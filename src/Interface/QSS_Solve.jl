@@ -29,7 +29,6 @@ function custom_Solve(prob::NLODEProblem{PRTYPE,T,Z,D,CS},al::QSSAlgorithm{Solve
         integrate(al,commonQSSdata,prob,prob.eqs,jac,SD)
     else
           liqssdata=createLiqssData(prob,Val(Sparsity),Val(T),Val(Order))
-         if VERBOSE println("begin dispatch on liqss algorithm") end
          integrate(al,commonQSSdata,liqssdata,prob,prob.eqs,jac,SD,prob.exactJac)
     
     end
@@ -49,7 +48,6 @@ function custom_Solve(prob::NLODEProblem{PRTYPE,T,Z,D,CS},al::QSSAlgorithm{Solve
 #helper methods...not to be touched...extension can be done through creating others via specializing on one PRTYPE or more of the symbols (PRTYPE,T,Z,D,Order) if in the future...
 #################################################################################################################################################################################
 function createCommonData(prob::NLODEProblem{PRTYPE,T,Z,D,CS},::Val{Order},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxStepsAllowed::Int)where{PRTYPE,T,Z,D,CS,Order}
-  if VERBOSE println("begin create common data") end
     quantum =  zeros(T)
     x = Vector{Taylor0}(undef, T)
     q = Vector{Taylor0}(undef, T)
@@ -68,6 +66,8 @@ function createCommonData(prob::NLODEProblem{PRTYPE,T,Z,D,CS},::Val{Order},final
     for i=1:D
         d[i]=prob.discreteVars[i]
     end
+#=     @show d
+    @show prob.discreteVars  =#
     for i = 1:T
         nextInputTime[i]=Inf
         nextStateTime[i]=Inf
@@ -83,7 +83,6 @@ function createCommonData(prob::NLODEProblem{PRTYPE,T,Z,D,CS},::Val{Order},final
     for i=1:CS
     push!(taylorOpsCache,Taylor0(zeros(Order+1),Order))
     end
-    if VERBOSE println("END create common data") end
     commonQSSdata= CommonQSS_data(quantum,x,q,tx,tq,d,nextStateTime,nextInputTime ,nextEventTime , t, integratorCache,taylorOpsCache,finalTime,saveat, initialTime,abstol,reltol,maxErr,maxStepsAllowed,savedTimes,savedVars)
 end
 #no sparsity

@@ -18,7 +18,7 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{Z}, o
   savedTimes = CommonqssData.savedTimes
   integratorCache = CommonqssData.integratorCache
   taylorOpsCache = CommonqssData.taylorOpsCache
-  d = odep.discreteVars
+  d = CommonqssData.d
   zc_SimpleJac = odep.ZCjac
   HZ = odep.HZ
   HD = odep.HD

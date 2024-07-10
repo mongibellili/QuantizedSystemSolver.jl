@@ -40,6 +40,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_data{Z},
   cacheRootsi = zeros(8 * O - 4) #vect of floats to hold roots for simul_analytic 
   cacheRootsj = zeros(8 * O - 4)
 
+
   for i = 1:4*O-1
     acceptedi[i] = [0.0, 0.0]#zeros(2)
     acceptedj[i] = [0.0, 0.0]#zeros(2)
@@ -52,6 +53,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_data{Z},
   numSteps = Vector{Int}(undef, T)
   #######################################compute initial values##################################################
   n = 1
+ 
   for k = 1:O # compute initial derivatives for x and q (similar to a recursive way )
     n = n * k
     for i = 1:T
@@ -65,6 +67,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_data{Z},
       x[i].coeffs[k+1] = (integratorCache.coeffs[1]) / n # /fact cuz i will store der/fac like the convention...to extract the derivatives (at endof sim) multiply by fac  derderx=coef[3]*fac(2)
     end
   end
+
   smallAdvance = ft / 1000
   t[0] = initTime
   for i = 1:T
