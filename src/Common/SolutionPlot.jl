@@ -29,7 +29,7 @@ function plot_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::
         sze=1
         stle=:solid
       end
-      p1=plot!(p1,sol.savedTimes[k], sol.savedVars[k],line=(sze,stle),marker=(marker),label="x$k $(sol.numSteps[k])"#= ,legend=:right =#)
+      p1=plot!(p1,sol.savedTimes[k], sol.savedVars[k],line=(sze,stle),marker=(marker),label="x$k $(sol.stats.numSteps[k])"#= ,legend=:right =#)
     end
   else
     for k=1:T
@@ -38,7 +38,7 @@ function plot_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::
       else
         mycolor=:purple
       end
-      p1=plot!(p1,sol.savedTimes[k], sol.savedVars[k],marker=(marker),markersize=2,label="x$k $(sol.numSteps[k])"#= ,legend=:false =#)
+      p1=plot!(p1,sol.savedTimes[k], sol.savedVars[k],marker=(marker),markersize=2,label="x$k $(sol.stats.numSteps[k])"#= ,legend=:false =#)
     end
   end
   if xlims!=(0.0,0.0) && ylims!=(0.0,0.0) 
