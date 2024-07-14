@@ -7,7 +7,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_data{0},
   relQ = CommonqssData.dQrel
   absQ = CommonqssData.dQmin
   maxErr = CommonqssData.maxErr
-  maxStepsAllowed = CommonqssData.maxStepsAllowed
+  maxiters = CommonqssData.maxiters
   savetimeincrement = CommonqssData.savetimeincrement
   savetime = savetimeincrement # not implemented yet
   quantum = CommonqssData.quantum
@@ -75,8 +75,8 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_data{0},
   simulStepCount = 0
   totalSteps = 0
   simul = false
-  while simt < ft && totalSteps < maxStepsAllowed
-    if totalSteps == maxStepsAllowed - 1
+  while simt < ft && totalSteps < maxiters
+    if totalSteps == maxiters - 1
       @warn("The algorithm liqss$O is taking too long to converge. The simulation will be stopped. Consider using a different algorithm!")
     end
     sch = updateScheduler(Val(T), nextStateTime, nextEventTime, nextInputTime)
@@ -176,7 +176,8 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_data{0},
     push!(savedVars[index], x[index][0])
     push!(savedTimes[index], simt)
   end#end while
-  createSol(Val(T), Val(O), savedTimes, savedVars, "liqss$O", string(odep.prname), absQ, totalSteps, simulStepCount, 0, numSteps, ft)
+  stats=Stats(totalSteps,simulStepCount,evCount,numSteps)
+  createSol(Val(T), Val(O), savedTimes, savedVars, "liqss$O", string(odep.prname), absQ, stats, ft)
 end#end integrate
 
 
