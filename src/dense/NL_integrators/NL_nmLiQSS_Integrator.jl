@@ -231,6 +231,6 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_data{0
     push!(savedVars[index], (x[index][0] + q[index][0]) / 2)
     push!(savedTimes[index], simt)
   end#end while
-  stats=Stats(totalSteps,simulStepCount,evCount,numSteps)
+  stats=Stats(totalSteps,simulStepCount,0,numSteps)
   createSol(Val(T), Val(O), savedTimes, savedVars, "nmliqss$O", string(odep.prname), absQ, stats, ft)
 end

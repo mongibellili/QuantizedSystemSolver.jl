@@ -346,6 +346,6 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_data{Z},
       end
     end
   end#end while
-  stats=Stats(totalSteps,simulStepCount,evCount,numSteps)
+  stats=Stats(totalSteps,0,evCount,numSteps)
   createSol(Val(T), Val(O), savedTimes, savedVars, "liqss$O", string(odep.prname), absQ, stats, ft) #= ,savedDers =#
 end#end integrate

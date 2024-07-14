@@ -1,3 +1,10 @@
+struct Stats
+  totalSteps::Int
+  simulStepCount::Int
+  evCount::Int
+  numSteps ::Vector{Int}
+end
+
 """LightSol{T,O}
 A struct that holds the solution of a system of ODEs. It has the following fields:\n
     - size: The number of continuous variables T\n
@@ -25,12 +32,7 @@ struct LightSol{T,O}<:Sol{T,O}
   stats::Stats
   ft::Float64
 end
-struct Stats
-  totalSteps::Int
-  simulStepCount::Int
-  evCount::Int
-  numSteps ::Vector{Int}
-end
+
 @inline function createSol(::Val{T},::Val{O}, savedTimes:: Vector{Vector{Float64}},savedVars :: Vector{Vector{Float64}},solver::String,nameof_F::String,absQ::Float64,stats::Stats,ft::Float64)where {T,O}
  # println("light")
   sol=LightSol(Val(T),Val(O),savedTimes, savedVars,solver,nameof_F,absQ,stats,ft#= ,simulStepsVals,simulStepsDers,simulStepsTimes =#)
@@ -91,7 +93,15 @@ function solInterpolated(sol::Sol{T,O},step::Float64)where {T,O}
           push!(interpValues[index],sol[2][index][end]) #last pt @ft
           allInterpTimes[index]=interpTimes
   end
-  createSol(Val(T),Val(O),allInterpTimes,interpValues,sol.algName,sol.sysName,sol.absQ,sol.totalSteps#= ,sol.stepsaftersimul =#,sol.simulStepCount,sol.evCount,sol.numSteps,sol.ft#= ,sol.simulStepsVals,sol.simulStepsDers,sol.simulStepsVals =#)
+  createSol(Val(T),Val(O),allInterpTimes,interpValues,sol.algName,sol.sysName,sol.absQ,sol.stats,sol.ft#= ,sol.simulStepsVals,sol.simulStepsDers,sol.simulStepsVals =#)
 end
 (sol::Sol)(index::Int,t::Float64) = evaluateSol(sol,index,t)
 (sol::Sol)(t::Float64;idxs=1::Int) = evaluateSol(sol,idxs,t)
+
+function show(io::IO, a::Stats)
+  println("The total simulation steps: $(a.totalSteps)")
+  println("The simultaneous  steps: $(a.simulStepCount)")
+  println("The number of events: $(a.evCount)")
+  println("The simulation steps per variable: $(a.numSteps)")
+  
+end

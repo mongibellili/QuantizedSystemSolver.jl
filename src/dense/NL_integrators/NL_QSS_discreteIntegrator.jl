@@ -304,6 +304,6 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{Z}, o
     end
     #prevStepTime = simt
   end
-  stats=Stats(totalSteps,simulStepCount,evCount,numSteps)
+  stats=Stats(totalSteps,0,evCount,numSteps)
   createSol(Val(T), Val(O), savedTimes, savedVars, "qss$O", string(odep.prname), absQ, stats, ft)
 end

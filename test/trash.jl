@@ -49,3 +49,4 @@ tspan=(0.0,6.0)
 sol=solve(odeprob,nmliqss2(),tspan,maxiters=100000000)
 @show sol(0.5,idxs=2)
 @show sol.stats
+print(sol.stats)
