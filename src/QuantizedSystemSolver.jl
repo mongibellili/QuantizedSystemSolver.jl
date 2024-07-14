@@ -18,7 +18,7 @@ module QuantizedSystemSolver
   import Base:  sqrt, exp, log, sin, cos, sincos, tan,
     asin, acos, atan, sinh, cosh, tanh, atanh, asinh, acosh,
     zero, one, zeros, ones, isinf, isnan, iszero,
-    convert, promote_rule, promote, show,abs
+    convert, promote_rule, promote, show,abs,show,print,println
    ##### list of public (API) 
   export NLodeProblem,solve ,NLODEProblem,QSSAlgorithm,Sol# docs used NLODEProblem, QSSAlgorithm
   export qss1,qss2,qss3,liqss1,liqss2,liqss3,saveat,nmliqss1,nmliqss2,nmliqss3

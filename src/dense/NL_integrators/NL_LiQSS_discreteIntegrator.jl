@@ -6,7 +6,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_data{Z},
   relQ = CommonqssData.dQrel
   absQ = CommonqssData.dQmin
   maxErr = CommonqssData.maxErr
-  maxStepsAllowed = CommonqssData.maxStepsAllowed
+  maxiters = CommonqssData.maxiters
   savetimeincrement = CommonqssData.savetimeincrement
   savetime = savetimeincrement
   quantum = CommonqssData.quantum
@@ -106,14 +106,14 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_data{Z},
   simt = initTime
   totalSteps = 0
   modifiedIndex = 0
-  countEvents = 0
+  evCount = 0
   inputstep = 0
   statestep = 0
   simulStepCount = 0
   ft < savetime && error("ft<savetime")
   if VERBOSE println("start integration") end
-  while simt < ft && totalSteps < maxStepsAllowed
-    if totalSteps == maxStepsAllowed - 1 @warn("The algorithm liqss$O is taking too long to converge. The simulation will be stopped. Consider using a different algorithm!") end
+  while simt < ft && totalSteps < maxiters
+    if totalSteps == maxiters - 1 @warn("The algorithm liqss$O is taking too long to converge. The simulation will be stopped. Consider using a different algorithm!") end
     sch = updateScheduler(Val(T), nextStateTime, nextEventTime, nextInputTime)
     simt = sch[2]
     index = sch[1]
@@ -277,7 +277,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_data{Z},
         computeNextEventTime(Val(O), index, taylorOpsCache[1], oldsignValue, simt, nextEventTime, quantum, absQ)
         continue
       end
-      countEvents += 1
+      evCount += 1
       oldsignValue[index, 2] = taylorOpsCache[1][0]
       oldsignValue[index, 1] = sign(taylorOpsCache[1][0])
       for b in evDep[modifiedIndex].evContRHS
@@ -346,5 +346,6 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_data{Z},
       end
     end
   end#end while
-  createSol(Val(T), Val(O), savedTimes, savedVars, "liqss$O", string(odep.prname), absQ, totalSteps, simulStepCount, countEvents, numSteps, ft) #= ,savedDers =#
+  stats=Stats(totalSteps,0,evCount,numSteps)
+  createSol(Val(T), Val(O), savedTimes, savedVars, "liqss$O", string(odep.prname), absQ, stats, ft) #= ,savedDers =#
 end#end integrate
