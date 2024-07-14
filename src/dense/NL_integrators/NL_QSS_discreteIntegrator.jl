@@ -74,7 +74,7 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{Z}, o
   prevStepTime = initTime
   modifiedIndex = 0
   statestep = 0
-  countEvents = 0
+  evCount = 0
   while simt < ft && totalSteps < maxiters
     if totalSteps == maxiters - 1 @warn("The algorithm qss$O is taking too long to converge. The simulation will be stopped. Consider using a different algorithm!") end
     sch = updateScheduler(Val(T), nextStateTime, nextEventTime, nextInputTime)
@@ -236,7 +236,7 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{Z}, o
         computeNextEventTime(Val(O), index, taylorOpsCache[1], oldsignValue, simt, nextEventTime, quantum, absQ)
         continue
       end
-      countEvents += 1
+      evCount += 1
       oldsignValue[index, 2] = taylorOpsCache[1][0]
       oldsignValue[index, 1] = sign(taylorOpsCache[1][0])
       for b in evDep[modifiedIndex].evContRHS

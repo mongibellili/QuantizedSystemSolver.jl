@@ -106,7 +106,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_data{Z},
   simt = initTime
   totalSteps = 0
   modifiedIndex = 0
-  countEvents = 0
+  evCount = 0
   inputstep = 0
   statestep = 0
   simulStepCount = 0
@@ -277,7 +277,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_data{Z},
         computeNextEventTime(Val(O), index, taylorOpsCache[1], oldsignValue, simt, nextEventTime, quantum, absQ)
         continue
       end
-      countEvents += 1
+      evCount += 1
       oldsignValue[index, 2] = taylorOpsCache[1][0]
       oldsignValue[index, 1] = sign(taylorOpsCache[1][0])
       for b in evDep[modifiedIndex].evContRHS
