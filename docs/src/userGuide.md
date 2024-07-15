@@ -95,17 +95,24 @@ abstol and reltol are the absolute and relative tolerances for the solver, contr
 After solving the problem, we can query the solution to extract useful information such as variable values at specific times, the number of steps, events, and more.
 
 ```julia
+
+# returns a vector of the values of all variables  at time 0.0005 # feature not available in v1.0.1
+sol(0.0005) 
+
 # Get the value of variable 2 at time 0.0005
 value_at_time = sol(2, 0.0005)
 
+# Get the value of variable 2 at time 0.0005
+value_at_time = sol(0.0005,idxs=2)# feature not available in v1.0.1
+
 # Get the total number of steps to end the simulation
-total_steps = sol.totalSteps
+total_steps = sol.totalSteps # feature available only in v1.0.1 ->sol.stats in later versions
 
 # Get the number of simultaneous steps during the simulation
-simul_step_count = sol.simulStepCount
+simul_step_count = sol.simulStepCount # feature available only in v1.0.1 ->sol.stats in later versions
 
 # Get the total number of events during the simulation
-event_count = sol.evCount
+event_count = sol.evCount # feature available only in v1.0.1 ->sol.stats in later versions
 
 # Get the saved times and variables
 saved_times = sol.savedTimes
@@ -134,6 +141,15 @@ plot_obj = plot_Sol(sol)
 plot_Sol(sol,1)
 # Display the plot
 display(plot_obj)
+# Generate a plot object for all variables of the solution. It requires "using Plots". feature not available in v1.0.1.
+plot(sol)
+# Generate a plot object for variable 1 of the solution
+p1=plot(sol,idxs=(0,2))  # feature not available in v1.0.1
+# Generate a plot object for variable 1 in function of variable 1 
+p1=plot(sol,idxs=(1,2))  # feature not available in v1.0.1
+# Generate a 3D plot object for variables 1 and 2 in function of time 
+p1=plot(sol,idxs=(0,1,2))  #  feature not available in v1.0.1
+
 
 
 #plot  variables 1 and 2 of the solution

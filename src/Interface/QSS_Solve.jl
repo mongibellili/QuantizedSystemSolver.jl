@@ -12,7 +12,7 @@ With the exception of the argument prob and tspan, all other arguments are optio
 -The abstol argument defaults to 1e-4. It specifies the absolute tolerance of the integrator.\n
 -The reltol argument defaults to 1e-3. It specifies the relative tolerance of the integrator.\n
 -The maxErr argument defaults to Inf. It specifies the maximum error allowed by the integrator. This is used as an upper bound for the quantum when a variable goes large.\n
--The maxiters argument defaults to 10000000. It specifies the maximum number of steps allowed by the integrator. If the user wants to extend the limit on the maximum number of steps, this argument can be used.\n
+-The maxiters argument defaults to 1e7. It specifies the maximum number of steps allowed by the integrator. If the user wants to extend the limit on the maximum number of steps, this argument can be used. : feature called maxStepsAllowed in v1.0.1\n
 After the simulation, the solution is returned as a Solution object.
 """
 function solve(prob::NLODEProblem{PRTYPE,T,Z,D,CS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};sparsity::Val{Sparsity}=Val(false),saveat=1e-9::Float64,abstol=1e-4::Float64,reltol=1e-3::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{PRTYPE,T,Z,D,CS,SolverType,OrderType,Sparsity}    

@@ -1,5 +1,6 @@
 using QuantizedSystemSolver
 using Test
+using Plots
 using BSON
 @testset "QuantizedSystemSolver.jl" begin
     # Write your tests here.
@@ -45,6 +46,7 @@ using BSON
      sol=solve(odeprob,nmliqss1(),tspan)
      @test sol.algName == "nmliqss1"
      @test 18.8<sol(2,0.5)<19.2
+     sol.stats
 
  
    
