@@ -7,7 +7,7 @@ The growing intricacy of contemporary engineering systems, typically reduced to 
 The QuantizedSystemSolver aims to solve a set of Ordinary differential equations with a set of events. It implements the quantized state system methods: An approach that builds the solution by updating the system variables independently as opposed to classic integration methods that update all the system variables every step.
 
 # Installation
-Run Julia, enter ] to bring up Julia's package manager, and add the ProbNumDiffEq.jl package:
+Run Julia, enter ] to bring up Julia's package manager, and add the QuantizedSystemSolver.jl package:
 
 ```
 julia> ]
