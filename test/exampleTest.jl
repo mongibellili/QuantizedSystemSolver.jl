@@ -11,8 +11,11 @@ sol=solve(odeprob,liqss1(),tspan)
 sol=solve(odeprob,liqss2(),tspan)
 sol=solve(odeprob,nmliqss1(),tspan)
 sol=solve(odeprob,nmliqss2(),tspan)
-@show -2.6<sol(1,0.7)<-2.2
-@show -3.517<sol(2,0.7)<-3.117
+@test -2.6<sol(1,0.7)<-2.2
+@test -3.517<sol(2,0.7)<-3.117
+@test -3.517<sol(0.7,idxs=2)<-3.117
+
+sol(0.5)
 odeprob = NLodeProblem(quote
     name=(sysb2,)
     u = [-1.0, -2.0]
@@ -26,8 +29,8 @@ sol=solve(odeprob,liqss1(),tspan)
 sol=solve(odeprob,liqss2(),tspan)
 sol=solve(odeprob,nmliqss1(),tspan)
 sol=solve(odeprob,nmliqss2(),tspan)
-@show 0.5<sol(1,0.7)<0.7
-@show -2.4<sol(2,0.7)<-2.2
+@test 0.5<sol(1,0.7)<0.7
+@test -2.4<sol(2,0.7)<-2.2
 odeprob = NLodeProblem(quote
     name=(sysb53,)
     u = [-1.0, -2.0]
@@ -43,6 +46,7 @@ sol=solve(odeprob,nmliqss1(),tspan)
 sol=solve(odeprob,nmliqss2(),tspan)
 plot_Sol(sol)
 plot_Sol(sol,1)
+
 
 
 u1, u2 = -8.73522174738572, -7.385745994549763
@@ -112,11 +116,11 @@ solnmliqssInterp=solInterpolated(sol,0.01)
 getErrorByRefs(solnmliqssInterp,1,solFeagin14VectorN1000d01)
 err4=getAverageErrorByRefs(solnmliqssInterp,solFeagin14VectorN1000d01)
 @test err4<0.05
-@show 0.35<sol(1,1.5)<0.39
-@show 0.63<sol(2,1.5)<0.67
-@show 0.97<sol(400,1.5)<1.0
-@show 0.97<sol(600,1.5)<1.0
-@show 0.97<sol(1000,1.5)<1.0
+@test 0.35<sol(1,1.5)<0.39
+@test 0.63<sol(2,1.5)<0.67
+@test 0.97<sol(400,1.5)<1.0
+@test 0.97<sol(600,1.5)<1.0
+@test 0.97<sol(1000,1.5)<1.0
 
 
 odeprob = NLodeProblem(quote
@@ -131,12 +135,12 @@ du[6] =u[4]-0.6*u[6]
 end ) 
 tspan=(0.0,25.0)
 sol=solve(odeprob,nmliqss2(),tspan)
-@show 0.00001<sol(1,20.0)<0.01
-@show 0.8<sol(2,20.0)<0.99
-@show 0.05<sol(3,20.0)<0.09
-@show 0.00001<sol(4,20.0)<0.01
-@show 0.0<sol(5,20.0)<8.0e-4
-@show 0.01<sol(6,20.0)<0.02
+@test 0.00001<sol(1,20.0)<0.01
+@test 0.8<sol(2,20.0)<0.99
+@test 0.05<sol(3,20.0)<0.09
+@test 0.00001<sol(4,20.0)<0.01
+@test 0.0<sol(5,20.0)<8.0e-4
+@test 0.01<sol(6,20.0)<0.02
 
 odeprob = NLodeProblem(quote
     name=(sysbN5,)
@@ -148,8 +152,8 @@ odeprob = NLodeProblem(quote
 end)  
 tspan=(0.0,1.0)
 sol=solve(odeprob,qss2(),tspan)
-@show 0.5<sol(1,0.7)<0.9
-@show 0.4<sol(2,0.7)<0.8
+@test 0.5<sol(1,0.7)<0.9
+@test 0.4<sol(2,0.7)<0.8
 odeprob = NLodeProblem(quote
     name=(sysbN6,)
     u = [1.0, 0.0]
@@ -158,8 +162,8 @@ odeprob = NLodeProblem(quote
 end)  
 tspan=(0.0,1.0)
 sol=solve(odeprob,qss2(),tspan)
-@show 0.07<sol(1,0.7)<0.1
-@show 0.2<sol(2,0.7)<0.6
+@test 0.07<sol(1,0.7)<0.1
+@test 0.2<sol(2,0.7)<0.6
 odeprob = NLodeProblem(quote
     name=(sysbN66,)
     u = [1.0, 0.0]
@@ -169,8 +173,8 @@ end)
 tspan=(0.0,1.0)
 sol=solve(odeprob,qss1(),tspan)
 sol=solve(odeprob,liqss1(),tspan)
-@show 0.6<sol(1,0.7)<0.8
-@show 0.5<sol(2,0.7)<0.7
+@test 0.6<sol(1,0.7)<0.8
+@test 0.5<sol(2,0.7)<0.7
 odeprob = NLodeProblem(quote
     name=(sysbN8,)
     u = [1.0, 0.0]
@@ -246,18 +250,26 @@ sol=solve(odeprob,qss2(),tspan)
 sol=solve(odeprob,liqss2(),tspan)
 sol=solve(odeprob,nmliqss2(),tspan)
 @test -0.75<sol(2,0.5)<-0.6
-
+plot_SolSum(sol)
 plot_SolSum(sol,1,2,xlims=(0.0,1.0),ylims=(0.0,2.0))
 plot_SolSum(sol,1,2,xlims=(0.0,1.0),ylims=(0.0,0.0))
 plot_SolSum(sol,1,2,xlims=(0.0,0.0),ylims=(0.0,1.0))
 plot_SolSum(sol,1,2)
 save_Sol(sol,1,2,3,4,5)
 save_SolSum(sol,1,2) 
-plot_Sol(sol,1,2,)
+plot_Sol(sol,1,2,3)
 plot_Sol(sol,1,2,xlims=(0.0,1.0),ylims=(0.0,2.0))
 plot_Sol(sol,1,2,xlims=(0.0,1.0),ylims=(0.0,0.0))
 plot_Sol(sol,1,2,xlims=(0.0,0.0),ylims=(0.0,1.0))
-
+plot(sol,1,xlims=(0.0,1.0),ylims=(0.0,2.0))
+plot(sol,1,xlims=(0.0,1.0),ylims=(0.0,0.0))
+plot(sol,1,xlims=(0.0,0.0),ylims=(0.0,1.0))
+plot(sol)
+plot(sol,1,2,3)
+plot(sol,idxs=(0,3))
+plot(sol,idxs=(1,2))
+plot(sol,idxs=(0,2,3))
+plot(sol,idxs=(1,2,3))
 
 odeprob = NLodeProblem(quote
     name=(sysN13,)
@@ -342,8 +354,8 @@ tspan=(0.0,6.0)
 sol=solve(odeprob,qss2(),tspan)
 sol=solve(odeprob,liqss2(),tspan)
 sol=solve(odeprob,nmliqss2(),tspan)
-@show 1.7<sol(1,0.7)<1.95
-@show 0.2<sol(2,0.7)<0.35
+@test 1.7<sol(1,0.7)<1.95
+@test 0.2<sol(2,0.7)<0.35
 
 odeprob = NLodeProblem(quote
 name=(cuk4sym,)

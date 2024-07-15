@@ -5,6 +5,16 @@
 
 The growing intricacy of contemporary engineering systems, typically reduced to differential equations with events, poses a difficulty in digitally simulating them using traditional numerical integration techniques. The Quantized State System (QSS) and the Linearly Implicit Quantized State System (LIQSS) are different methods for tackling such problems.
 The QuantizedSystemSolver aims to solve a set of Ordinary differential equations with a set of events. It implements the quantized state system methods: An approach that builds the solution by updating the system variables independently as opposed to classic integration methods that update all the system variables every step.
+
+# Installation
+Run Julia, enter ] to bring up Julia's package manager, and add the ProbNumDiffEq.jl package:
+
+```
+julia> ]
+ add QuantizedSystemSolver
+```
+ 
+
 # Example: Buck circuit
 [The Buck](https://en.wikipedia.org/wiki/Buck_converter) is a converter that decreases voltage and increases current with a greater power efficiency than linear regulators. After a mesh analysis we get the problem discribed below.
 <img width="220" alt="buckcircuit" src="https://github.com/mongibellili/QuantizedSystemSolver/assets/59377156/c0bcfdbe-ed12-4bb0-8ad1-649ae72dfdd2">
@@ -58,17 +68,24 @@ It outputs a solution of type Sol{T,O}.
 ## Query the solution
 
 ```julia
+
+# returns a vector of the values of all variables  at time 0.0005 # feature not available in v1.0.1
+sol(0.0005)
+
+
 # The value of variable 2  at time 0.0005
 sol(2,0.0005)
 19.209921627620943
+# Get the value of variable 2 at time 0.0005
+value_at_time = sol(0.0005,idxs=2)# feature not available in v1.0.1
 # The total number of steps to end the simulation
-sol.totalSteps
+sol.totalSteps # feature available only in v1.0.1 ->sol.stats in later versions
 498
 # The number of simultaneous steps during the simulation
-sol.simulStepCount
+sol.simulStepCount # feature available only in v1.0.1 ->sol.stats in later versions
 132
 # The total number of events during the simulation
-sol.evCount
+sol.evCount # feature available only in v1.0.1 ->sol.stats in later versions
 53
 # The actual data is stored in two vectors:
 sol.savedTimes
