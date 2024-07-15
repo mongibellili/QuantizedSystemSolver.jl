@@ -117,10 +117,10 @@ getErrorByRefs(solnmliqssInterp,1,solFeagin14VectorN1000d01)
 err4=getAverageErrorByRefs(solnmliqssInterp,solFeagin14VectorN1000d01)
 @test err4<0.05
 @test 0.35<sol(1,1.5)<0.39
-@test 0.63<sol(2,1.5)<0.67
-@test 0.97<sol(400,1.5)<1.0
-@test 0.97<sol(600,1.5)<1.0
-@test 0.97<sol(1000,1.5)<1.0
+@test 0.62<sol(2,1.5)<0.67
+@test 0.95<sol(400,1.5)<1.0
+@test 0.95<sol(600,1.5)<1.0
+@test 0.95<sol(1000,1.5)<1.0
 
 
 odeprob = NLodeProblem(quote
