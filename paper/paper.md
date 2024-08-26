@@ -7,10 +7,10 @@ tags:
 authors:
  - name: Elmongi Elbellili
    orcid: 0000-0003-1230-5488
-   affiliation: "1, 2"
-    - name: Daan Huybrechs
+   affiliation: "1, 2",
+ - name: Daan Huybrechs
    orcid: 0000-0002-0536-2647
-   affiliation: 2
+   affiliation: 2,
  - name: Ben Lauwens
    orcid: 0000-0003-0761-6265
    affiliation: 1
