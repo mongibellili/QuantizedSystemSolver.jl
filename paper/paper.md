@@ -1,5 +1,5 @@
 ---
-title: 'QuantizedSystemSolver: discontinous ODE system solver for Julia.'
+title: 'QuantizedSystemSolver: A discontinuous ODE system solver for Julia.'
 tags:
   - Quantised State system
   - discontinuities
