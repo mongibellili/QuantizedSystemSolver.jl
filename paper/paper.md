@@ -42,7 +42,7 @@ odeprob = NLodeProblem(quote
           discrete and continous variables
           helper expressions
           differential equations
-          if-statments for event)
+          if-statments for events)
 ```
 
 The output of this function is an object of type Problem, and it is passed to the solve function along any other configuration arguments such as the algorithm type, the time span and the tolerance. The solve function dispatches on the given algorithm and start the numerical integration. 
