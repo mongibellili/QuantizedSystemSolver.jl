@@ -25,8 +25,8 @@ bibliography: paper.bib
 
 # Summary
 The growing intricacy of contemporary engineering systems, typically reduced to stiff differential equations with events, poses a difficulty in digitally simulating them using traditional numerical integration techniques. The Quantized State System (QSS) and the Linearly Implicit Quantized State System (LIQSS) are different methods for tackling such problems. It is an approach that builds the solution by updating the system variables independently as opposed to classic integration methods that update all the system variables every step. [@QSS]. 
-# Statement of need
 
+# Statement of need
 Traditional solvers are challenged by frequent discontinuities where the state of the system abruptly changes
 at specific points or intervals. They struggle to accurately capture the dynamics around discontinuities. They either undergo expensive iterations to pinpoint exact discontinuity instances or resort to interpolating their locations, resulting in unreliable outcomes. 
 Written in the easy-to-learn Julia language [Julia programming language](https://julialang.org) [@julia], 
@@ -59,6 +59,8 @@ sol.stats
 plot(sol)
 ```
 ![alt text](diagram.png)
+
+
 In addition, the package contains several shared helper functions used during the integration process by the algorithm such as the scheduler that organizes which variable of the system to update at any specific time of the simulation. 
 The solver uses other packages such as  [`MacroTools.jl `]( https://github.com/FluxML/MacroTools.jl)[@MacroTools] for user-code parsing, [`SymEngine.jl `]( https://github.com/symengine/SymEngine.jl)[@SymEngine]  for Jacobian computation and dependencies extraction, and a modified [`TaylorSeries.jl`](https://github.com/JuliaDiff/TaylorSeries.jl/)[@TaylorSeries] that uses caching to obtain free Taylor variable operations as the current version of TaylorSeries creates a heap allocated object for every operation. The approximation through Taylor variables transforms any complicated equations to polynomials, which makes root finding cheaper, which the QSS methods relies heavily on it. 
 
