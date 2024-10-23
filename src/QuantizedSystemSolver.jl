@@ -7,9 +7,10 @@ module QuantizedSystemSolver
   using PolynomialRoots
   using ExprTools  #combineddef
   using MacroTools: postwalk,prewalk, @capture#, isexpr,
-  using Plots: plot!,plot,savefig
+  using Plots: savefig
   using Dates: now,year,month,day,hour,minute,second #fortimestamp
   RuntimeGeneratedFunctions.init(@__MODULE__)
+  import Plots: plot!,plot
    ##### this section belongs to taylorseries subcomponent
   import Base: ==, +, -, *, /, ^                
   #import Base: Base.gc_enable
@@ -18,7 +19,7 @@ module QuantizedSystemSolver
   import Base:  sqrt, exp, log, sin, cos, sincos, tan,
     asin, acos, atan, sinh, cosh, tanh, atanh, asinh, acosh,
     zero, one, zeros, ones, isinf, isnan, iszero,
-    convert, promote_rule, promote, show,abs
+    convert, promote_rule, promote, show,abs,show
    ##### list of public (API) 
   export NLodeProblem,solve ,NLODEProblem,QSSAlgorithm,Sol# docs used NLODEProblem, QSSAlgorithm
   export qss1,qss2,qss3,liqss1,liqss2,liqss3,saveat,nmliqss1,nmliqss2,nmliqss3

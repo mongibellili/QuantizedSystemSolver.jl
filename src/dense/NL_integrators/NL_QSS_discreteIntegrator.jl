@@ -4,7 +4,7 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{Z}, o
   relQ = CommonqssData.dQrel
   absQ = CommonqssData.dQmin
   maxErr = CommonqssData.maxErr
-  maxStepsAllowed = CommonqssData.maxStepsAllowed
+  maxiters = CommonqssData.maxiters
   quantum = CommonqssData.quantum
   nextStateTime = CommonqssData.nextStateTime
   nextEventTime = CommonqssData.nextEventTime
@@ -74,9 +74,9 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{Z}, o
   prevStepTime = initTime
   modifiedIndex = 0
   statestep = 0
-  countEvents = 0
-  while simt < ft && totalSteps < maxStepsAllowed
-    if totalSteps == maxStepsAllowed - 1 @warn("The algorithm qss$O is taking too long to converge. The simulation will be stopped. Consider using a different algorithm!") end
+  evCount = 0
+  while simt < ft && totalSteps < maxiters
+    if totalSteps == maxiters - 1 @warn("The algorithm qss$O is taking too long to converge. The simulation will be stopped. Consider using a different algorithm!") end
     sch = updateScheduler(Val(T), nextStateTime, nextEventTime, nextInputTime)
     simt = sch[2]
     index = sch[1]
@@ -236,7 +236,7 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{Z}, o
         computeNextEventTime(Val(O), index, taylorOpsCache[1], oldsignValue, simt, nextEventTime, quantum, absQ)
         continue
       end
-      countEvents += 1
+      evCount += 1
       oldsignValue[index, 2] = taylorOpsCache[1][0]
       oldsignValue[index, 1] = sign(taylorOpsCache[1][0])
       for b in evDep[modifiedIndex].evContRHS
@@ -304,5 +304,6 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{Z}, o
     end
     #prevStepTime = simt
   end
-  createSol(Val(T), Val(O), savedTimes, savedVars, "qss$O", string(odep.prname), absQ, totalSteps, 0, countEvents, numSteps, ft)
+  stats=Stats(totalSteps,0,evCount,numSteps)
+  createSol(Val(T), Val(O), savedTimes, savedVars, "qss$O", string(odep.prname), absQ, stats, ft)
 end

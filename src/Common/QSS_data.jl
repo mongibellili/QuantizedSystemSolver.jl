@@ -19,7 +19,7 @@ struct CommonQSS_data{Z}
     dQmin ::Float64    
     dQrel ::Float64  
     maxErr ::Float64  
-    maxStepsAllowed ::Int
+    maxiters ::Int
     savedTimes :: Vector{Vector{Float64}}
     savedVars:: Vector{Vector{Float64}}
     

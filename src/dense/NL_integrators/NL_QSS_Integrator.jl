@@ -4,7 +4,7 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{0}, o
   relQ = CommonqssData.dQrel
   absQ = CommonqssData.dQmin
   maxErr = CommonqssData.maxErr
-  maxStepsAllowed = CommonqssData.maxStepsAllowed
+  maxiters = CommonqssData.maxiters
   quantum = CommonqssData.quantum
   nextStateTime = CommonqssData.nextStateTime
   nextEventTime = CommonqssData.nextEventTime
@@ -58,8 +58,8 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{0}, o
   simt = initTime
   totalSteps = 0
   prevStepTime = initTime
-  while simt < ft && totalSteps < maxStepsAllowed
-    if totalSteps == maxStepsAllowed - 1 @warn("The algorithm qss$O is taking too long to converge. The simulation will be stopped. Consider using a different algorithm!") end
+  while simt < ft && totalSteps < maxiters
+    if totalSteps == maxiters - 1 @warn("The algorithm qss$O is taking too long to converge. The simulation will be stopped. Consider using a different algorithm!") end
     sch = updateScheduler(Val(T), nextStateTime, nextEventTime, nextInputTime)
     simt = sch[2]
     index = sch[1]
@@ -152,5 +152,6 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_data{0}, o
     push!(savedVars[index], x[index][0])
     push!(savedTimes[index], simt)
   end
-  createSol(Val(T), Val(O), savedTimes, savedVars, "qss$O", string(odep.prname), absQ, totalSteps, 0, 0, numSteps, ft)
+  stats=Stats(totalSteps,0,0,numSteps)
+  createSol(Val(T), Val(O), savedTimes, savedVars, "qss$O", string(odep.prname), absQ, stats, ft)
 end

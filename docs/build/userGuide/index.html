@@ -53,17 +53,24 @@
 end)</code></pre><h3 id="Explanation:"><a class="docs-heading-anchor" href="#Explanation:">Explanation:</a><a id="Explanation:-1"></a><a class="docs-heading-anchor-permalink" href="#Explanation:" title="Permalink"></a></h3><p>Parameters: These are constants used in the model. C, L, R, U, T, DC, ROn, ROff are physical constants related to the buck converter circuit.<br/>Discrete and continuous variables: These represent the initial states of discrete and continuous variables in the model.<br/>Renaming variables: For convenience, the elements of discrete and u are renamed to more descriptive variable names (rd, rs, nextT, lastT, diodeon, il, uc).<br/>Helper equations: These are intermediate expressions needed for the differential equations. id is the current through the diode.<br/>Differential equations: These represent the system&#39;s dynamics. du[1] is the rate of change of the inductor current. du[2] is the rate of change of the capacitor voltage.<br/>Events: These are conditions that modify the continous and discrete variables. They handle the switching behavior of the buck converter and the diode&#39;s state transitions.</p><h2 id="Step-2:-Solve-the-ODE-Problem"><a class="docs-heading-anchor" href="#Step-2:-Solve-the-ODE-Problem">Step 2: Solve the ODE Problem</a><a id="Step-2:-Solve-the-ODE-Problem-1"></a><a class="docs-heading-anchor-permalink" href="#Step-2:-Solve-the-ODE-Problem" title="Permalink"></a></h2><p>Next, we solve the ODE problem using the solve function. We need to specify the problem, the algorithm, and the simulation settings.</p><pre><code class="language-julia hljs"># Define the time span for the simulation
 tspan = (0.0, 0.001)  # Start at 0 seconds, end at 0.001 seconds
 # Solve the ODE problem with the chosen algorithm and settings
-sol = solve(odeprob, nmliqss2(), tspan, abstol=1e-4, reltol=1e-3)</code></pre><h3 id="Explanation:-2"><a class="docs-heading-anchor" href="#Explanation:-2">Explanation:</a><a class="docs-heading-anchor-permalink" href="#Explanation:-2" title="Permalink"></a></h3><p>Time span: tspan defines the interval over which the solution is computed, from 0.0 to 0.001 seconds.<br/>Solver function: solve is used to compute the solution.<br/>odeprob is the ODE problem we defined.<br/>nmliqss2() specifies the algorithm used to solve the problem (e.g., qss2,nmliqss1... might be other algorithms).<br/>abstol and reltol are the absolute and relative tolerances for the solver, controlling the accuracy of the solution.</p><h2 id="Step-3:-Query-the-Solution"><a class="docs-heading-anchor" href="#Step-3:-Query-the-Solution">Step 3: Query the Solution</a><a id="Step-3:-Query-the-Solution-1"></a><a class="docs-heading-anchor-permalink" href="#Step-3:-Query-the-Solution" title="Permalink"></a></h2><p>After solving the problem, we can query the solution to extract useful information such as variable values at specific times, the number of steps, events, and more.</p><pre><code class="language-julia hljs"># Get the value of variable 2 at time 0.0005
+sol = solve(odeprob, nmliqss2(), tspan, abstol=1e-4, reltol=1e-3)</code></pre><h3 id="Explanation:-2"><a class="docs-heading-anchor" href="#Explanation:-2">Explanation:</a><a class="docs-heading-anchor-permalink" href="#Explanation:-2" title="Permalink"></a></h3><p>Time span: tspan defines the interval over which the solution is computed, from 0.0 to 0.001 seconds.<br/>Solver function: solve is used to compute the solution.<br/>odeprob is the ODE problem we defined.<br/>nmliqss2() specifies the algorithm used to solve the problem (e.g., qss2,nmliqss1... might be other algorithms).<br/>abstol and reltol are the absolute and relative tolerances for the solver, controlling the accuracy of the solution.</p><h2 id="Step-3:-Query-the-Solution"><a class="docs-heading-anchor" href="#Step-3:-Query-the-Solution">Step 3: Query the Solution</a><a id="Step-3:-Query-the-Solution-1"></a><a class="docs-heading-anchor-permalink" href="#Step-3:-Query-the-Solution" title="Permalink"></a></h2><p>After solving the problem, we can query the solution to extract useful information such as variable values at specific times, the number of steps, events, and more.</p><pre><code class="language-julia hljs">
+# returns a vector of the values of all variables  at time 0.0005 # feature not available in v1.0.1
+sol(0.0005) 
+
+# Get the value of variable 2 at time 0.0005
 value_at_time = sol(2, 0.0005)
 
+# Get the value of variable 2 at time 0.0005
+value_at_time = sol(0.0005,idxs=2)# feature not available in v1.0.1
+
 # Get the total number of steps to end the simulation
-total_steps = sol.totalSteps
+total_steps = sol.totalSteps # feature available only in v1.0.1 -&gt;sol.stats in later versions
 
 # Get the number of simultaneous steps during the simulation
-simul_step_count = sol.simulStepCount
+simul_step_count = sol.simulStepCount # feature available only in v1.0.1 -&gt;sol.stats in later versions
 
 # Get the total number of events during the simulation
-event_count = sol.evCount
+event_count = sol.evCount # feature available only in v1.0.1 -&gt;sol.stats in later versions
 
 # Get the saved times and variables
 saved_times = sol.savedTimes
@@ -79,6 +86,15 @@ plot_obj = plot_Sol(sol)
 plot_Sol(sol,1)
 # Display the plot
 display(plot_obj)
+# Generate a plot object for all variables of the solution. It requires &quot;using Plots&quot;. feature not available in v1.0.1.
+plot(sol)
+# Generate a plot object for variable 1 of the solution
+p1=plot(sol,idxs=(0,2))  # feature not available in v1.0.1
+# Generate a plot object for variable 1 in function of variable 1 
+p1=plot(sol,idxs=(1,2))  # feature not available in v1.0.1
+# Generate a 3D plot object for variables 1 and 2 in function of time 
+p1=plot(sol,idxs=(0,1,2))  #  feature not available in v1.0.1
+
 
 
 #plot  variables 1 and 2 of the solution
