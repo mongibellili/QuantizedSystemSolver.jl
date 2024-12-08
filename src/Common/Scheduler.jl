@@ -1,5 +1,18 @@
+"""
+    updateScheduler(::Val{T}, nextStateTime::Vector{Float64}, nextEventTime::MVector{Z,Float64}, nextInputTime::Vector{Float64}) where {T, Z}
 
- function updateScheduler(::Val{T},nextStateTime::Vector{Float64},nextEventTime :: MVector{Z,Float64},nextInputTime :: Vector{Float64})where{T,Z}   #later MVect for nextInput
+Updates the scheduler by finding the minimum times among state, event, and input transitions.
+
+# Arguments
+- `::Val{T}`: A type parameter indicating the number of state transitions.
+- `nextStateTime::Vector{Float64}`: A vector of times for the next state transitions.
+- `nextEventTime::MVector{Z,Float64}`: A mutable vector of times for the next event transitions.
+- `nextInputTime::Vector{Float64}`: A vector of times for the next input transitions.
+
+# Returns
+- A tuple containing the minimum (state index,state time), (event index, event tim, or (input index, input time).
+"""
+function updateScheduler(::Val{T},nextStateTime::Vector{Float64},nextEventTime :: MVector{Z,Float64},nextInputTime :: Vector{Float64})where{T,Z}   #later MVect for nextInput
     minStateTime=Inf
     minState_index=0  # what if all nextstateTime= Inf ...especially at begining????? min_index stays 0!!!
     minEventTime=Inf

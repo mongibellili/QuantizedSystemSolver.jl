@@ -1,75 +1,84 @@
 module QuantizedSystemSolver
   const global VERBOSE=false   # later move to solve to allow user to use it.
   const global DEBUG=false
+  using TimerOutputs
   using RuntimeGeneratedFunctions
   using StaticArrays
   using SymEngine
   using PolynomialRoots
   using ExprTools  #combineddef
-  using MacroTools: postwalk,prewalk, @capture#, isexpr,
+  using MacroTools: postwalk,prewalk, @capture
+  using CodeTracking
+  using Revise
   using Plots: savefig
   using Dates: now,year,month,day,hour,minute,second #fortimestamp
   RuntimeGeneratedFunctions.init(@__MODULE__)
   import Plots: plot!,plot
-   ##### this section belongs to taylorseries subcomponent
-  import Base: ==, +, -, *, /, ^                
-  #import Base: Base.gc_enable
+          ##### for taylorseries subcomponent   #######
+  import Base: ==, +, -, *, /, ^             
   import Base: iterate, size, eachindex, firstindex, lastindex,
      length, getindex, setindex!
   import Base:  sqrt, exp, log, sin, cos, sincos, tan,
     asin, acos, atan, sinh, cosh, tanh, atanh, asinh, acosh,
     zero, one, zeros, ones, isinf, isnan, iszero,
-    convert, promote_rule, promote, show,abs,show
-   ##### list of public (API) 
-  export NLodeProblem,solve ,NLODEProblem,QSSAlgorithm,Sol# docs used NLODEProblem, QSSAlgorithm
+    convert,  show,abs
+                ##### list of public (API) 
+  export ODEProblem,@NLodeProblem,NLodeProblem,solve ,NLODEProblem# 
   export qss1,qss2,qss3,liqss1,liqss2,liqss3,saveat,nmliqss1,nmliqss2,nmliqss3
-  export save_Sol,plot_Sol,getPlot,getPlot!,save_SolSum,solInterpolated,plot_SolSum
-  export getError,getErrorByRodas,getAllErrorsByRefs,getAverageErrorByRefs,getErrorByRefs
-  export Taylor0,mulT,mulTT,createT,addsub,negateT,subsub,subadd,subT,addT,muladdT,mulsub,divT,powerT,constructIntrval,getQfromAsymptote,iterationH,testTaylor # for testing
-   ##### include section of Taylor series subcomponent
-  include("ownTaylor/constructors.jl") 
-  include("ownTaylor/arithmetic.jl")
-  include("ownTaylor/arithmeticT.jl")
-  include("ownTaylor/functions.jl")
-  include("ownTaylor/functionsT.jl")
-  include("ownTaylor/power.jl")
-  include("ownTaylor/powerT.jl")
-   ##### Utils
-  include("Utils/rootfinders/SimUtils.jl") 
-   ##### Common
-  include("Common/TaylorEquationConstruction.jl")
-  include("Common/QSSNL_AbstractTypes.jl")
-  include("Common/Solution.jl")
-  include("Common/SolutionPlot.jl")
-  include("Common/SolutionError.jl")
-  include("Common/Helper_QSSNLProblem.jl")
-  include("Common/Helper_QSSNLDiscreteProblem.jl")
-  include("Common/QSSNLContinousProblem.jl")
-  include("Common/QSSNLdiscrProblem.jl")
-  include("Common/QSS_Algorithm.jl")
-  include("Common/QSS_data.jl")
-  include("Common/Scheduler.jl")
-  ##### integrators
-  include("dense/NL_integrators/NL_QSS_Integrator.jl")
-  include("dense/NL_integrators/NL_QSS_discreteIntegrator.jl")
+  export save_Sol,plot_Sol,getPlot,getPlot!,save_SolSum,solInterpolated,plot_SolSum,plot
+  export getErrorByRefs,getAverageErrorByRefs,getError,getAverageError
+  # public functions and structs used in documentation
+  export Taylor0,mulT,mulTT,createT,addsub,negateT,subsub,subadd,subT,addT,muladdT,mulsub,divT,powerT,testTaylor # for CI testing
+  export QSSAlgorithm,Sol,EventDependencyStruct,Stats,CommonQSS_Data,LiQSS_Data   
+  #####  Taylor series  #########
+  include("taylor/constructors.jl") 
+  include("taylor/arithmetic.jl")
+  include("taylor/arithmeticT.jl")
+  include("taylor/functions.jl")
+  include("taylor/functionsT.jl")
+  include("taylor/power.jl")
+  include("taylor/powerT.jl")
+  
+  ##### common #########           
+  include("common/qssAbstractTypes.jl")
+  include("common/rootfinders.jl") 
+  include("common/qssAlgorithm.jl")
+  include("common/qssData.jl")
+  include("common/scheduler.jl")
+  ##### solution #########
+  include("solution/Solution.jl")
+  include("solution/SolutionPlot.jl")
+  include("solution/SolutionError.jl")
+  #####  problem #########
+  include("problem/TaylorEquationConstruction.jl")
+  include("problem/qssProblemContinuousHelper.jl")
+  include("problem/qssProblemDiscreteHelper.jl")
+  include("problem/qssProblemDefinition.jl")
+  include("problem/qssProblemContinuous.jl")
+  include("problem/qssProblemDiscrete.jl")
+                ##### integrators  ###########
+  include("integrators/qssIntegrator.jl")
+  include("integrators/qssdiscreteIntegrator.jl")
   # implicit integrator when large entries on the main diagonal of the jacobian
-  include("dense/NL_integrators/NL_LiQSS_Integrator.jl")
-    include("dense/NL_integrators/NL_LiQSS_discreteIntegrator.jl")
+  include("integrators/LiqssIntegrator.jl")
+  include("integrators/LiqssdiscreteIntegrator.jl")
   # implicit integrator when large entries NOT on the main diagonal of the jacobian
-  include("dense/NL_integrators/NL_nmLiQSS_Integrator.jl")
-  include("dense/NL_integrators/NL_nmLiQSS_discreteIntegrator.jl")
-  ##### Quantizers
-  include("dense/Quantizers/Quantizer_Common.jl")
-  include("dense/Quantizers/QSS_quantizer.jl")
-  include("dense/Quantizers/LiQSS_quantizer1.jl")
-  include("dense/Quantizers/LiQSS_quantizer2.jl")
-  #include("dense/Quantizers/LiQSS_quantizer3.jl")
-  include("dense/Quantizers/mLiQSS_quantizer1.jl")
-  include("dense/Quantizers/mLiQSS_quantizer2.jl")
-  #include("dense/Quantizers/mLiQSS_quantizer3.jl")
-  ##### main entrance/ Interface
-  include("Interface/indexMacro.jl")
-  include("Interface/QSS_Solve.jl")
+  include("integrators/nmLiqssIntegrator.jl")
+  include("integrators/nmLiqssdiscreteIntegrator.jl")
+                ##### Quantizers ######
+  # common & explicit
+  include("quantizers/quantizerQss.jl")
+  # implicit & single updateQ
+  include("quantizers/quantizerLiqss1.jl")
+  include("quantizers/quantizerLiqss2.jl")  
+  # cycle detection and simultaneous update
+  include("quantizers/quantizerMliqss1.jl")
+  include("quantizers/quantizerMliqss2.jl")
+
+               ##### main entrance/ Interface #######
+  include("interface/main.jl")
+  include("interface/macroInterface.jl")
+  include("interface/solve.jl")
 end # module
 
 
