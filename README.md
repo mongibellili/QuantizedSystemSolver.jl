@@ -4,9 +4,7 @@
 
 | **Documentation** |**Build Status** | **Code coverage** |
 |:------------ |------------|------------|
-| [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://mongibellili.github.io/QuantizedSystemSolver.jl/dev/) |
- [![CI](https://github.com/mongibellili/QuantizedSystemSolver/actions/workflows/CI.yml/badge.svg)](https://github.com/mongibellili/QuantizedSystemSolver/actions/workflows/CI.yml) 
-| [![Coverage](https://codecov.io/gh/mongibellili/QuantizedSystemSolver/branch/main/graph/badge.svg)](https://codecov.io/gh/mongibellili/QuantizedSystemSolver)|
+| [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://mongibellili.github.io/QuantizedSystemSolver.jl/dev/)|[![CI](https://github.com/mongibellili/QuantizedSystemSolver/actions/workflows/CI.yml/badge.svg)](https://github.com/mongibellili/QuantizedSystemSolver/actions/workflows/CI.yml)|[![Coverage](https://codecov.io/gh/mongibellili/QuantizedSystemSolver/branch/main/graph/badge.svg)](https://codecov.io/gh/mongibellili/QuantizedSystemSolver)|
 
 
 Contemporary engineering systems, such as electrical circuits, mechanical systems with shocks, and chemical reactions with rapid kinetics, are often characterized by dynamics that can be modeled using stiff differential equations with events. Recently, quantization-based techniques have emerged as an effective alternative for handling such complex models. Methods like the Quantized State System (QSS) and the Linearly Implicit Quantized State System (LIQSS) offer promising results, particularly for large sparse stiff models. Unlike classic numerical integration methods, which update all system variables at each time step, the quantized approach updates individual system variables independently. Moreover, these methods are advantageous when dealing with discontinuous events, where traditional integrators may struggle with accuracy.  
