@@ -4,9 +4,8 @@
 [![Coverage](https://codecov.io/gh/mongibellili/QuantizedSystemSolver/branch/main/graph/badge.svg)](https://codecov.io/gh/mongibellili/QuantizedSystemSolver)
 <a style="float: right" href="https://mongibellili.github.io/QuantizedSystemSolver.jl/dev/">Documentation</a>
 
-The growing intricacy of contemporary engineering systems, typically reduced to differential equations with events, poses a difficulty in digitally simulating them using traditional numerical integration techniques. The Quantized State System (QSS) and the Linearly Implicit Quantized State System (LIQSS) are different methods for tackling such problems.
-The QuantizedSystemSolver aims to solve a set of Ordinary differential equations with a set of events. It implements the quantized state system methods: An approach that builds the solution by updating the system variables independently as opposed to classic integration methods that update all the system variables every step.
-
+Contemporary engineering systems, such as electrical circuits, mechanical systems with shocks, and chemical reactions with rapid kinetics, are often characterized by dynamics that can be modeled using stiff differential equations with events. Recently, quantization-based techniques have emerged as an effective alternative for handling such complex models. Methods like the Quantized State System (QSS) and the Linearly Implicit Quantized State System (LIQSS) offer promising results, particularly for large sparse stiff models. Unlike classic numerical integration methods, which update all system variables at each time step, the quantized approach updates individual system variables independently. Moreover, these methods are advantageous when dealing with discontinuous events, where traditional integrators may struggle with accuracy.  
+The QuantizedSystemSolver aims to solve a set of Ordinary differential equations with a set of events. It implements the quantized state system methods.
 #   <span style="color:red">Installation</span>
 QuantizedSystemSolver.jl is a [registered package](http://pkg.julialang.org), and is
 simply installed by the foloowing:
@@ -19,21 +18,27 @@ julia> ]
  
 (@v1.x) pkg> add QuantizedSystemSolver
 ```
+The general form of a problem composed of a set of ODEs and a set of events that QSS is able to solve is described in the following: 
 
-In order to solve any problem using the quantizedSystemSolver, we have to construct it in the follwing form:
+**System of $n$ ODEs:**
 
-$\dot X=f(X,P,t) $
+```math
+\begin{align*}
+  & \dot X = f(X,D,t) , 
+\end{align*}
+```
 
-$ if \; zc_v(x_i...,p_d...,t) \; i \in [1,n]  \;  ; \; d  \in [1,m] $
-
-$ \qquad x_i=H_v(x_i...,p_d...,t) $
-
-$ \qquad p_d=L_v(x_i...,p_d...,t)  $
-
-$ \qquad \qquad...$
-
-where $X=[x_1,x_2...,x_n]^T$ and $P=[p_1,p_2...,p_m]^T$ are the state variables and discrete variables of the system respectively. $v$ is the number of events and $zc$ is an event condition, $H$ and $L$ are functions used in the effects of the event $zc$.
-
+**System of $v$ events:**
+```math
+\begin{align*}
+& if \; zc_v(x_i...,d_p...,t) \; i \in [1,n]  \;  ; \; p  \in [1,m] \\
+& \qquad x_i = H(x_i...,d_p...,t) \\
+& \qquad \qquad...\\
+& \qquad d_p = L(x_i...,d_p...,t)  \\
+& \qquad \qquad...\\
+\end{align*}
+```
+where $X = [x_1,x_2...,x_n]^T$ is the state vector, $f:\mathbb{R}^n \rightarrow \mathbb{R}^n$ is the derivative function, and $t$ is the independent variable. $D = [d_1,d_2...,d_m]^T$ is the vector of the system discrete variables. $n$ and $m$ are the number of state variables and discrete variables of the system respectively. $v$ is the number of events and $zc$ is an event condition, $H$ and $L$ are functions used in the effects of the event $zc$.
 
 For new users, take a look at the [Tutorial](@ref) section. If you see something wrong,
 please open an [issue](https://github.com/mongibellili/QuantizedSystemSolver.jl/issues)

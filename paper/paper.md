@@ -36,23 +36,16 @@ Written in the easy-to-learn [Julia programming language](https://julialang.org)
 The main idea behind QSS methods is to divide the system state space into quantized regions and represent the system state in terms of these quantized values. The QSS methods update the system status only when certain thresholds or conditions are met, instead of continuously simulating the system's behavior. For instance, state variables with large gradients will get to their thresholds more frequently than states with small gradients. If a state or input gets to its next threshold, a discrete event is triggered, and information is passed on to other integrators that depend on it [@fe2006a].
 The general form of a problem composed of a set of ODEs and a set of events that QSS is able to solve is described in the following: 
 
-**System of $n$ ODEs:**
-
 ```math
-\begin{align*}
-  & \dot X = f(X,D,t) , 
-\end{align*}
-```
+\dot X=f(X,P,t) 
 
-**System of $v$ events:**
-```math
-\begin{align*}
-& if \; zc_v(x_i...,d_p...,t) \; i \in [1,n]  \;  ; \; p  \in [1,m] \\
-& \qquad x_i = H(x_i...,d_p...,t) \\
-& \qquad \qquad...\\
-& \qquad d_p = L(x_i...,d_p...,t)  \\
-& \qquad \qquad...\\
-\end{align*}
+ if \; zc_v(x_i...,p_d...,t) \; i \in [1,n]  \;  ; \; d  \in [1,m] 
+
+ \qquad x_i=H_v(x_i...,p_d...,t) 
+
+ \qquad p_d=L_v(x_i...,p_d...,t)  
+
+ \qquad \qquad...
 ```
 where $X = [x_1,x_2...,x_n]^T$ is the state vector, $f:\mathbb{R}^n \rightarrow \mathbb{R}^n$ is the derivative function, and $t$ is the independent variable. $D = [d_1,d_2...,d_m]^T$ is the vector of the system discrete variables. $n$ and $m$ are the number of state variables and discrete variables of the system respectively. $v$ is the number of events and $zc$ is an event condition, $H$ and $L$ are functions used in the effects of the event $zc$.
 
@@ -104,11 +97,12 @@ The Buck is a converter that decreases voltage and increases current with a grea
 The diode $D$ and the switch $S$ can be modeled as two variables resistors $RD$ and $RS$. When the diode and the switch are ON, $RD$ and $RS$ are set to $10^{-5}$, and when they are OFF, they are set to $10^{5}$. The diode is ON when its current is positive. The switch is controlled by the voltage $SC$, and it is ON for $0.5$ x $10^{-4}$ seconds. A mesh and a nodal analysis give the relationship between the different components in the circuit as shown in Eq.(1):
 
 ```math
-\begin{align}
-  & i_d = \frac{RS.i_l-V1}{RS+RD} , \nonumber \\
-  & \frac{du_c}{dt} = \frac{i_l-\frac{u_c}{R}}{C}  , \nonumber \\
-  &  \frac{di_l}{dt} = \frac{-uc-i_d.RD}{L}
-\end{align}
+  i_d = \frac{RS.i_l-V1}{RS+RD} , \\ 
+       .\\
+  \frac{du_c}{dt} = \frac{i_l-\frac{u_c}{R}}{C}  , \\ 
+       .\\
+  \frac{di_l}{dt} = \frac{-uc-i_d.RD}{L}
+
 ```
 
 The buck problem can be solved by the QuantizedSystemSolver.jl package using the following code:
@@ -154,10 +148,13 @@ plot(sol)
 
 The Advection diffusion reaction  equations describe many processes that include heat transfer, chemical reactions and many phenomena in areas of environmental sciences. They are ordinary differential equations that resulted from the method of lines (MOL). The resulting system in Eq.(\ref{ADREq}) is a stiff system with possible large entries outside the main diagonal. :
 ```math
-\begin{align*}
-& \text{For} \; i = 1...N-1  \quad \quad  \dot u_i = -a\frac{u_i-u_{i-1}}{\Delta x}+d\frac{u_{i+1}-2u_i+u_{i-1}}{\Delta x^2}+r(u_i^2-u_i^3) \nonumber \\
-& \dot u_N = -a\frac{u_N-u_{N-1}}{\Delta x}+d \frac{2u_{N-1}-2u_N}{\Delta x^2}+r(u_N^2-u_N^3)
-\end{align*}
+
+ \text{For} \; i = 1...N-1  
+
+\quad \quad  \dot u_i = -a\frac{u_i-u_{i-1}}{\Delta x}+d\frac{u_{i+1}-2u_i+u_{i-1}}{\Delta x^2}+r(u_i^2-u_i^3) 
+
+ \dot u_N = -a\frac{u_N-u_{N-1}}{\Delta x}+d \frac{2u_{N-1}-2u_N}{\Delta x^2}+r(u_N^2-u_N^3)
+
 ```
 where N is the number of grid points and $\Delta x=\frac{10}{N}$ is the grid width after the discretization of the problem with the MOL, $a$ is the advection parameter, $d$ is the diffusion parameter, and $r$ is the reaction parameter. The initial condition is given by:
 
@@ -200,7 +197,7 @@ p1 = plot(sol,idxs = [1,400,1000],title = "");
 This is a great example to compare QSS methods against classic integration methods, because it is a large sparse stiff system.
 Replacing nmliqss2 by solvers such as ABDF2(), QNDF2(), QBDF2(), Rosenbrock23, or Trapezoid() from the DifferentialEquations.jl produce the following CPU time comparison:
 
-![plot_adrcompare](adrBenchmarks.png)
+![CPU time comparison in the ADR problem](adrBenchmarks.png)
 
 
 # Conclusion
