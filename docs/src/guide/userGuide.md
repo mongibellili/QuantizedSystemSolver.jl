@@ -29,8 +29,6 @@ sol= solve(odeprob,algorithm,abstol=...,reltol=...)
 ```
 A the end, a solution object is produced that can be queried, plotted, and error-analyzed.
 
-For simple examples, head over to the examples section.
-
 ## Solving a Nonlinear ODE Problem with events in Julia
 In this section, we will go through the process of setting up, solving, querying, and plotting a non linear system of ordinary differential equation (ODEs) with events. We will use a buck converter circuit model as an example.
 
