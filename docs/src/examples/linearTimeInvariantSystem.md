@@ -11,7 +11,6 @@ odeprob = ODEProblem(sysb53,u0,tspan)
 #Solve the problem
 sol=solve(odeprob,nmliqss2())
 p1=plot(sol);
-savefig(p1, "lti_$(nmliqss2())") 
 ```
 Then use DifferentialEquations instead of QuantizedSystemSolver and use solvers such as ABDF2(), QNDF2(), QBDF2(), or Trapezoid() instead of nmliqss2. The plots are displayed below:
 
