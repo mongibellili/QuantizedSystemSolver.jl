@@ -1,15 +1,11 @@
 module QuantizedSystemSolver
   const global VERBOSE=false   # later move to solve to allow user to use it.
-  const global DEBUG=false
-  using TimerOutputs
   using RuntimeGeneratedFunctions
   using StaticArrays
   using SymEngine
-  using PolynomialRoots
   using ExprTools  #combineddef
   using MacroTools: postwalk,prewalk, @capture
   using CodeTracking
-  using Revise
   using Plots: savefig
   using Dates: now,year,month,day,hour,minute,second #fortimestamp
   RuntimeGeneratedFunctions.init(@__MODULE__)
@@ -46,11 +42,11 @@ module QuantizedSystemSolver
   include("commonQSS/qssData.jl")
   include("commonQSS/scheduler.jl")
   ##### solution #########
-  include("solution/Solution.jl")
-  include("solution/SolutionPlot.jl")
-  include("solution/SolutionError.jl")
+  include("solution/solution.jl")
+  include("solution/solutionPlot.jl")
+  include("solution/solutionError.jl")
   #####  problem #########
-  include("problem/TaylorEquationConstruction.jl")
+  include("problem/taylorEquationConstruction.jl")
   include("problem/qssProblemContinuousHelper.jl")
   include("problem/qssProblemDiscreteHelper.jl")
   include("problem/qssProblemDefinition.jl")
@@ -60,8 +56,8 @@ module QuantizedSystemSolver
   include("integrators/qssIntegrator.jl")
   include("integrators/qssdiscreteIntegrator.jl")
   # implicit integrator when large entries on the main diagonal of the jacobian
-  include("integrators/LiqssIntegrator.jl")
-  include("integrators/LiqssdiscreteIntegrator.jl")
+  include("integrators/liqssIntegrator.jl")
+  include("integrators/liqssdiscreteIntegrator.jl")
   # implicit integrator when large entries NOT on the main diagonal of the jacobian
   include("integrators/nmLiqssIntegrator.jl")
   include("integrators/nmLiqssdiscreteIntegrator.jl")
