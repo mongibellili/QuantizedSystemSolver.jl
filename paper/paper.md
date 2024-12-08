@@ -30,7 +30,7 @@ Contemporary engineering systems, such as electrical circuits, mechanical system
 # Statement of need
 
 Traditional solvers are challenged by large sparse stiff models and systems with frequent discontinuities. As an example, the Advection Diffusion Reaction (ADR) problem is a large sparse stiff system that classic methods can not efficiently solve. In addtion, the buck converter is a stiff system with frequent discontinuities that classic solvers from the DifferentialEquations.jl [@Rackauckas2017] are currently unable to handle properly.  
-Written in the easy-to-learn [Julia programming language](https://julialang.org) [@julia], inspired by the [`qss-solver`] ( https://github.com/CIFASIS/qss-solver)[@qssC] written in C, and taking advantage of the Julia features such as multiple dispatch and metaprogramming, the QuantizedSystemSolver.jl package shares the same interface as DifferentialEquations.jl package and aims to efficiently solve a large set of stiff Ordinary Differential Equations (ODEs) with a set of events via implementing the QSS and LIQSS methods. It is the first such tool to be published in the Julia ecosystem. This package is able to easily solve the ADR and the buck converter problems as shown in the examples section.
+Written in the easy-to-learn [Julia programming language](https://julialang.org) [@julia], inspired by the [`qss-solver`]( https://github.com/CIFASIS/qss-solver)[@qssC] written in C, and taking advantage of the Julia features such as multiple dispatch and metaprogramming, the QuantizedSystemSolver.jl package shares the same interface as DifferentialEquations.jl package and aims to efficiently solve a large set of stiff Ordinary Differential Equations (ODEs) with a set of events via implementing the QSS and LIQSS methods. It is the first such tool to be published in the Julia ecosystem. This package is able to easily solve the ADR and the buck converter problems as shown in the examples section.
 
 # Quantization-based techniques
 The main idea behind QSS methods is to divide the system state space into quantized regions and represent the system state in terms of these quantized values. The QSS methods update the system status only when certain thresholds or conditions are met, instead of continuously simulating the system's behavior. For instance, state variables with large gradients will get to their thresholds more frequently than states with small gradients. If a state or input gets to its next threshold, a discrete event is triggered, and information is passed on to other integrators that depend on it [@fe2006a].
@@ -73,11 +73,11 @@ odeprob=ODEProblem(func,u,tspan,p)
 ```
 
 The output of the previous `ODEProblem` function, which is a QSS problem, is passed to a solver function with other configuration arguments
-such as the algorithm type and the tolerance. The solve function dispatches on the given algorithm and start the numerical integration.
+such as the algorithm type and the tolerance. The solve function dispatches on the given algorithm and starts the numerical integration.
 ```julia
 sol = solve(odeprob,algorithm,abstol = ...,reltol = ...)    
 ```
-A the end, a solution object is produced that can be queried, plotted, and error-analyzed.
+At the end, a solution object is produced that can be queried, plotted, and error-analyzed.
 
 ```julia
 sol(0.0005,idxs = 2) # get the value of variable 2 at time 0.0005
@@ -87,7 +87,7 @@ plot(sol)          # plot the solution
 ![The package structure](diagram.png)
 
 In addition, the package contains several shared helper functions used during the integration process by the algorithm such as the scheduler that organizes which variable of the system to update at any specific time of the simulation. 
-The solver uses other packages such as  [`MacroTools.jl`] ( https://github.com/FluxML/MacroTools.jl)[@MacroTools] for user-code parsing, [`SymEngine.jl`] ( https://github.com/symengine/SymEngine.jl)[@SymEngine]  for Jacobian computation and dependencies extraction, and a modified [`TaylorSeries.jl`] (https://github.com/JuliaDiff/TaylorSeries.jl/)[@TaylorSeries] that uses caching to obtain free Taylor variable operations as the current version of TaylorSeries creates a heap allocated object for every operation. The approximation through Taylor variables transforms any complicated equations to polynomials, which makes root finding cheaper, which the QSS methods relies heavily on it. 
+The solver uses other packages such as  [`MacroTools.jl`]( https://github.com/FluxML/MacroTools.jl) [@MacroTools] for user-code parsing, [`SymEngine.jl`]( https://github.com/symengine/SymEngine.jl) [@SymEngine] for Jacobian computation and dependencies extraction, and a modified [`TaylorSeries.jl`](https://github.com/JuliaDiff/TaylorSeries.jl/) [@TaylorSeries] that uses caching to obtain free Taylor variable operations as the current version of TaylorSeries creates a heap allocated object for every operation. The approximation through Taylor variables transforms any complicated equations to polynomials, which makes root finding cheaper, which the QSS methods relies heavily on it. 
 
 # Examples
 ## The buck converter
@@ -95,7 +95,8 @@ The Buck is a converter that decreases voltage and increases current with a grea
 
 ![The buck converter](buck.png)
 
-The diode $D$ and the switch $S$ can be modeled as two variables resistors $RD$ and $RS$. When the diode and the switch are ON, $RD$ and $RS$ are set to $10^{-5}$, and when they are OFF, they are set to $10^{5}$. The diode is ON when its current is positive. The switch is controlled by the voltage $SC$, and it is ON for $0.5$ x $10^{-4}$ seconds. A mesh and a nodal analysis give the relationship between the different components in the circuit as shown in Eq.(1):
+The diode $D$ and the switch $S$ can be modeled as two variables resistors $RD$ and $RS$. When the diode and the switch are ON, $RD$ and $RS$ are set to $10^{-5}$, and when they are OFF, they are set to $10^{5}$. The diode is ON when its current is positive. The switch is controlled by the voltage $SC$, and it is ON for $0.5$ x $10^{-4}$ seconds. A mesh and a nodal analysis give the relationship between the different components in the circuit as follows:
+
 $i_d = \frac{RS.i_l-V1}{RS+RD}$
 
 $\frac{du_c}{dt} = \frac{i_l-\frac{u_c}{R}}{C}$
@@ -141,6 +142,7 @@ sol(0.0005,idxs = 2)
 plot(sol)
 ```
 ![Plot of the buck problem](plot_buck.png)
+
 ## The Advection Diffusion Reaction problem
 
 
@@ -196,7 +198,7 @@ Replacing nmliqss2 by solvers such as ABDF2(), QNDF2(), QBDF2(), Rosenbrock23, o
 
 
 # Conclusion
-The package provides powerful functionality for efficiently solving stiff ODEs with events using the quantized state method. It is lightweight and well-documented, making it accessible for researchers and students across various domains. Additionally, users can extend its capabilities by defining their own subclasses of the abstract types (``problem``, ``algorithm``, and ``solution``) to handle different problem types with tailored QSS algorithms. 
+The package provides powerful functionality to efficiently solve stiff ODEs with events using the quantized state method. It is lightweight and well-documented, making it accessible for researchers and students across various domains. Additionally, users can extend its capabilities by defining their own subclasses of the abstract types (``problem``, ``algorithm``, and ``solution``) to handle different problem types.
 
 # Acknowledgements
 This research has received no external funding.

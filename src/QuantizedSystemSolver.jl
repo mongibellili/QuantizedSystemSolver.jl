@@ -37,7 +37,7 @@ module QuantizedSystemSolver
   
   ##### commonQSS #########           
   include("commonQSS/qssAbstractTypes.jl")
-  include("commonQSS/rootfinders.jl") 
+  include("commonQSS/rootFinders.jl") 
   include("commonQSS/qssAlgorithm.jl")
   include("commonQSS/qssData.jl")
   include("commonQSS/scheduler.jl")
@@ -54,13 +54,13 @@ module QuantizedSystemSolver
   include("problem/qssProblemDiscrete.jl")
                 ##### integrators  ###########
   include("integrators/qssIntegrator.jl")
-  include("integrators/qssdiscreteIntegrator.jl")
+  include("integrators/qssDiscreteIntegrator.jl")
   # implicit integrator when large entries on the main diagonal of the jacobian
   include("integrators/liqssIntegrator.jl")
-  include("integrators/liqssdiscreteIntegrator.jl")
+  include("integrators/liqssDiscreteIntegrator.jl")
   # implicit integrator when large entries NOT on the main diagonal of the jacobian
-  include("integrators/nmLiqssIntegrator.jl")
-  include("integrators/nmLiqssdiscreteIntegrator.jl")
+  include("integrators/nmliqssIntegrator.jl")
+  include("integrators/nmliqssDiscreteIntegrator.jl")
                 ##### Quantizers ######
   # commonQSS & explicit
   include("quantizers/quantizerQss.jl")
