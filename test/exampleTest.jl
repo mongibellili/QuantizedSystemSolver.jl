@@ -112,8 +112,8 @@ sol= solve(prob,liqss2(),abstol=1e-3,reltol=1e-2)
 @test 19.2<sol(0.0005,idxs=2)<19.7
 sol= solve(prob,nmliqss2(),abstol=1e-3,reltol=1e-2)   
 @test 19.2<sol(0.0005,idxs=2)<19.5
-#BSON.@load "C:/Users/belli/.julia/dev/QuantizedSystemSolver/test/solVectAdvection_N1000d01_Feagin14e-12.bson" solFeagin14VectorN1000d01
-BSON.@load "test/solVectAdvection_N1000d01_Feagin14e-12.bson" solFeagin14VectorN1000d01
+
+BSON.@load "solVectAdvection_N1000d01_Feagin14e-12.bson" solFeagin14VectorN1000d01
 function adr(du,u,p,t)
    _dx=100.0#1/dx=N/10=1000/10
   a=1.0;d=0.1;r=1000.0
@@ -163,7 +163,7 @@ sol=solve(odeprob,nmliqss2())
 @test 0.0<sol(20.0,idxs=5)<8.0e-4
 @test 0.01<sol(20.0,idxs=6)<0.02
 solnmliqssInterp=solInterpolated(sol,0.01)
-BSON.@load "test/solRodas5PVectorTyson.bson" solRodas5PVectorTyson
+BSON.@load "solRodas5PVectorTyson.bson" solRodas5PVectorTyson
 err=getAverageErrorByRefs(solnmliqssInterp,solRodas5PVectorTyson) 
 @test err<0.1
 function sico(du,u,p,t)

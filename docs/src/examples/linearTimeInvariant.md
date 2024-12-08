@@ -1,4 +1,4 @@
-# System of 2 Linear Time Invariant Differential equations
+# Linear Time Invariant 
 ```julia
 using QuantizedSystemSolver
 function sysb53(du,u,p,t)

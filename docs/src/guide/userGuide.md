@@ -30,7 +30,7 @@ sol= solve(odeprob,algorithm,abstol=...,reltol=...)
 A the end, a solution object is produced that can be queried,
 plotted, and error-analyzed.
 
-For some simple examples, head over to the [examples](..\examples\linearTimeInvariant.md) section.
+For some simple examples, head over to the examples section starting at the [Linear Time Invariant](@ref) system.
 
 ## Solving a Nonlinear ODE Problem with events in Julia
 In this section, we will go through the process of setting up, solving, querying, and plotting a system of ordinary differential equation (ODEs) with events. We will use a buck converter circuit model as an example.
