@@ -39,7 +39,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_Data{Z},
   dxaux = liqssdata.dxaux
   savedVars = CommonqssData.savedVars
   savedTimes = CommonqssData.savedTimes
-  taylorOpsCache = CommonqssData.taylorOpsCache#cacheSize=odep.cacheSize
+  taylorOpsCache = CommonqssData.taylorOpsCache
   #*********************************problem info*****************************************
   d = CommonqssData.d
   zc_SimpleJac = odep.ZCjac
@@ -116,7 +116,6 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_Data{Z},
   totalSteps = 0
   modifiedIndex = 0
   evCount = 0
-  inputstep = 0
   if VERBOSE println("start integration") end
   while simt < ft && totalSteps < maxiters
     if totalSteps == maxiters - 1 @warn("The algorithm liqss$O is taking too long to converge. The simulation will be stopped. Consider using a different algorithm!") end
@@ -172,7 +171,6 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_Data{Z},
       end#end for SZ
     ##################################input########################################
     elseif stepType == :ST_INPUT  # time of change has come to a state var that does not depend on anything...
-      inputstep += 1
       elapsed = simt - tx[index]
       integrateState(Val(O), x[index], elapsed)
       tx[index] = simt

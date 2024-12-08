@@ -22,7 +22,7 @@ using Documenter
             "background/mliqss.md",
         ],
         "Examples" => [
-            "examples/linearTimeInvariant.md",
+            "examples/linearTimeInvariantSystem.md",
             "examples/vanderpol.md",
             "examples/tysonModel.md",
             "examples/adr.md",

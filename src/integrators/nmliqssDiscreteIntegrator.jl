@@ -38,7 +38,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z
   t = CommonqssData.t
   savedVars = CommonqssData.savedVars
   savedTimes = CommonqssData.savedTimes
-  taylorOpsCache = CommonqssData.taylorOpsCache#cacheSize=odep.cacheSize
+  taylorOpsCache = CommonqssData.taylorOpsCache#
 
   #*********************************problem info*****************************************
   d = CommonqssData.d 

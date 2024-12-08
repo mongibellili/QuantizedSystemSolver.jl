@@ -13,7 +13,7 @@ sol=solve(odeprob,nmliqss2())
 p1=plot(sol);
 savefig(p1, "lti_$(nmliqss2())") 
 ```
-Then use the DifferentialEquations instead of QuantizedSystemSolver and use solvers such as ABDF2(), QNDF2(), QBDF2(), or Trapezoid() instead of nmliqss2. The plots are displayed below:
+Then use DifferentialEquations instead of QuantizedSystemSolver and use solvers such as ABDF2(), QNDF2(), QBDF2(), or Trapezoid() instead of nmliqss2. The plots are displayed below:
 
 
 <div>
