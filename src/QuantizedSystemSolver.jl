@@ -39,12 +39,12 @@ module QuantizedSystemSolver
   include("taylor/power.jl")
   include("taylor/powerT.jl")
   
-  ##### common #########           
-  include("common/qssAbstractTypes.jl")
-  include("common/rootfinders.jl") 
-  include("common/qssAlgorithm.jl")
-  include("common/qssData.jl")
-  include("common/scheduler.jl")
+  ##### commonQSS #########           
+  include("commonQSS/qssAbstractTypes.jl")
+  include("commonQSS/rootfinders.jl") 
+  include("commonQSS/qssAlgorithm.jl")
+  include("commonQSS/qssData.jl")
+  include("commonQSS/scheduler.jl")
   ##### solution #########
   include("solution/Solution.jl")
   include("solution/SolutionPlot.jl")
@@ -66,7 +66,7 @@ module QuantizedSystemSolver
   include("integrators/nmLiqssIntegrator.jl")
   include("integrators/nmLiqssdiscreteIntegrator.jl")
                 ##### Quantizers ######
-  # common & explicit
+  # commonQSS & explicit
   include("quantizers/quantizerQss.jl")
   # implicit & single updateQ
   include("quantizers/quantizerLiqss1.jl")
