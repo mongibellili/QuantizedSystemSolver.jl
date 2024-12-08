@@ -37,7 +37,7 @@ module QuantizedSystemSolver
   
   ##### commonQSS #########           
   include("commonQSS/qssAbstractTypes.jl")
-  include("commonQSS/rootFinders.jl") 
+  include("commonQSS/rootfinders.jl") 
   include("commonQSS/qssAlgorithm.jl")
   include("commonQSS/qssData.jl")
   include("commonQSS/scheduler.jl")
