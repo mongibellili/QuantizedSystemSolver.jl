@@ -1,16 +1,11 @@
-# <img width="50" height="50" style="position:relative; top:15px" src="docs\src\logo.png"> QuantizedSystemSolver
+# <img width="50" height="50" style="position:relative; top:5px" src="docs\src\logo.png"> QuantizedSystemSolver
 
 
 
-<a style="float: right" href="https://mongibellili.github.io/QuantizedSystemSolver.jl/dev/">Documentation</a>
-
-
-| **Documentation** |
-|:------------ |
+| **Documentation** |**Build Status** | **Code coverage** |
+|:------------ |------------|------------|
 | [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://mongibellili.github.io/QuantizedSystemSolver.jl/dev/) |
-|**Build Status** |
-| [![CI](https://github.com/mongibellili/QuantizedSystemSolver/actions/workflows/CI.yml/badge.svg)](https://github.com/mongibellili/QuantizedSystemSolver/actions/workflows/CI.yml) |
-| **Code coverage** |
+ [![CI](https://github.com/mongibellili/QuantizedSystemSolver/actions/workflows/CI.yml/badge.svg)](https://github.com/mongibellili/QuantizedSystemSolver/actions/workflows/CI.yml) 
 | [![Coverage](https://codecov.io/gh/mongibellili/QuantizedSystemSolver/branch/main/graph/badge.svg)](https://codecov.io/gh/mongibellili/QuantizedSystemSolver)|
 
 
