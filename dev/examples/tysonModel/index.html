@@ -6,7 +6,7 @@
 &amp; \frac{M}{dt}= pM (k_10+k_4 \frac{M}{(C2+CP+pM+M)})^2 + k_5 M -k_6 M\nonumber\\
 &amp; \frac{Y}{dt}= k_1-k_2 Y -k_3 CP Y\nonumber\\
 &amp; \frac{YP}{dt}= k_6 M-k_7 YP
-\end{align*}\]</p><p>where <span>$k_i$</span> are parameters, and the model variation that was tested in this article uses these values: <span>$k_1=0.015;k_2=0;k_3=200;k_4=180;k_5=0;k_6=1;k_7=0.6;k_8=10^6;k_9=10^3;k_{10}=0.018$</span>. see <a href="#refs5">[1]</a> and <a href="#refs5">[1]</a> for more details.</p><p>The QuantizedSystemSolver code to solve this system:</p><pre><code class="language-julia hljs">using QuantizedSystemSolver
+\end{align*}\]</p><p>where <span>$k_i$</span> are parameters, and the model variation that was tested in this article uses these values: <span>$k_1=0.015;k_2=0;k_3=200;k_4=180;k_5=0;k_6=1;k_7=0.6;k_8=10^6;k_9=10^3;k_{10}=0.018$</span>. see <a href="#refs5">[1]</a> and <a href="#refs5">[2]</a> for more details.</p><p>The QuantizedSystemSolver code to solve this system:</p><pre><code class="language-julia hljs">using QuantizedSystemSolver
 function tyson(du,u,p,t)
     k_1=0.015;k_3=200.0;k_4=180.0;k_7=0.6;k_8=1e6;k_9=1e3;k_10=0.018
     du[1] = u[4]-k_8*u[1]+k_9*u[2]
