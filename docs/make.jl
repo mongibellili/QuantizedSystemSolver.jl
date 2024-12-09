@@ -45,7 +45,7 @@ using Documenter
     )
 
     deploydocs(
-      repo   = "github.com/mongibellili/QuantizedSystemSolver.git",
+      repo   = "github.com/mongibellili/QuantizedSystemSolver.jl.git",
       branch = "gh-pages",
     
     )

@@ -15,8 +15,8 @@ p1 = plot(sol);
 Then use DifferentialEquations instead of QuantizedSystemSolver and use solvers such as ABDF2(), QNDF2(), QBDF2(), or Trapezoid() instead of nmliqss2. The plots are displayed below:
 
 <div>
-<img style="  width: 300px;"  src="..\assets\img\lti10_nmliqss2_.png">
-<img style="  width: 300px;"  src="..\assets\img\lti_ABDF2_.png">
+<img style="  width: 300px;"  src="../../assets/img/lti10_nmliqss2_.png">
+<img style="  width: 300px;"  src="../../assets/img/lti_ABDF2_.png">
 </div>
 
 

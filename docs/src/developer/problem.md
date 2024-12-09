@@ -25,8 +25,8 @@ end
 This new problem type takes care of one differential equation. There is no need for the Jacobian nor for the dependencies. This needs an extension of the custom_Solve method that just removes the references to the `jac` and the `SD`. An extension of the integrate method is also needed since the implementation is a lot simpler than what is currently implemented.
 
 ## Further reading about the functions creating the problem
-*NLODEDiscProblem{PRTYPE,T,Z,Y,CS}:* This is the struct that holds all
-the necessary data for a nonlinear ordinary differential equation (ODE)
+*NLODEDiscProblem{PRTYPE,T,D,Z,CS}:* This is the struct that holds all
+the necessary data for a nonlinear ordinary differential equation (ODE) 
 problem with discrete events. The structure includes various fields such
 as initial conditions, discrete variables, Jacobians, event
 dependencies, and other data related to how the problem is formulated.

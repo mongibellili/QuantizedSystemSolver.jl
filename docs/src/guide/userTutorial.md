@@ -32,14 +32,14 @@ A the end, a solution object is produced that can be queried, plotted, and error
 ## Solving a Nonlinear ODE Problem with events in Julia
 In this section, we will go through the process of setting up, solving, querying, and plotting a non linear system of ordinary differential equation (ODEs) with events. We will use a buck converter circuit model as an example.
 
-#  <span style="color:red">Example: Buck circuit</span>
+### Example: Buck circuit
 [The Buck](https://en.wikipedia.org/wiki/Buck_converter) is a converter that decreases voltage and increases current with a greater power efficiency than linear regulators. Its circuit is shown in the following figure:
 
-<img style="display: block; margin-left: auto;margin-right: auto; width: 400px;"  src="..\assets\img\buck.png">
+<img style="display: block; margin-left: auto;margin-right: auto; width: 400px;"  src="../../assets/img/buck.png">
 
 The diode and the switch can be modeled as two variables resistors $RD$ and $RS$. When the diode and the switch are ON, $RD$ and $RS$ are set to $10^{-5}$, and they are OFF, they are set to $10^{5}$.
 
-<img style="display: block; margin-left: auto;margin-right: auto; width: 400px;"  src="..\assets\img\buck2.png">
+<img style="display: block; margin-left: auto;margin-right: auto; width: 400px;"  src="../../assets/img/buck2.png">
 
 First, we look for any differential equations. The relationship between the voltage and the current within the inductor and the capacitor is respectively given by:
 
@@ -55,7 +55,7 @@ $V1= RS.i_s-i_d.RD=RS.(i_l-i_d)-i_d.RD$. Thus, $i_d=\frac{RS.i_l-V1}{RS+RD}$
 
 Second, we look for the events, which are defined by the switching of the $RS$ and $RD$. The switch is ON for $0.5$ x $10^{-4}$ seconds and OFF for the same period. The diode is ON when $id>0$
 
-##  <span style="color:purple">Problem </span>
+### Problem 
 
 We get the problem discribed inside the function buck. First, we define any constant parameters, then we rename the continuous variables (u[1] and u[2]) and the discrete variables (p[1],p[2],p[3],p[4]) for convenience. $i_d$ can be plugged in the inductor differential equation or can be defined before it. Next, we put the differential euations and events.
 
@@ -93,14 +93,14 @@ p = [1e5,1e-5,1e-4,0.0];u0 = [0.0,0.0];tspan = (0.0,0.001)
 prob = ODEProblem(buck,u0,tspan,p)
 ```
 
-##    <span style="color:purple">Solve</span>
+### Solve
 The solve function takes the previous problem (prob) with a chosen algorithm (qss1,qss2,liqss1,liqss2,nmliqss1,nmliqss2) and some simulation settings, and it outputs a solution (sol).
 
 ```julia
 sol= solve(prob,nmliqss2(),abstol=1e-3,reltol=1e-2)
 ```
 
-##  <span style="color:purple">Query the solution</span>
+### Query the solution
 
 The values of all variables  at time 0.0005:
 
@@ -146,7 +146,7 @@ sol.savedTimes
 sol.savedVars
 ```
 
-##  <span style="color:purple">Plot the solution</span>
+### Plot the solution
 
 If users want to plot the solution, they can use:
 
@@ -180,14 +180,14 @@ save_Sol(sol)
 save_SolSum(sol,i,j)
 ```
 
-<img style="display: block; margin-left: auto;margin-right: auto; width: 400px;"  src="..\assets\img\plot_buck_nmliqss2.png">
+<img style="display: block; margin-left: auto;margin-right: auto; width: 400px;"  src="../../assets/img/plot_buck_nmliqss2.png">
 
 To compare the results of this system against classic methods, an attempt to use the package DifferentialEquations.jl. However, currently DifferentialEquations.jl can not handle this problem. An [issue](https://github.com/SciML/DifferentialEquations.jl/issues/998) is pending.
 Other tools are used to validate the QuantizedSystemSolver.jl in this buck converter are ltspice and the [C qss-solver](https://github.com/CIFASIS/qss-solver), and the results are also shown in the issue.
 
 
 
-##  <span style="color:purple">Error Analysis</span>
+### Error Analysis
 
 To explain the error analysis, we shall use the sin and cos functions:
 
@@ -210,7 +210,7 @@ solInterp=solInterpolated(sol,0.01)
 
 To find the relative error we use: $ err=\sqrt{\frac{\sum(sol_i-T_i)^2}{\sum(T_i^2)}}$ , where T is true or reference solution.
 
-### Error against an analytic function
+#### Error against an analytic function
 To compute the error against an analytic solution, we use **getError**(solInterp,index,analytic function)
 
 ```julia
@@ -227,7 +227,7 @@ err=getAverageError(solInterp,[x->sin(x),x->cos(x)])
 #0.029546046862124274
 ```
 
-### Error against an reference solution
+#### Error against an reference solution
 
 Similarly, we compute the error against a reference solution using **getErrorByRefs** to get the error for one variable and **getAverageErrorByRefs** to get the average error. Here, the reference solution is stored in a vector that contains the values of all variables. it is the $u$ vector for the case of the solution from the differentialEquations.jl:
 
