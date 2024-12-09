@@ -5,7 +5,7 @@
 \end{align*}\]</p><p>where N is the number of grid points and <span>$\Delta x=\frac{10}{N}$</span> is the grid width after the discretization of the problem with the MOL, <span>$a$</span> is the advection parameter, <span>$d$</span> is the diffusion parameter, and <span>$r$</span> is the reaction parameter. The initial condition is given by:</p><p class="math-container">\[\begin{align*}
 &amp;  u_i(t=0)= 1 \;\;\;\;\; if \;\;\; i \in [1,N/3]\\
 &amp; u_i(t=0)= 0 \;\;\;\; else
-\end{align*}\]</p><p>The advection parameter is fixed at <span>$a=1$</span>, and the reaction parameter is fixed at <span>$r=1000$</span>. The number of grid points is picked as <span>$N=1000$</span>, and <span>$d$</span> is set to 0.1. see <a href="#refs4">[1]</a> and <a href="#refs4">[1]</a> for more details.</p><p>The QuantizedSystemSolver code to solve this system:</p><pre><code class="language-julia hljs">using QuantizedSystemSolver
+\end{align*}\]</p><p>The advection parameter is fixed at <span>$a=1$</span>, and the reaction parameter is fixed at <span>$r=1000$</span>. The number of grid points is picked as <span>$N=1000$</span>, and <span>$d$</span> is set to 0.1. see <a href="#refs4">[1]</a> and <a href="#refs4">[2]</a> for more details.</p><p>The QuantizedSystemSolver code to solve this system:</p><pre><code class="language-julia hljs">using QuantizedSystemSolver
 function adr(du,u,p,t)# api requires four args
     _dx=100.0
     a=1.0
