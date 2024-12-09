@@ -5,7 +5,7 @@
 calculates the relative error of one variable of the solution with respect to a function of an analytic solution.
 ```math
 \\begin{equation*}
-err=\\sqrt{\\frac{\\sum(sol_{index}-f_{index})^2}{\\sum(f_{index}^2)}}
+err=\\sqrt{\\frac{\\sum(sol_{index}-f_{index})^2}{\\sum(f_{index})^2}}
 \\end{equation*}
 ```
 
@@ -30,8 +30,8 @@ end
 calculates the average relative error of all variables of the solution with respect to a vector of functions of analytic solutions.
 ```math
 \\begin{align*}
-& err=\\sqrt{\\frac{\\sum(sol_{index}-f_{index})^2}{\\sum(f_{index}^2)}}\\
-& avgError=\\frac{\\sum_{index=1}^{T}err}{T}
+& err_{index}=\\sqrt{\\frac{\\sum(sol_{index}-f_{index})^2}{\\sum(f_{index})^2}}\\
+& avgError=\\frac{\\sum_{index=1}^{T}err_{index}}{T}
 \\end{align*}
 ```
 """
@@ -62,7 +62,7 @@ end
 calculates the relative error of one variable of the solution with respect to a vector of values received from a reference solution.
 ```math
 \\begin{equation*}
-err=\\sqrt{\\frac{\\sum(sol_{index}-solRef_{index})^2}{\\sum(solRef_{index}^2)}}
+err=\\sqrt{\\frac{\\sum(sol_{index}-solRef_{index})^2}{\\sum(solRef_{index})^2}}
 \\end{equation*}
 ```
 
@@ -96,8 +96,8 @@ calculates the average relative error of the solution with respect to a referenc
 The relative error is calculated for each variable, and then it is averaged over all variables.
 ```math
 \\begin{align*}
-& err=\\sqrt{\\frac{\\sum(sol_{index}-solRef_{index})^2}{\\sum(solRef_{index}^2)}}\\
-& avgError=\\frac{\\sum_{index=1}^{T}err}{T}
+& err_{index}=\\sqrt{\\frac{\\sum(sol_{index}-solRef_{index})^2}{\\sum(solRef_{index})^2}}\\
+& avgError=\\frac{\\sum_{index=1}^{T}err_{index}}{T}
 \\end{align*}
 ```
 """

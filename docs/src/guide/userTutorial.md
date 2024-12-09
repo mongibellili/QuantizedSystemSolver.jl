@@ -35,15 +35,19 @@ In this section, we will go through the process of setting up, solving, querying
 ### Example: Buck circuit
 [The Buck](https://en.wikipedia.org/wiki/Buck_converter) is a converter that decreases voltage and increases current with a greater power efficiency than linear regulators. Its circuit is shown in the following figure:
 
-<img style="display: block; margin-left: auto;margin-right: auto; width: 400px;"  src="../../assets/img/buck.png">
+
+![buck circuit](../assets/img/buck.png)
+
 
 The diode and the switch can be modeled as two variables resistors $RD$ and $RS$. When the diode and the switch are ON, $RD$ and $RS$ are set to $10^{-5}$, and they are OFF, they are set to $10^{5}$.
 
-<img style="display: block; margin-left: auto;margin-right: auto; width: 400px;"  src="../../assets/img/buck2.png">
+![buck circuit remodeled](../assets/img/buck2.png)
 
 First, we look for any differential equations. The relationship between the voltage and the current within the inductor and the capacitor is respectively given by:
 
-$\large \frac{di_l}{dt}=\frac{u_l}{L}$ and $\large \frac{du_c}{dt}=\frac{i_c}{C}$
+$\large \frac{di_l}{dt}=\frac{u_l}{L}$ 
+
+$\large \frac{du_c}{dt}=\frac{i_c}{C}$
 
 The system variables are $i_l$ and $u_c$. Therefore, we have to express the differential equations using only these two variables. i.e. $i_c$ and $u_l$ must be found as functions of $i_l$ and $u_c$. To do this, we conduct a mesh and a nodal analysis to get the relationship between the different components in the circuit.
 
@@ -51,7 +55,9 @@ Using nodal analysis in Node N1, we have $i_c=i_l-i_R=i_l-\frac{u_c}{R}$. Then, 
 
 Using mesh analysis in Mesh 2, we get $u_l=-u_c-u_d=-uc-i_d.RD$. To get rid of $i_d$, we use mesh analysis in Mesh 1 to get:
 
-$V1= RS.i_s-i_d.RD=RS.(i_l-i_d)-i_d.RD$. Thus, $i_d=\frac{RS.i_l-V1}{RS+RD}$
+$V1= RS.i_s-i_d.RD=RS.(i_l-i_d)-i_d.RD$
+
+Thus, $i_d=\frac{RS.i_l-V1}{RS+RD}$
 
 Second, we look for the events, which are defined by the switching of the $RS$ and $RD$. The switch is ON for $0.5$ x $10^{-4}$ seconds and OFF for the same period. The diode is ON when $id>0$
 
@@ -180,7 +186,7 @@ save_Sol(sol)
 save_SolSum(sol,i,j)
 ```
 
-<img style="display: block; margin-left: auto;margin-right: auto; width: 400px;"  src="../../assets/img/plot_buck_nmliqss2.png">
+![buck circuit plot](../assets/img/plot_buck_nmliqss2.png)
 
 To compare the results of this system against classic methods, an attempt to use the package DifferentialEquations.jl. However, currently DifferentialEquations.jl can not handle this problem. An [issue](https://github.com/SciML/DifferentialEquations.jl/issues/998) is pending.
 Other tools are used to validate the QuantizedSystemSolver.jl in this buck converter are ltspice and the [C qss-solver](https://github.com/CIFASIS/qss-solver), and the results are also shown in the issue.
@@ -208,7 +214,7 @@ Since in QSS all variables are updated independently, we can interpolate all val
 solInterp=solInterpolated(sol,0.01)
 ```
 
-To find the relative error we use: $ err=\sqrt{\frac{\sum(sol_i-T_i)^2}{\sum(T_i^2)}}$ , where T is true or reference solution.
+To find the relative error we use: $err=\sqrt{\frac{\sum(sol_i-T_i)^2}{\sum(T_i)^2}}$ , where T is true or reference solution.
 
 #### Error against an analytic function
 To compute the error against an analytic solution, we use **getError**(solInterp,index,analytic function)
