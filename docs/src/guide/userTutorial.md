@@ -240,5 +240,5 @@ error1=getErrorByRefs(solInterp,1,solFeagin14Vector)
 avgError=getAverageErrorByRefs(solInterp,solFeagin14Vector)
 ```
 
-The results of some solvers of QuantizedSystemSolver.jl are compared against some solvers from DifferentialEquations.jl in the [examples](..\examples\linearTimeInvariant.md) section.
+The results of some solvers of QuantizedSystemSolver.jl are compared against some solvers from DifferentialEquations.jl in the examples section.
 

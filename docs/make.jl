@@ -11,7 +11,7 @@ using Documenter
         
         "Home" => "index.md",
         "Getting started" => [
-            "guide/userGuide.md",
+            "guide/userTutorial.md",
             "guide/userAPI.md",],
         
         "Background" => [
