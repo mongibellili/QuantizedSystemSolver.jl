@@ -5,8 +5,8 @@ using BSON
 @testset "QuantizedSystemSolver.jl" begin
     # Write your tests here.
     include("./exampleTest.jl")
-    include("./Taylor0testFunctions.jl")
-    include("./Taylor0testArithmetic.jl")
+    include("./taylor0Functions.jl")
+    include("./taylor0Arithmetic.jl")
 
     function sysb53(du,u,p,t)
         du[1] = -20.0*u[1]-80.0*u[2]+1600.0
