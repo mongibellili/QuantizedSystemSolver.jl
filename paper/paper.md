@@ -54,29 +54,53 @@ In classic methods, the difference between $t_k$ (the current time) and $t_{k+1}
 In QSS, besides the step size, the difference between $x_i(t_k)$ (the current value) and $x_i(t_{k+1})$ (the next value) is called the quantum $\Delta_i$. Depending on the type of the QSS method (explicit or implicit), a new variable $q_i$ is set to equal $x_i(t_k)$  or $x_i(t_{k+1})$ respectively. $q_i$ is called the quantized state of $x_i$, and it is used in updating the derivative function [@elbellili].  A general description of a QSS algorithm is given as follows:
 
 **mLIQSS1 algorithm**
+
 1. If a variable $i$ needs to change
+
     - Compute the elapsed time $e$ since the last update of variable $i$
+
     - Update its value using Taylor expansion: $x_{i} = x_{i}+\dot x_i.e$
+
     - Update the quantum $\Delta_i$
+
     - Update the Quantized variable $q_i$   
+
     - Compute the next time of change of $x_i$
+
     - For any variable $j$ depends on $i$
-        - Update the variable $x_{j} = x_{j}+\dot x_j.e_j$
-        - Update the derivative $\dot x_{j} = f_j(q,t)$ 
-        - Compute the next time of change of $x_j$
+
+        -   Update the variable $x_{j} = x_{j}+\dot x_j.e_j$
+
+        -   Update the derivative $\dot x_{j} = f_j(q,t)$ 
+
+        -   Compute the next time of change of $x_j$
+
     - For any zero crossing function $zc$ depends on $i$
-        - Update $zc$
-        - Compute the next event time of $zc$ 
+
+        -   Update $zc$
+
+        -   Compute the next event time of $zc$ 
+
 2. If an event needs to occur
-    - Recheck validity of the event
-    - Execute the event and update the related quantized variables
-    - For any variable $j$ depends on the event
-        - Update the variable $x_{j} = x_{j}+\dot x_j.e_j$
-        - Update the derivative $\dot x_j = f_j(Q,t)$ 
-        - Compute the next time of change of $x_j$
-    - For any zero crossing function $zc$ depends on the event
-        - Update $zc$
-        - Compute the next event time of $zc$ 
+
+    -   Recheck validity of the event
+
+    -   Execute the event and update the related quantized variables
+
+    -   For any variable $j$ depends on the event
+
+        -   Update the variable $x_{j} = x_{j}+\dot x_j.e_j$
+
+        -   Update the derivative $\dot x_j = f_j(Q,t)$ 
+
+        -   Compute the next time of change of $x_j$
+
+    -   For any zero crossing function $zc$ depends on the event
+
+        -   Update $zc$
+
+        -   Compute the next event time of $zc$ 
+
 
 # Package description
 While the package is optimized to be fast, extensibility is not compromised. It is divided into 3 entities that can be extended separately: ``problem``, ``algorithm``, and ``solution``. The rest of the code is to create these entities and glue them together as shown in Figure 1. The API was designed to match the differentialEquations.jl interace while providing an easier way to handle events. The problem is defined inside a function, in which the user may introduce any parameters, variables, equations, and events:
