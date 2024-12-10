@@ -203,7 +203,7 @@ Other tools are used to validate the QuantizedSystemSolver.jl in this buck conve
 
 **Buck plot using DifferentialEquations.jl**
 
-![buck circuit plot_diffeEq](../assets/img/diffeqBuck.png )
+![buck circuit plot_diffeEq](../assets/img/diffeqBuck.png)
 
 
 ### Error Analysis
