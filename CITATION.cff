@@ -4,6 +4,12 @@ authors:
 - family-names: "ElBellili"
   given-names: "ElMongi"
   orcid: "https://orcid.org/0000-0003-1230-5488"
+- family-names: "Huybrechs"
+  given-names: "Daan "
+  orcid: "https://orcid.org/0000-0002-0536-2647"
+- family-names: "Lauwens"
+  given-names: "Ben"
+  orcid: "https://orcid.org/0000-0003-0761-6265"
 title: "Quantized System Solver"
 version: 1.0.3
 doi: 10.5281/zenodo.14361143
