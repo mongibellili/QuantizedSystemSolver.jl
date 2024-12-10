@@ -19,7 +19,7 @@ where N is the number of grid points and $\Delta x=\frac{10}{N}$ is the grid wid
 ```
 
 The advection parameter is fixed at $a=1$, and the reaction parameter is fixed at $r=1000$. The number of grid points is picked as $N=1000$, and $d$ is set to 0.1.
-see [[1]](@ref refs4) and [[1]](@ref refs4) for more details.
+see [[1]](@ref refs4) and [[2]](@ref refs4) for more details.
 
 The QuantizedSystemSolver code to solve this system:
 ```julia

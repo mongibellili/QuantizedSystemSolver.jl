@@ -239,8 +239,8 @@ QuantizedSystemSolver.extractJacDepNormal(varNum,rhs,jac,exacteJacExpr ,symDict 
 function extractJacDepNormal(varNum::Int,rhs::Union{Int,Expr},jac :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}}, exactJacExpr :: Dict{Expr,Union{Float64,Int,Symbol,Expr}},symDict::Dict{Symbol,Expr}) 
   jacSet=Set{Union{Int,Symbol,Expr}}()
   m=postwalk(rhs) do a   #
-      if a isa Expr && a.head == :ref # for continuous problems no need to check q[] or d[]. only discrete probs do that
-              push!(jacSet,  (a.args[2]))  # du[varNum=1]=rhs=u[2]-2.0*u[1] : 2 and 1 are stored in jacset
+      if a isa Expr && a.head == :ref # # for continuous problems no need to check q[] or d[]. only discrete probs do that
+              if a.args[1]==:q push!(jacSet,  (a.args[2]))  end# du[varNum=1]=rhs=u[2]-2.0*u[1] : 2 and 1 are stored in jacset
               a=eliminateRef(a)#q[i] -> qi  #after getting the index i in previous line, we can change the expression
       end
       return a 

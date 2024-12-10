@@ -63,7 +63,7 @@ Second, we look for the events, which are defined by the switching of the $RS$ a
 
 ### Problem 
 
-We get the problem discribed inside the function buck. First, we define any constant parameters, then we rename the continuous variables (u[1] and u[2]) and the discrete variables (p[1],p[2],p[3],p[4]) for convenience. $i_d$ can be plugged in the inductor differential equation or can be defined before it. Next, we put the differential euations and events.
+We get the problem discribed inside the function buck. First, we define any constant parameters, then we rename the continuous variables (u[1] and u[2]) and the discrete variables (p[1],p[2],p[3],p[4]) for convenience. $i_d$ can be plugged in the inductor differential equation or can be defined before it. Next, we put the differential euations and events using ``if-statements``.
 
 To match The interface of differentialEquations.jl, the buck function is passed along the initial conditions and the tspan to the ODEProblem function. the result is an ODE problem that is sent to the solve function.
 
@@ -185,12 +185,25 @@ plot_SolSum(sol,i,j)#i and j are the indices of the variables (type int).
 save_Sol(sol)
 save_SolSum(sol,i,j)
 ```
+**Buck plot using QuantizedSystemSolver.jl**
 
 ![buck circuit plot](../assets/img/plot_buck_nmliqss2.png)
 
 To compare the results of this system against classic methods, an attempt to use the package DifferentialEquations.jl. However, currently DifferentialEquations.jl can not handle this problem. An [issue](https://github.com/SciML/DifferentialEquations.jl/issues/998) is pending.
-Other tools are used to validate the QuantizedSystemSolver.jl in this buck converter are ltspice and the [C qss-solver](https://github.com/CIFASIS/qss-solver), and the results are also shown in the issue.
+Other tools are used to validate the QuantizedSystemSolver.jl in this buck converter are ``ltspice`` and the [C qss-solver](https://github.com/CIFASIS/qss-solver), and the results are also shown in the following plots:
 
+ **Buck plot using qssC**
+
+![buck circuit plot_qssC](../assets/img/qssC_buck.png)
+
+ **Buck plot using ltspice**
+
+![buck circuit plot_ltspice](../assets/img/ltspiceBuck.png)
+
+
+**Buck plot using DifferentialEquations.jl**
+
+![buck circuit plot_diffeEq](../assets/img/diffeqBuck.png )
 
 
 ### Error Analysis

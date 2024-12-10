@@ -23,6 +23,7 @@ using Documenter
         ],
         "Examples" => [
             "examples/linearTimeInvariantSystem.md",
+            "examples/linearTimeInvariantSystemEvents.md",
             "examples/vanderpol.md",
             "examples/tysonModel.md",
             "examples/adr.md",

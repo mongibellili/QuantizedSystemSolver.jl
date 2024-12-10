@@ -12,7 +12,7 @@ This is a model that is of a great interest in the field of biology. The Tyson m
 ```
 where $k_i$ are parameters, and the model variation that was tested in this article uses these values:
 $k_1=0.015;k_2=0;k_3=200;k_4=180;k_5=0;k_6=1;k_7=0.6;k_8=10^6;k_9=10^3;k_{10}=0.018$.
-see [[1]](@ref refs5) and [[1]](@ref refs5) for more details.
+see [[1]](@ref refs5) and [[2]](@ref refs5) for more details.
 
 The QuantizedSystemSolver code to solve this system:
 ```julia

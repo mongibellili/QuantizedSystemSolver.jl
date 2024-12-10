@@ -82,7 +82,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_Data{Z},
   for i = 1:T
     numSteps[i] = 0
     push!(savedVars[i], x[i][0])
-    push!(savedTimes[i], 0.0)
+    push!(savedTimes[i], initTime)
     quantum[i] = relQ * abs(x[i].coeffs[1])
     quantum[i] = quantum[i] < absQ ? absQ : quantum[i]
     quantum[i] = quantum[i] > maxErr ? maxErr : quantum[i]
