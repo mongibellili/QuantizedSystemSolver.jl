@@ -25,7 +25,7 @@ bibliography: paper.bib
 
 # Summary
 
-Contemporary engineering systems, such as electrical circuits, mechanical systems with shocks, and chemical reactions with rapid kinetics, are often characterized by dynamics that can be modeled using stiff differential equations with events. Stiffness typically arises in these systems due to the presence of both rapidly changing and slowly changing components. This stiffness requires extremely small time steps to maintain stability when using traditional numerical integration techniques. Recently, quantization-based techniques have emerged as an effective alternative for handling such complex models. Methods like the Quantized State System (QSS) and the Linearly Implicit Quantized State System (LIQSS) offer promising results, particularly for large sparse stiff models. Unlike classic numerical integration methods, which update all system variables at each time step, the quantized approach updates individual system variables independently. Specifically, in quantized methods, each variable is updated only when its value changes by a predefined quantization level resulting in only updating the rapidly changing components. Moreover, these methods are advantageous when dealing with discontinuous events, where traditional integrators may struggle with accuracy. An event is a discontinuity where the state of the system abruptly changes at a specific point. Classic methods either undergo expensive iterations to pinpoint the exact discontinuity instance or resort to interpolating its location, resulting in unreliable outcomes. Therefore, this QSS strategy can significantly reduce computational effort and improve efficiency in large sparse stiff models with frequent discontinuities [@improveliqss].
+Contemporary engineering systems, such as electrical circuits, mechanical systems with shocks, and chemical reactions with rapid kinetics, are often characterized by dynamics that can be modeled using stiff differential equations with events. Stiffness typically arises in these systems due to the presence of both rapidly changing and slowly changing components. This stiffness requires extremely small time steps to maintain stability when using traditional numerical integration techniques. Recently, quantization-based techniques have emerged as an effective alternative for handling such complex models. Methods like the Quantized State System (QSS) and the Linearly Implicit Quantized State System (LIQSS) offer promising results, particularly for large sparse stiff models. Unlike classic numerical integration methods, which update all system variables at each time step, the quantized approach updates individual system variables independently. Specifically, in quantized methods, each variable is updated only when its value changes by a predefined quantization level resulting in only updating the rapidly changing components. Moreover, these methods are advantageous when dealing with discontinuous events by considering them as normal steps. An event is a discontinuity where the state of the system abruptly changes at a specific point. Classic methods may struggle with events: They either undergo expensive iterations to pinpoint the exact discontinuity instance or resort to interpolating its location, resulting in unreliable outcomes. Therefore, this QSS strategy can significantly reduce computational effort and improve efficiency in large sparse stiff models with frequent discontinuities [@improveliqss].
 
 # Statement of need
 
@@ -38,20 +38,45 @@ The general form of a problem composed of a set of ODEs and a set of events that
 
 
 
-$\dot X=f(X,P,t)$
+$\dot X = f(X,P,t)$
 
 $if \; zc_v(x_i...,p_d...,t) \; i \in [1,n]  \;  ; \; d  \in [1,m]$
 
-$\qquad x_i=H_v(x_i...,p_d...,t)$
+$\qquad x_i = H_v(x_i...,p_d...,t)$
 
-$\qquad p_d=L_v(x_i...,p_d...,t)$
+$\qquad p_d = L_v(x_i...,p_d...,t)$
 
 $\qquad \qquad...$
 
 where $X = [x_1,x_2...,x_n]^T$ is the state vector, $f:\mathbb{R}^n \rightarrow \mathbb{R}^n$ is the derivative function, and $t$ is the independent variable. $D = [d_1,d_2...,d_m]^T$ is the vector of the system discrete variables. $n$ and $m$ are the number of state variables and discrete variables of the system respectively. $v$ is the number of events and $zc$ is an event condition, $H$ and $L$ are functions used in the effects of the event $zc$.
 
 In classic methods, the difference between $t_k$ (the current time) and $t_{k+1}$ (the next time) is called the step size. 
-In QSS, besides the step size, the difference between $x_i(t_k)$ (the current value) and $x_i(t_{k+1})$ (the next value) is called the quantum $\Delta_i$. Depending on the type of the QSS method (explicit or implicit), a new variable $q_i$ is set to equal $x_i(t_k)$  or $x_i(t_{k+1})$ respectively. $q_i$ is called the quantized state of $x_i$, and it is used in updating the derivative function [@elbellili].
+In QSS, besides the step size, the difference between $x_i(t_k)$ (the current value) and $x_i(t_{k+1})$ (the next value) is called the quantum $\Delta_i$. Depending on the type of the QSS method (explicit or implicit), a new variable $q_i$ is set to equal $x_i(t_k)$  or $x_i(t_{k+1})$ respectively. $q_i$ is called the quantized state of $x_i$, and it is used in updating the derivative function [@elbellili].  A general description of a QSS algorithm is given as follows:
+
+**mLIQSS1 algorithm**
+1. If a variable $i$ needs to change
+    - Compute the elapsed time $e$ since the last update of variable $i$
+    - Update its value using Taylor expansion: $x_{i} = x_{i}+\dot x_i.e$
+    - Update the quantum $\Delta_i$
+    - Update the Quantized variable $q_i$   
+    - Compute the next time of change of $x_i$
+    - For any variable $j$ depends on $i$
+        - Update the variable $x_{j} = x_{j}+\dot x_j.e_j$
+        - Update the derivative $\dot x_{j} = f_j(q,t)$ 
+        - Compute the next time of change of $x_j$
+    - For any zero crossing function $zc$ depends on $i$
+        - Update $zc$
+        - Compute the next event time of $zc$ 
+2. If an event needs to occur
+    - Recheck validity of the event
+    - Execute the event and update the related quantized variables
+    - For any variable $j$ depends on the event
+        - Update the variable $x_{j} = x_{j}+\dot x_j.e_j$
+        - Update the derivative $\dot x_j = f_j(Q,t)$ 
+        - Compute the next time of change of $x_j$
+    - For any zero crossing function $zc$ depends on the event
+        - Update $zc$
+        - Compute the next event time of $zc$ 
 
 # Package description
 While the package is optimized to be fast, extensibility is not compromised. It is divided into 3 entities that can be extended separately: ``problem``, ``algorithm``, and ``solution``. The rest of the code is to create these entities and glue them together as shown in Figure 1. The API was designed to match the differentialEquations.jl interace while providing an easier way to handle events. The problem is defined inside a function, in which the user may introduce any parameters, variables, equations, and events:
@@ -154,7 +179,7 @@ $\quad \quad  \dot u_i = -a\frac{u_i-u_{i-1}}{\Delta x}+d\frac{u_{i+1}-2u_i+u_{i
 
 $\dot u_N = -a\frac{u_N-u_{N-1}}{\Delta x}+d \frac{2u_{N-1}-2u_N}{\Delta x^2}+r(u_N^2-u_N^3)$
 
-where N is the number of grid points and $\Delta x=\frac{10}{N}$ is the grid width after the discretization of the problem with the MOL, $a$ is the advection parameter, $d$ is the diffusion parameter, and $r$ is the reaction parameter. The initial condition is given by:
+where N is the number of grid points and $\Delta x = \frac{10}{N}$ is the grid width after the discretization of the problem with the MOL, $a$ is the advection parameter, $d$ is the diffusion parameter, and $r$ is the reaction parameter. The initial condition is given by:
 
 
 
@@ -163,7 +188,7 @@ $u_i(t=0) = 1 \;\;\;\;\; if \;\;\; i \in [1,N/3]$
 $u_i(t=0) = 0 \;\;\;\; else$
 
 
-The advection parameter is fixed at $a=1$, and the reaction parameter is fixed at $r=1000$. The number of grid points is picked as $N=1000$, and $d$ is set to 0.1 [@improveliqss].
+The advection parameter is fixed at $a = 1$, and the reaction parameter is fixed at $r = 1000$. The number of grid points is picked as $N = 1000$, and $d$ is set to 0.1 [@improveliqss].
 
 
 The QuantizedSystemSolver code to solve this system:
@@ -175,10 +200,10 @@ function adr(du,u,p,t)
   #Equations
   du[1] = -a*_dx*(u[1]-0.0)+d*_dx*_dx*(u[2]-2.0*u[1]+0.0)+r*u[1]*u[1]*(1.0-u[1]) 
   for k in 2:999  
-      du[k]=-a*_dx*(u[k]-u[k-1])+d*_dx*_dx*(u[k+1]-2.0*u[k]+u[k-1])+
+      du[k] = -a*_dx*(u[k]-u[k-1])+d*_dx*_dx*(u[k+1]-2.0*u[k]+u[k-1])+
              r*u[k]*u[k]*(1.0-u[k]) ;
   end 
-  du[1000]=-a*_dx*(u[1000]-u[999])+d*_dx*_dx*(2.0*u[999]-2.0*u[1000])+
+  du[1000] = -a*_dx*(u[1000]-u[999])+d*_dx*_dx*(2.0*u[999]-2.0*u[1000])+
             r*u[1000]*u[1000]*(1.0-u[1000]) 
 end
 tspan = (0.0,10.0)
