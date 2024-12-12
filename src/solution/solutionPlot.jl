@@ -1,30 +1,4 @@
 """
-    plot_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool,marker=:circle::Symbol,title="") where{T,O}
-
-generates a plot of the solution of the system (returned as a plot object).
-    With the exception of the solution object, all arguments are optional.
-  
-# arguments:
-- `sol::Sol{T,O}`: The solution struct.
-- `xvars::Int...`: The indices of the variables to plot. If no indices are provided, all variables are plotted.
-- `note::String`: A note to add to the title of the plot.
-- `xlims::Tuple{Float64, Float64}`: The x-axis limits of the plot.
-- `ylims::Tuple{Float64, Float64}`: The y-axis limits of the plot.
-- `legend::Bool`: A boolean indicating whether to display the legend.
-- `marker::Symbol`: The marker to use for the plot.
-- `title::String`: The title of the plot.
-
-"""
-function plot_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool,marker=:circle::Symbol,title="") where{T,O}
-  idxs=Int64[]
-          if xvars!=()
-            for k in xvars 
-              push!(idxs,k)
-            end
-          end
-  plot(sol,idxs=idxs,note=note,xlims=xlims,ylims=ylims,legend=legend,marker=marker,title=title)
-end
-"""
     plot(sol::Sol{T,O};idxs=Int[]::Vector{Int},note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool,marker=:circle::Symbol,title="") where{T,O}
 
 generates a plot of the solution of the system (returned as a plot object).
@@ -103,10 +77,7 @@ function plot(sol::Sol{T,O};idxs=Int[]::Vector{Int},note=" "::String,xlims=(0.0,
       end
   else
       error("idxs must be a Tuple or a Vector{Int64}")
-  end
-
-
-  
+  end 
   if xlims!=(0.0,0.0) && ylims!=(0.0,0.0) 
     p1=plot!(p1,title=title, xlims=xlims ,ylims=ylims,legend=legend)
   elseif xlims!=(0.0,0.0) && ylims==(0.0,0.0) 
@@ -118,6 +89,37 @@ function plot(sol::Sol{T,O};idxs=Int[]::Vector{Int},note=" "::String,xlims=(0.0,
   end
   p1
 end
+
+
+
+
+"""
+    plot_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool,marker=:circle::Symbol,title="") where{T,O}
+
+generates a plot of the solution of the system (returned as a plot object).
+    With the exception of the solution object, all arguments are optional.
+  
+# arguments:
+- `sol::Sol{T,O}`: The solution struct.
+- `xvars::Int...`: The indices of the variables to plot. If no indices are provided, all variables are plotted.
+- `note::String`: A note to add to the title of the plot.
+- `xlims::Tuple{Float64, Float64}`: The x-axis limits of the plot.
+- `ylims::Tuple{Float64, Float64}`: The y-axis limits of the plot.
+- `legend::Bool`: A boolean indicating whether to display the legend.
+- `marker::Symbol`: The marker to use for the plot.
+- `title::String`: The title of the plot.
+
+"""
+function plot_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool,marker=:circle::Symbol,title="") where{T,O}
+  idxs=Int64[]
+          if xvars!=()
+            for k in xvars 
+              push!(idxs,k)
+            end
+          end
+  plot(sol,idxs=idxs,note=note,xlims=xlims,ylims=ylims,legend=legend,marker=marker,title=title)
+end
+
 
 
 """

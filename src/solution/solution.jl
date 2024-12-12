@@ -206,8 +206,9 @@ Displays the statistics of the simulation.
 - The number of events.
 """
 function show(io::IO, a::Stats)
-  println("The total simulation steps: $(a.totalSteps)")
-  println("The simultaneous  steps: $(a.simulStepCount)")
-  println("The number of events: $(a.evCount)") 
+  println(io,"")
+  println(io,"The total simulation steps: $(a.totalSteps)")
+  println(io,"The simultaneous  steps: $(a.simulStepCount)")
+  println(io,"The number of events: $(a.evCount)") 
 end
 

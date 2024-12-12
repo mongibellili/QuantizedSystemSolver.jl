@@ -20,7 +20,7 @@ savefig(p1, "dosing---")
 ```
 
 
-The same problem is handeled using QuantizedSystemSolver. First, the differential equation is defined. Then we have two conditions t == 4 && u[1] < 4 that can be replaced by using another discrete variable p (flag) that is changed when t==4. This change triggers the check of  u[1] < 4.
+The same problem is handled using QuantizedSystemSolver. First, the differential equation is defined. Then we have two conditions t == 4 && u[1] < 4 that can be replaced by using another discrete variable p (flag) that is changed when t==4. This change triggers the check of  u[1] < 4.
 
 ```julia
 using QuantizedSystemSolver

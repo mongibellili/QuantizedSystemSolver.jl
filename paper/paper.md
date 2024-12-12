@@ -25,16 +25,16 @@ bibliography: paper.bib
 
 # Summary
 
-Contemporary engineering systems, such as electrical circuits, mechanical systems with shocks, and chemical reactions with rapid kinetics, are often characterized by dynamics that can be modeled using stiff differential equations with events. Stiffness typically arises in these systems due to the presence of both rapidly changing and slowly changing components. This stiffness requires extremely small time steps to maintain stability when using traditional numerical integration techniques. Recently, quantization-based techniques have emerged as an effective alternative for handling such complex models. Methods like the Quantized State System (QSS) and the Linearly Implicit Quantized State System (LIQSS) offer promising results, particularly for large sparse stiff models. Unlike classic numerical integration methods, which update all system variables at each time step, the quantized approach updates individual system variables independently. Specifically, in quantized methods, each variable is updated only when its value changes by a predefined quantization level resulting in only updating the rapidly changing components. Moreover, these methods are advantageous when dealing with discontinuous events by considering them as normal steps. An event is a discontinuity where the state of the system abruptly changes at a specific point. Classic methods may struggle with events: They either undergo expensive iterations to pinpoint the exact discontinuity instance or resort to interpolating its location, resulting in unreliable outcomes. Therefore, this QSS strategy can significantly reduce computational effort and improve efficiency in large sparse stiff models with frequent discontinuities [@improveliqss].
+Contemporary engineering systems, such as electrical circuits, mechanical systems with shocks, and chemical reactions with rapid kinetics, are often characterized by dynamics that can be modeled using stiff differential equations with events. Stiffness typically arises in these systems due to the presence of both rapidly changing and slowly changing components. This stiffness requires extremely small time steps to maintain stability when using traditional numerical integration techniques. Recently, quantization-based techniques have emerged as an effective alternative for handling such complex models. Methods like the Quantized State System (QSS) and the Linearly Implicit Quantized State System (LIQSS) offer promising results, particularly for large sparse stiff models. Unlike classic numerical integration methods, which update all system variables at each time step, the quantized approach updates individual system variables independently. Specifically, in quantized methods, each variable is updated only when its value changes by a predefined quantization level. Moreover, these methods are advantageous when dealing with discontinuous events. An event is a discontinuity where the state of the system abruptly changes at a specific point. Classic methods may struggle with events: They either undergo expensive iterations to pinpoint the exact discontinuity instance or resort to interpolating its location, resulting in unreliable outcomes. Therefore, this QSS strategy can significantly reduce computational effort and improve efficiency in large sparse stiff models with frequent discontinuities [@improveliqss].
 
 # Statement of need
 
-Traditional solvers are challenged by large sparse stiff models and systems with frequent discontinuities. As an example, the Advection Diffusion Reaction (ADR) problem is a large sparse stiff system that classic methods can not efficiently solve. In addtion, the buck converter is a stiff system with frequent discontinuities that classic solvers from the DifferentialEquations.jl [@Rackauckas2017] are currently unable to handle properly.  
-Written in the easy-to-learn [Julia programming language](https://julialang.org) [@julia], inspired by the [`qss-solver`]( https://github.com/CIFASIS/qss-solver)[@qssC] written in C, and taking advantage of the Julia features such as multiple dispatch and metaprogramming, the QuantizedSystemSolver.jl package [@ElBellili2024] shares the same interface as DifferentialEquations.jl package and aims to efficiently solve a large set of stiff Ordinary Differential Equations (ODEs) with a set of events via implementing the QSS and LIQSS methods. It is the first such tool to be published in the Julia ecosystem. This package is able to easily solve the ADR and the buck converter problems as shown in the examples section.
+Traditional solvers are challenged by large sparse stiff models and systems with frequent discontinuities. As an example, the Advection Diffusion Reaction (ADR) problem is a large sparse stiff system that classic methods cannot efficiently solve. In addition, the buck converter is a stiff system with frequent discontinuities that classic solvers from the DifferentialEquations.jl [@Rackauckas2017] are currently unable to handle properly.  
+Written in the easy-to-learn Julia programming language [@julia] and inspired by the ``qss-solver`` written in C [@qssC], the QuantizedSystemSolver.jl package [@ElBellili2024] takes advantage of Julia features such as multiple dispatch and metaprogramming. The package shares the same interface as the DifferentialEquations.jl package and aims to efficiently solve a large set of stiff Ordinary Differential Equations (ODEs) with events by implementing the QSS and LIQSS methods. It is the first such tool to be published in the Julia ecosystem. This package can easily solve the ADR and buck converter problems, as shown in the Examples Section.
 
 # Quantization-based techniques
-The main idea behind QSS methods is to divide the system state space into quantized regions and represent the system state in terms of these quantized values. The QSS methods update the system status only when certain thresholds or conditions are met, instead of continuously simulating the system's behavior. For instance, state variables with large gradients will get to their thresholds more frequently than states with small gradients. If a state or input gets to its next threshold, a discrete event is triggered, and information is passed on to other integrators that depend on it [@fe2006a].
-The general form of a problem composed of a set of ODEs and a set of events that QSS is able to solve is described in the following: 
+The main idea behind QSS methods is to divide the system state space into quantized regions and represent the system state in terms of these quantized values. The QSS methods update the system state only when certain thresholds or conditions are met, instead of continuously simulating the system's behavior. For instance, state variables with large gradients will reach their thresholds more frequently than states with small gradients. If a state or input gets to its next threshold, a discrete event is triggered, and information is passed on to other integrators that depend on it [@fe2006a].
+The general form of a problem composed of a set of ODEs and a set of events that QSS is able to solve is described in the following equations: 
 
 
 
@@ -48,7 +48,7 @@ $\qquad p_d = L_v(x_i...,p_d...,t)$
 
 $\qquad \qquad...$
 
-where $X = [x_1,x_2...,x_n]^T$ is the state vector, $f:\mathbb{R}^n \rightarrow \mathbb{R}^n$ is the derivative function, and $t$ is the independent variable. $D = [d_1,d_2...,d_m]^T$ is the vector of the system discrete variables. $n$ and $m$ are the number of state variables and discrete variables of the system respectively. $v$ is the number of events and $zc$ is an event condition, $H$ and $L$ are functions used in the effects of the event $zc$.
+where $X = [x_1,x_2...,x_n]^T$ is the state vector, $f:\mathbb{R}^n \rightarrow \mathbb{R}^n$ is the derivative function, and $t$ is the independent variable. $P = [p_1,p_2...,p_m]^T$ is the vector of the system discrete variables. $n$ and $m$ are the number of state variables and discrete variables of the system respectively. $v$ is the number of events and $zc$ is an event condition, $H$ and $L$ are functions used in the effects of the event $zc$.
 
 In classic methods, the difference between $t_k$ (the current time) and $t_{k+1}$ (the next time) is called the step size. 
 In QSS, besides the step size, the difference between $x_i(t_k)$ (the current value) and $x_i(t_{k+1})$ (the next value) is called the quantum $\Delta_i$. Depending on the type of the QSS method (explicit or implicit), a new variable $q_i$ is set to equal $x_i(t_k)$  or $x_i(t_{k+1})$ respectively. $q_i$ is called the quantized state of $x_i$, and it is used in updating the derivative function [@elbellili].  A general description of a QSS algorithm is given as follows:
@@ -83,8 +83,6 @@ In QSS, besides the step size, the difference between $x_i(t_k)$ (the current va
 
 2. If an event needs to occur
 
-    -   Recheck validity of the event
-
     -   Execute the event and update the related quantized variables
 
     -   For any variable $j$ depends on the event
@@ -103,7 +101,7 @@ In QSS, besides the step size, the difference between $x_i(t_k)$ (the current va
 
 
 # Package description
-While the package is optimized to be fast, extensibility is not compromised. It is divided into 3 entities that can be extended separately: ``problem``, ``algorithm``, and ``solution``. The rest of the code is to create these entities and glue them together as shown in Figure 1. The API was designed to match the differentialEquations.jl interace while providing an easier way to handle events. The problem is defined inside a function, in which the user may introduce any parameters, variables, equations, and events:
+While the package is optimized to be fast, extensibility is not compromised. It is divided into three entities that can be extended separately: The ``problem``, the ``algorithm``, and the ``solution``. The rest of the code creates these entities and glue them together as shown in Figure 1. The API was designed to match the differentialEquations.jl interface while providing an easier way to handle events. The problem is defined inside a function, in which the user may introduce any parameters, variables, equations, and events:
 ```julia
 function func(du,u,p,t) 
   #parameters
@@ -121,12 +119,12 @@ p = [p1_0,p2_0...] # parameters and discrete variables
 odeprob=ODEProblem(func,u,tspan,p)
 ```
 
-The output of the previous `ODEProblem` function, which is a QSS problem, is passed to a solver function with other configuration arguments
-such as the algorithm type and the tolerance. The solve function dispatches on the given algorithm and starts the numerical integration.
+The output of the previous `ODEProblem` function, which is a QSS problem, is passed to a ``solve`` function with other configuration arguments
+such as the algorithm type and the tolerance. The ``solve`` function dispatches on the given algorithm and starts the numerical integration.
 ```julia
 sol = solve(odeprob,algorithm,abstol = ...,reltol = ...)    
 ```
-At the end, a solution object is produced that can be queried, plotted, and error-analyzed.
+At the end, a solution object is produced that can be queried, plotted, and analyzed for error.
 
 ```julia
 sol(0.0005,idxs = 2) # get the value of variable 2 at time 0.0005
@@ -135,8 +133,8 @@ plot(sol)          # plot the solution
 ```
 ![The package structure](diagram.png)
 
-In addition, the package contains several shared helper functions used during the integration process by the algorithm such as the scheduler that organizes which variable of the system to update at any specific time of the simulation. 
-The solver uses other packages such as  [`MacroTools.jl`]( https://github.com/FluxML/MacroTools.jl) [@MacroTools] for user-code parsing, [`SymEngine.jl`]( https://github.com/symengine/SymEngine.jl) [@SymEngine] for Jacobian computation and dependencies extraction, and a modified [`TaylorSeries.jl`](https://github.com/JuliaDiff/TaylorSeries.jl/) [@TaylorSeries] that uses caching to obtain free Taylor variable operations as the current version of TaylorSeries creates a heap allocated object for every operation. The approximation through Taylor variables transforms any complicated equations to polynomials, which makes root finding cheaper, which the QSS methods relies heavily on it. 
+In addition, the package contains several shared helper functions used by the algorithm during the integration process, such as the scheduler that organizes which variable of the system to update at any specific time of the simulation. 
+The solver uses other packages such as  [`MacroTools.jl`]( https://github.com/FluxML/MacroTools.jl) [@MacroTools] for user-code parsing, [`SymEngine.jl`]( https://github.com/symengine/SymEngine.jl) [@SymEngine] for Jacobian computation and dependency extraction. It also uses and a modified [`TaylorSeries.jl`](https://github.com/JuliaDiff/TaylorSeries.jl/) [@TaylorSeries] that implements caching to obtain free Taylor variable operations, since the current version of TaylorSeries creates a heap allocated object for every operation. The approximation through Taylor variables transforms any complicated equations to polynomials, making root finding cheaper--a process that QSS methods rely on heavily. 
 
 # Examples
 ## The buck converter
@@ -153,7 +151,7 @@ $\frac{du_c}{dt} = \frac{i_l-\frac{u_c}{R}}{C}$
  $\frac{di_l}{dt} = \frac{-uc-i_d.RD}{L}$
 
 
-The buck problem can be solved by the QuantizedSystemSolver.jl package using the following code:
+The buck problem contains frequent discontinuities and can be solved by the QuantizedSystemSolver.jl package using the following code:
 
 ```julia
 using QuantizedSystemSolver
@@ -195,7 +193,7 @@ plot(sol)
 ## The Advection Diffusion Reaction problem
 
 
-The Advection diffusion reaction  equations describe many processes that include heat transfer, chemical reactions and many phenomena in areas of environmental sciences. They are ordinary differential equations that resulted from the method of lines (MOL). The resulting system in Eq.(\ref{ADREq}) is a stiff system with possible large entries outside the main diagonal. :
+The Advection diffusion reaction  equations describe many processes that include heat transfer, chemical reactions and many phenomena in areas of environmental sciences. They are ordinary differential equations that resulted from the method of lines (MOL). The resulting system in the following equations is a large sparse stiff system [@improveliqss]:
 
 $\text{For} \; i = 1...N-1$
 
@@ -212,7 +210,7 @@ $u_i(t=0) = 1 \;\;\;\;\; if \;\;\; i \in [1,N/3]$
 $u_i(t=0) = 0 \;\;\;\; else$
 
 
-The advection parameter is fixed at $a = 1$, and the reaction parameter is fixed at $r = 1000$. The number of grid points is picked as $N = 1000$, and $d$ is set to 0.1 [@improveliqss].
+The advection parameter is fixed at $a = 1$, and the reaction parameter is fixed at $r = 1000$. The number of grid points is picked as $N = 1000$, and $d$ is set to 0.1.
 
 
 The QuantizedSystemSolver code to solve this system:
@@ -242,14 +240,14 @@ p1 = plot(sol,idxs = [1,400,1000],title = "");
 ```
 ![Plot of the ADR problem](adr_nmliqss2.png)
 
-This is a great example to compare QSS methods against classic integration methods, because it is a large sparse stiff system.
-Replacing nmliqss2 by solvers such as ABDF2(), QNDF2(), QBDF2(), Rosenbrock23, or Trapezoid() from the DifferentialEquations.jl produce the following CPU time comparison:
+This is a great example to show the advantage of QSS methods against classic integration methods, because it is a large sparse stiff system.
+Replacing nmliqss2 by second-order stiff solvers such as ABDF2(), QNDF2(), QBDF2(), Rosenbrock23, or Trapezoid() from the DifferentialEquations.jl produces the following CPU time comparison in Fig(5):
 
 ![CPU time comparison in the ADR problem](adrBenchmarks.png)
 
 
 # Conclusion
-The package provides powerful functionality to efficiently solve stiff ODEs with events using the quantized state method. It is lightweight and well-documented, making it accessible for researchers and students across various domains. Additionally, users can extend its capabilities by defining their own subclasses of the abstract types (``problem``, ``algorithm``, and ``solution``) to handle different problem types.
+The package provides robust functionality to efficiently solve stiff ODEs with events using the quantized state method. It is lightweight and well-documented, making it accessible for researchers and students across various domains. Additionally, users can extend its capabilities by defining their own subclasses of the abstract types (``problem``, ``algorithm``, and ``solution``) to handle a variety of problems.
 
 # Acknowledgements
 This research has received no external funding.
