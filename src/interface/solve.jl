@@ -21,7 +21,7 @@ function solve(prob::NLODEProblem{PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, 
    custom_Solve(prob,al,Val(Sparsity),tspan[2],saveat,tspan[1],abstol,reltol,maxErr,maxiters)
 end
 """
-   solve(prob::NLODEProblem{PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType};sparsity::Val{Sparsity}=Val(false),saveat=Inf::Float64,abstol=1e-4::Float64,reltol=1e-3::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{PRTYPE,T,D,Z,CS,SolverType,OrderType,Sparsity} 
+    solve(prob::NLODEProblem{PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType};sparsity::Val{Sparsity}=Val(false),saveat=Inf::Float64,abstol=1e-4::Float64,reltol=1e-3::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{PRTYPE,T,D,Z,CS,SolverType,OrderType,Sparsity} 
 
 dispatches on a specific integrator based on the algorithm provided and send a nonlinear ODE problem to the integrator.
 
