@@ -34,7 +34,7 @@ end
 p = [1e5,1e-5,1e-4,0.0];u0 = [0.0,0.0];tspan = (0.0,0.001)
 #Define the problem
 prob = ODEProblem(buck,u0,tspan,p)</code></pre><h3 id="Solve"><a class="docs-heading-anchor" href="#Solve">Solve</a><a id="Solve-1"></a><a class="docs-heading-anchor-permalink" href="#Solve" title="Permalink"></a></h3><p>The solve function takes the previous problem (prob) with a chosen algorithm (qss1,qss2,liqss1,liqss2,nmliqss1,nmliqss2) and some simulation settings, and it outputs a solution (sol).</p><pre><code class="language-julia hljs">sol= solve(prob,nmliqss2(),abstol=1e-3,reltol=1e-2)</code></pre><h3 id="Query-the-solution"><a class="docs-heading-anchor" href="#Query-the-solution">Query the solution</a><a id="Query-the-solution-1"></a><a class="docs-heading-anchor-permalink" href="#Query-the-solution" title="Permalink"></a></h3><p>The values of all variables  at time 0.0005:</p><pre><code class="language-julia hljs">sol(0.0005)
-#[-0.0001274906262221241, 19.430164566823173]</code></pre><p>The value of variable 2  at time 0.0005:</p><pre><code class="language-julia hljs">sol(2,0.0005)
+#[-0.0001274906262221241, 19.430164566823173]</code></pre><p>The value of variable 2  at time 0.0005:</p><pre><code class="language-julia hljs">sol(0.0005,2)
 #19.430164566823173
 sol(0.0005,idxs=2)
 #19.430164566823173</code></pre><p>The total number of steps to end of the simulation:</p><pre><code class="language-julia hljs">sol.stats.totalSteps
