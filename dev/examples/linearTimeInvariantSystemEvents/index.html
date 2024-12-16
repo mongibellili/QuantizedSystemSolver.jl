@@ -18,7 +18,7 @@ u0= [-1.0, -2.0]
 p=[-20.0,-80.0,1600.0,1.24,0.01,0.2]
 prob = ODEProblem(funcName,u0,tspan,p)
 #Solve the problem
-sol = solve(odeprob,nmliqss2()abstol = 1e-4, reltol = 1e-2)
+sol = solve(odeprob,nmliqss2(),abstol = 1e-4, reltol = 1e-2)
 p1 = plot(sol);</code></pre><p>The analytic solution is given by the following equations:</p><pre><code class="language-julia hljs">using Plots
 function A1() 
     x1(t)=105.83453057676363*-8.83362618880318*exp(-10.943696474115944*t)-127.91533865757171*-7.303470585390368*exp(-9.046303525884058*t)-0.32323232323231316
