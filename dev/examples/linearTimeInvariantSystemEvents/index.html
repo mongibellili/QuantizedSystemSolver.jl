@@ -18,7 +18,7 @@ u0= [-1.0, -2.0]
 p=[-20.0,-80.0,1600.0,1.24,0.01,0.2]
 prob = ODEProblem(funcName,u0,tspan,p)
 #Solve the problem
-sol = solve(odeprob,nmliqss2(),abstol = 1e-4, reltol = 1e-2)
+sol = solve(odeprob,nmliqss2()abstol = 1e-4, reltol = 1e-2)
 p1 = plot(sol);</code></pre><p>The analytic solution is given by the following equations:</p><pre><code class="language-julia hljs">using Plots
 function A1() 
     x1(t)=105.83453057676363*-8.83362618880318*exp(-10.943696474115944*t)-127.91533865757171*-7.303470585390368*exp(-9.046303525884058*t)-0.32323232323231316
@@ -63,6 +63,8 @@ tspan = (0.0,10.0)
 u0= [-1.0, -2.0]
 p=[-20.0,-80.0,1600.0,1.24,0.01,0.2]
 prob = ODEProblem(funcName,u0,tspan,p)
+absTol=1e-4
+relTol=1e-2
 function condition1( u, t, integrator) 
     (t-2.5)
 end
@@ -81,5 +83,5 @@ end
 cb1 = ContinuousCallback(condition1, affect1!,nothing;  )
 cb2 = ContinuousCallback(condition2, affect2!,nothing; )
 cbs = CallbackSet(cb1, cb2)
-solRosenbrock23 = solve(prob,Rosenbrock23(),callback = cbs,abstol = 1e-4, reltol = 1e-2) 
-p1=plot!(solRosenbrock23,title=&quot;Rosenbrock23&quot;)</code></pre><p>The plots are displayed below:</p><p><strong>LTI with events using QuantizedSystemSolver.jl</strong></p><p><img src="../../assets/img/plot_sol_nmliqss2_LTI.png" alt="LTI_events plot with nmliqss2"/></p><p><strong>LTI with events using DifferentialEquation.jl</strong></p><p><img src="../../assets/img/plot_solsolRosenbrock23lti.png" alt="LTI_events plot with Rosenbrock23"/></p><p><strong>LTI with events using the analytic solution</strong></p><p><img src="../../assets/img/plot_analysolltibc.png" alt="LTI_events Analytic plot"/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../linearTimeInvariantSystem/">« Linear Time Invariant</a><a class="docs-footer-nextpage" href="../vanderpol/">Van der Pol »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.4.1 on <span class="colophon-date" title="Thursday 12 December 2024 14:21">Thursday 12 December 2024</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+solRosenbrock23 = solve(prob,Rosenbrock23(),callback = cbs,abstol = absTol, reltol = relTol) 
+p1=plot!(solRosenbrock23,title=&quot;Rosenbrock23&quot;)</code></pre><p>The plots are displayed below:</p><p><strong>LTI with events using QuantizedSystemSolver.jl</strong></p><p><img src="../../assets/img/plot_sol_nmliqss2_LTI.png" alt="LTI_events plot with nmliqss2"/></p><p><strong>LTI with events using DifferentialEquation.jl</strong></p><p><img src="../../assets/img/plot_solsolRosenbrock23lti.png" alt="LTI_events plot with Rosenbrock23"/></p><p><strong>LTI with events using the analytic solution</strong></p><p><img src="../../assets/img/plot_analysolltibc.png" alt="LTI_events Analytic plot"/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../linearTimeInvariantSystem/">« Linear Time Invariant</a><a class="docs-footer-nextpage" href="../vanderpol/">Van der Pol »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.4.1 on <span class="colophon-date" title="Monday 23 December 2024 11:48">Monday 23 December 2024</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
