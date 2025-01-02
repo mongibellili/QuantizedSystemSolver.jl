@@ -4,19 +4,19 @@
 
  Similar to [`symbolFromRef`](@ref)  but for discrete variables. It gets a symbol diplusNumber, diminusNumber, or ditimesNumber from expressions like i+Number, i+Number, i+Number.
 """
-function symbolFromRefdiscrete(refEx)#refEx is i+1 in d[i+1] for example
+function symbolFromRefdiscrete(refEx)#refEx is i+1 in p[i+1] for example
   if refEx isa Expr #
     if refEx.args[1]==:+
-      refEx=Symbol("d",(refEx.args[2]), "plus",(refEx.args[3]))
+      refEx=Symbol("p",(refEx.args[2]), "plus",(refEx.args[3]))
     elseif refEx.args[1]==:-
-      refEx=Symbol("d",(refEx.args[2]), "minus",(refEx.args[3]))
+      refEx=Symbol("p",(refEx.args[2]), "minus",(refEx.args[3]))
     elseif refEx.args[1]==:*
-      refEx=Symbol("d",(refEx.args[2]), "times",(refEx.args[3]))
+      refEx=Symbol("p",(refEx.args[2]), "times",(refEx.args[3]))
     elseif refEx.args[1]==:/
       Error("parameter_index division is not implemented Yet")
     end
   else
-    refEx=Symbol("d",(refEx))
+    refEx=Symbol("p",(refEx))
   end
   return refEx
 end
@@ -47,13 +47,13 @@ Extracts the jacobian dependency (jac) as well as the exacte symbolic jacobian e
   # Example:
 ```jldoctest
 using QuantizedSystemSolver
-(varNum, rhs, jac, exactJacExpr, symDict, dD) = (1, :(d[2] - 2.0 * q[1] * d[2]), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(), Dict{Expr, Union{Float64, Int64, Expr, Symbol}}(), Dict{Symbol, Expr}(:q10 => :(q[10]), :d2 => :(d[2]), :qiminus1 => :(q[i - 1]), :d1 => :(d[1]), :q1 => :(q[1])), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}())
+(varNum, rhs, jac, exactJacExpr, symDict, dD) = (1, :(p[2] - 2.0 * q[1] * p[2]), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(), Dict{Expr, Union{Float64, Int64, Expr, Symbol}}(), Dict{Symbol, Expr}(:q10 => :(q[10]), :d2 => :(p[2]), :qiminus1 => :(q[i - 1]), :d1 => :(p[1]), :q1 => :(q[1])), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}())
 QuantizedSystemSolver.extractJacDepNormalDiscrete(varNum, rhs, jac, exactJacExpr, symDict, dD )
 (jac, exactJacExpr, dD) 
 
 # output
 
-(Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(1 => Set([1])), Dict{Expr, Union{Float64, Int64, Expr, Symbol}}(:((1, 1)) => :(-2.0 * d[2])), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(2 => Set([1])))
+(Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(1 => Set([1])), Dict{Expr, Union{Float64, Int64, Expr, Symbol}}(:((1, 1)) => :(-2.0 * p[2])), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(2 => Set([1])))
 ```
 
 """
@@ -64,14 +64,14 @@ function extractJacDepNormalDiscrete(varNum::Int,rhs::Union{Symbol,Int,Expr},jac
       if a isa Expr && a.head == :ref && a.args[1]==:q#  these 3 lines are the same as the continuous problem
           push!(jacSet,  (a.args[2]))  
           a=eliminateRef(a)#q[i] -> qi
-      elseif a isa Expr && a.head == :ref && a.args[1]==:d# 
+      elseif a isa Expr && a.head == :ref && a.args[1]==:p# 
           dDset=Set{Union{Int,Symbol,Expr}}()
           if haskey(dD, (a.args[2]))    # dict dD already contains key a.args[2] (in this case var i) # optional check but to skip the get function
               dDset=get(dD,(a.args[2]),dDset) # if var di first time to influence some var, dDset is empty, otherwise get its set of influences 
           end
-          push!(dDset,  varNum)      # d... also influences varNum, so update the set
+          push!(dDset,  varNum)      # p... also influences varNum, so update the set
           dD[(a.args[2])]=dDset       #update the dict
-          a=eliminateRef(a)#d[i] -> di
+          a=eliminateRef(a)#p[i] -> di
       end
       return a 
   end
@@ -98,13 +98,13 @@ This function is similar to the [`extractJacDepNormalDiscrete`](@ref)  function 
     # Example:
 ```jldoctest
 using QuantizedSystemSolver
-(b, niter, rhs, jac, exactJacExpr, symDict, dD) = (2, 9, :(d[1] * q[i - 1] * 1.5), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(1 => Set([1])), Dict{Expr, Union{Float64, Int64, Expr, Symbol}}(:((1, 1)) => :(-2.0 * d[2])), Dict{Symbol, Expr}(:q10 => :(q[10]), :d2 => :(d[2]), :qiminus1 => :(q[i - 1]), :d1 => :(d[1]), :q1 => :(q[1])), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(2 => Set([1])))
+(b, niter, rhs, jac, exactJacExpr, symDict, dD) = (2, 9, :(p[1] * q[i - 1] * 1.5), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(1 => Set([1])), Dict{Expr, Union{Float64, Int64, Expr, Symbol}}(:((1, 1)) => :(-2.0 * p[2])), Dict{Symbol, Expr}(:q10 => :(q[10]), :d2 => :(p[2]), :qiminus1 => :(q[i - 1]), :d1 => :(p[1]), :q1 => :(q[1])), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(2 => Set([1])))
 QuantizedSystemSolver.extractJacDepLoopDiscrete(b, niter, rhs, jac, exactJacExpr, symDict, dD )
 (jac, exactJacExpr, dD) 
 
 # output
 
-(Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(:((2, 9)) => Set([:(i - 1)]), 1 => Set([1])), Dict{Expr, Union{Float64, Int64, Expr, Symbol}}(:((1, 1)) => :(-2.0 * d[2]), :(((2, 9), i - 1)) => :(1.5 * d[1])), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(2 => Set([1]), 1 => Set([:((2, 9))])))
+(Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(:((2, 9)) => Set([:(i - 1)]), 1 => Set([1])), Dict{Expr, Union{Float64, Int64, Expr, Symbol}}(:((1, 1)) => :(-2.0 * p[2]), :(((2, 9), i - 1)) => :(1.5 * p[1])), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(2 => Set([1]), 1 => Set([:((2, 9))])))
 ```
 """
 function extractJacDepLoopDiscrete(b::Int,niter::Int,rhs::Union{Symbol,Int,Expr},jac :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},exactJacExpr :: Dict{Expr,Union{Float64,Int,Symbol,Expr}},symDict::Dict{Symbol,Expr},dD :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}}) 
@@ -113,7 +113,7 @@ function extractJacDepLoopDiscrete(b::Int,niter::Int,rhs::Union{Symbol,Int,Expr}
       if a isa Expr && a.head == :ref && a.args[1]==:q# 
               push!(jacSet,  (a.args[2]))  #
               a=eliminateRef(a)#q[i] -> qi
-      elseif a isa Expr && a.head == :ref && a.args[1]==:d
+      elseif a isa Expr && a.head == :ref && a.args[1]==:p
         if a.args[2] isa Int  
           dDset=Set{Union{Int,Symbol,Expr}}()
           if haskey(dD, (a.args[2]))
@@ -146,7 +146,7 @@ Extracts the zero-crossing jacobian dependency as a vector (zcjac), the dependen
    # Example:
 ```jldoctest
 using QuantizedSystemSolver
-(counter, zcf, zcjac, SZ, dZ) = (2, :(q[2] - d[1]), [[1]], Dict{Int64, Set{Int64}}(1 => Set([1])), Dict{Int64, Set{Int64}}())
+(counter, zcf, zcjac, SZ, dZ) = (2, :(q[2] - p[1]), [[1]], Dict{Int64, Set{Int64}}(1 => Set([1])), Dict{Int64, Set{Int64}}())
 QuantizedSystemSolver.extractZCJacDepNormal(counter, zcf, zcjac, SZ, dZ)
 (zcjac, SZ, dZ) 
 
@@ -167,7 +167,7 @@ function extractZCJacDepNormal(counter::Int,zcf::Expr,zcjac :: Vector{Vector{Int
           end
           push!(SZset,  counter)
           SZ[(a.args[2])]=SZset
-      elseif a isa Expr && a.head == :ref && a.args[1]==:d# 
+      elseif a isa Expr && a.head == :ref && a.args[1]==:p# 
           dZset=Set{Int}()
           if haskey(dZ, (a.args[2]))
               dZset=get(dZ,(a.args[2]),dZset)
@@ -389,4 +389,54 @@ function unionDependency(HZD1::Vector{Vector{Int}},HZD2::Vector{Vector{Int}})
     HZD[j]=collect(hzSet)
   end
   HZD
+end 
+
+
+function createDiscEqFun(otherCode::Expr,equs::Dict{Union{Int,Expr},Union{Int,Symbol,Expr}},zcequs::Vector{Expr},eventequs::Vector{Expr},fname::Symbol,f::F) where{F}
+  #allEpxpr=Expr(:block)
+  ##############diffEqua###############
+  s="if i==0 return nothing\n"  # :i is the mute var
+  for elmt in equs
+      Base.remove_linenums!(elmt[1])
+      Base.remove_linenums!(elmt[2])
+      if elmt[1] isa Int
+          s*="elseif i==$(elmt[1]) $(elmt[2]) ;return nothing\n"
+      end
+      if elmt[1] isa Expr
+          s*="elseif $(elmt[1].args[1])<=i<=$(elmt[1].args[2]) $(elmt[2]) ;return nothing\n"
+      end
+  end
+  s*=" end "
+  myex1=Meta.parse(s)
+  push!(otherCode.args,myex1)
+   ##############ZCF###################
+  if length(zcequs)>0
+      s="if zc==1  $(zcequs[1]) ;return nothing"
+      for i=2:length(zcequs)
+          s*= " elseif zc==$i $(zcequs[i]) ;return nothing"
+      end
+      s*= " end "
+      myex2=Meta.parse(s)
+      push!(otherCode.args,myex2)
+  end
+   #############events#################
+  if length(eventequs)>0
+      s= "if ev==1  $(eventequs[1]) ;return nothing"
+      for i=2:length(eventequs)
+          s*= " elseif ev==$i $(eventequs[i]) ;return nothing"
+      end
+      s*= " end "
+      myex3=Meta.parse(s)
+      push!(otherCode.args,myex3)
+  end
+ 
+  Base.remove_linenums!(otherCode)
+  def=Dict{Symbol,Any}()
+  def[:head] = :function
+  def[:name] = fname  
+  def[:args] = [:(i::Int),:(zc::Int),:(ev::Int),:(q::Vector{Taylor0}),:(p::Vector{Float64}), :(t::Taylor0),:(cache::Vector{Taylor0}),:(f_::F)]
+  def[:body] = otherCode 
+  functioncode=combinedef(def)
+ # @show functioncode
+
 end

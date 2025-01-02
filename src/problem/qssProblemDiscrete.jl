@@ -5,7 +5,7 @@
         continues building a discrete problem. 
     It receives an expression and useful info from the main interface. It calls the transform function from the taylorEquationConstruction.jl file to change the AST of all operations to personlized ones and update the needed cache size. It also construct via helper functions the Exact jacobian function, the jacobian dependecy (jac) and the state-derivative dependency (SD:opposite of jacobian), the state to zero-crossing dependency (SZ) and events to derivative and zero-crossing (HD and HZ) as vectors. Finally, it groups all differential equations and events in one function, and constructs a discrete problem from the qssProblemDefinition.jl file.
 """
-function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Vector{Float64},du::Symbol,symDict::Dict{Symbol,Expr},tspan::Tuple{Float64, Float64},discrVars::Vector{EM},prbName::Symbol) where {T,D,Z,EM} # used EM to account for when problem contains if-statements whithout discrete vars
+function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Vector{Float64},du::Symbol,symDict::Dict{Symbol,Expr},tspan::Tuple{Float64, Float64},discrVars::Union{Vector{EM}, Tuple{Vararg{EM}}},prbName::Symbol) where {T,D,Z,EM} # used EM to account for when problem contains if-statements whithout discrete vars
     if VERBOSE println("discrete nlodeprobfun  T D Z= $T $D $Z") end
     equs=Dict{Union{Int,Expr},Union{Int,Symbol,Expr}}()
     jac = Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}}()# set used because do not want to re-insert an existing varNum
@@ -19,6 +19,8 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Ve
     dZ= Dict{Int,Set{Int}}()  # the effect of a discrete variable on which zc
     evsArr = EventDependencyStruct[]
     num_cache_equs=1#cachesize
+    functionEx=quote end #function to be inserted inside the main function
+    otherCode=quote end #other code to be inserted inside the main function
     for argI in odeExprs.args
         if argI isa Expr &&  argI.head == :(=) && argI.args[1]== :discrete # old approach use the keyword discrete to define discrete variables
             discrVars = Vector{Float64}(argI.args[2].args)
@@ -39,6 +41,8 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Ve
                 end 
                 equs[varNum]=rhs
             end  
+        elseif argI isa Expr && argI.head==:function
+            push!(functionEx.args,argI)
         elseif @capture(argI, for counter_ in b_:niter_ loopbody__ end)
              specRHS=loopbody[1].args[2] 
              extractJacDepLoopDiscrete(b,niter,specRHS,jac,exacteJacExpr,symDict,dD ) 
@@ -87,11 +91,11 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Ve
               #------------------pos Event--------------------#
             posEv_disArrLHS= Vector{Int}()  
             posEv_conArrLHS= Vector{Int}() 
-            posEv_conArrRHS=Vector{Int}()    #to be used inside intgrator to updateOtherQs (intgrateState) before executing the event there is no discArrRHS because d is not changing overtime to be updated      
+            posEv_conArrRHS=Vector{Int}()    #to be used inside intgrator to updateOtherQs (intgrateState) before executing the event there is no discArrRHS because p is not changing overtime to be updated      
             for j = 1:length(posEvExp.args)  # j coressponds the number of statements under one posEvent
                 if (posEvExp.args[j]  isa Expr &&  posEvExp.args[j].head == :(=)) 
                         poslhs=posEvExp.args[j].args[1];posrhs=posEvExp.args[j].args[2]
-                    if (poslhs  isa Expr &&  poslhs.head == :ref && (poslhs.args[1]==:q || poslhs.args[1]==:d))    
+                    if (poslhs  isa Expr &&  poslhs.head == :ref && (poslhs.args[1]==:q || poslhs.args[1]==:p))    
                        if poslhs.args[1]==:q
                             push!(posEv_conArrLHS,poslhs.args[2])
                         else # lhs is a disc var 
@@ -109,11 +113,11 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Ve
             #------------------neg Event--------------------#
             negEv_disArrLHS= Vector{Int}()#
             negEv_conArrLHS= Vector{Int}()# 
-            negEv_conArrRHS=Vector{Int}()#to be used inside intgrator to updateOtherQs (intgrateState) before executing the event there is no discArrRHS because d is not changing overtime to be updated      
+            negEv_conArrRHS=Vector{Int}()#to be used inside intgrator to updateOtherQs (intgrateState) before executing the event there is no discArrRHS because p is not changing overtime to be updated      
             if negEvExp.args[1] != :nothing
                 for j = 1:length(negEvExp.args)  # j coressponds the number of statements under one negEvent
                     neglhs=negEvExp.args[j].args[1];negrhs=negEvExp.args[j].args[1]
-                    if (neglhs  isa Expr &&  neglhs.head == :ref && (neglhs.args[1]==:q || neglhs.args[1]==:d))    
+                    if (neglhs  isa Expr &&  neglhs.head == :ref && (neglhs.args[1]==:q || neglhs.args[1]==:p))    
                         if neglhs.args[1]==:q
                             push!(negEv_conArrLHS,neglhs.args[2])
                         else # lhs is a disc var 
@@ -132,58 +136,32 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Ve
             push!(evsArr, structposEvent)
             structnegEvent = EventDependencyStruct(indexNegEv, negEv_conArrLHS, negEv_disArrLHS,negEv_conArrRHS)
             push!(evsArr, structnegEvent)
+        elseif argI.args[1] isa Symbol && argI.args[2] isa Number  # already changed in main and plugged in diff eqs
+        elseif  argI.args[1] isa Symbol && argI.args[2] isa Expr && (argI.args[2].head==:call || argI.args[2].head==:ref) #already changed in main and plugged in diff eqs
+        else# keep any other code written by user
+            push!(otherCode.args,argI)
         end #end cases 
  
     end #end for #
-    allEpxpr=Expr(:block)
-    ##############diffEqua###############
-    s="if i==0 return nothing\n"  # :i is the mute var
-    for elmt in equs
-        Base.remove_linenums!(elmt[1])
-        Base.remove_linenums!(elmt[2])
-        if elmt[1] isa Int
-            s*="elseif i==$(elmt[1]) $(elmt[2]) ;return nothing\n"
-        end
-        if elmt[1] isa Expr
-            s*="elseif $(elmt[1].args[1])<=i<=$(elmt[1].args[2]) $(elmt[2]) ;return nothing\n"
-        end
-    end
-    s*=" end "
-    myex1=Meta.parse(s)
-    push!(allEpxpr.args,myex1)
-     ##############ZCF###################
-    if length(zcequs)>0
-        s="if zc==1  $(zcequs[1]) ;return nothing"
-        for i=2:length(zcequs)
-            s*= " elseif zc==$i $(zcequs[i]) ;return nothing"
-        end
-        s*= " end "
-        myex2=Meta.parse(s)
-        push!(allEpxpr.args,myex2)
-    end
-     #############events#################
-    if length(eventequs)>0
-        s= "if ev==1  $(eventequs[1]) ;return nothing"
-        for i=2:length(eventequs)
-            s*= " elseif ev==$i $(eventequs[i]) ;return nothing"
-        end
-        s*= " end "
-        myex3=Meta.parse(s)
-        push!(allEpxpr.args,myex3)
-    end
+
     fname= prbName # problem name received as outside function name as written by user
     if odeExprs.args[1] isa Expr && odeExprs.args[1].args[2] isa Expr && odeExprs.args[1].args[2].head == :tuple#user has to enter problem info in a tuple
-        fname= odeExprs.args[1].args[2].args[1]
+        fname= Symbol(odeExprs.args[1].args[2].args[1])
     end
-    Base.remove_linenums!(allEpxpr)
-    def=Dict{Symbol,Any}()
-    def[:head] = :function
-    def[:name] = fname  
-    def[:args] = [:(i::Int),:(zc::Int),:(ev::Int),:(q::Vector{Taylor0}),:(d::Vector{Float64}), :(t::Taylor0),:(cache::Vector{Taylor0})]
-    def[:body] = allEpxpr 
-    functioncode=combinedef(def)
-   # @show functioncode
-    functioncodeF=@RuntimeGeneratedFunction(functioncode)
+
+   if length(functionEx.args)>1
+    #closurefunc=()->nothing
+    closurefunc=@RuntimeGeneratedFunction(functionEx.args[2]) 
+    diffEqfunction=createDiscEqFun(otherCode,equs,zcequs,eventequs,fname,closurefunc)# diff equations before this are stored in a dict:: now we have a giant function that holds all diff equations
+    
+    else
+        closurefunc=0
+        diffEqfunction=createDiscEqFun(otherCode,equs,zcequs,eventequs,fname,closurefunc)# diff equations before this are stored in a dict:: now we have a giant function that holds all diff equations
+    end
+
+
+
+    functioncodeF=@RuntimeGeneratedFunction(diffEqfunction)
     jacVect=createJacVect(jac,Val(T))
     SDVect=createSDVect(jac,Val(T))
     dDVect =createdDvect(dD,Val(D))
@@ -208,7 +186,7 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Ve
     exactJacfunction=createExactJacFun(exacteJacExpr,fname)
     exactJacfunctionF=@RuntimeGeneratedFunction(exactJacfunction)
     if VERBOSE println("discrete problem created") end
-    myodeProblem = NLODEDiscProblemSpan(fname,Val(1),Val(T),Val(D),Val(Z),Val(num_cache_equs),initCond, discrVars, jacVect ,ZCjac  ,functioncodeF, evsArr,SDVect,HZ,HD,SZvect,exactJacfunctionF,tspan)
+    myodeProblem = NLODEDiscProblemSpan(fname,Val(1),Val(T),Val(D),Val(Z),Val(num_cache_equs),initCond, collect(discrVars), jacVect ,ZCjac  ,functioncodeF, evsArr,SDVect,HZ,HD,SZvect,exactJacfunctionF,tspan,[closurefunc])
 end
 
 #old interface without tspan
@@ -217,7 +195,7 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Ve
     tspan = (0.0,1.0)
     prbName=:_
     probspan=NLodeProblemFunc(odeExprs,Val(T),Val(D),Val(Z),initCond,du,symDict,tspan,discrVars,prbName)  
-    myodeProblem = NLODEDiscProblem(probspan.prname,Val(1),Val(T),Val(D),Val(Z),probspan.cacheSize,probspan.initConditions, probspan.discreteVars, probspan.jac ,probspan.ZCjac  ,probspan.eqs, probspan.eventDependencies,probspan.SD,probspan.HZ,probspan.HD,probspan.SZ,probspan.exactJac)
+    myodeProblem = NLODEDiscProblem(probspan.prname,Val(1),Val(T),Val(D),Val(Z),probspan.cacheSize,probspan.initConditions, probspan.discreteVars, probspan.jac ,probspan.ZCjac  ,probspan.eqs, probspan.eventDependencies,probspan.SD,probspan.HZ,probspan.HD,probspan.SZ,probspan.exactJac, probspan.closureFuncs)
 end
 
 

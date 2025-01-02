@@ -1,12 +1,12 @@
 """
-    integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_Data{0}, odep::NLODEProblem{PRTYPE,T,D,0,CS}, f::Function, jac::Function, SD::Function) where {PRTYPE,O,T,CS,D}
+    integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_Data{0}, odep::NLODEProblem{F,PRTYPE,T,D,0,CS}, f::Function, jac::Function, SD::Function) where {F,PRTYPE,O,T,CS,D}
 
 Integrates a nonlinear ordinary differential equation (ODE) problem using a Quantized State System (QSS) algorithm.
 
 # Arguments
 - `Al::QSSAlgorithm{:qss,O}`: The QSS algorithm to be used for integration.
 - `CommonqssData::CommonQSS_Data{0}`: Common data structure for QSS integration.
-- `odep::NLODEProblem{PRTYPE,T,0,0,CS}`: The nonlinear ODE problem to be solved.
+- `odep::NLODEProblem{F,PRTYPE,T,0,0,CS}`: The nonlinear ODE problem to be solved.
 - `f::Function`: The function defining the ODE system.
 - `jac::Function`: The Jacobian dependency function of the ODE system.
 - `SD::Function`: The state derivative dependency function.
@@ -17,7 +17,7 @@ Integrates a nonlinear ordinary differential equation (ODE) problem using a Quan
 
 
 """
-function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_Data{0}, odep::NLODEProblem{PRTYPE,T,D,0,CS}, f::Function, jac::Function, SD::Function) where {PRTYPE,O,T,CS,D}
+function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_Data{0}, odep::NLODEProblem{F,PRTYPE,T,D,0,CS}, f::Function, jac::Function, SD::Function) where {F,PRTYPE,O,T,CS,D}
   if VERBOSE println("integration...") end
   ft = CommonqssData.finalTime
   initTime = CommonqssData.initialTime
@@ -38,7 +38,7 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_Data{0}, o
   savedTimes = CommonqssData.savedTimes
   taylorOpsCache = CommonqssData.taylorOpsCache
   d = CommonqssData.d 
-  
+  clF=odep.closureFuncs[1]
   numSteps = Vector{Int}(undef, T)
   n = 1
   for k = 1:O # compute initial derivatives for x and q (similar to a recursive way )
@@ -48,7 +48,7 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_Data{0}, o
    end # q computed from x and it is going to be used in the next x
    for i = 1:T
      clearCache(taylorOpsCache, Val(CS), Val(O))
-     f(i, q, t, d,taylorOpsCache)
+     f(i, q, t, d,taylorOpsCache,clF)
        if k==1
          x[i].coeffs[k+1] = (taylorOpsCache[1].coeffs[1]) 
        elseif k==2
@@ -73,7 +73,7 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_Data{0}, o
       computeNextTime(Val(O), i, initTime, nextInputTime, x, quantum)
       if nextInputTime[i] == Inf
         clearCache(taylorOpsCache, Val(CS), Val(O))
-        f(i, q, t + smallAdvance, d,taylorOpsCache)
+        f(i, q, t + smallAdvance, d,taylorOpsCache,clF)
         computeNextInputTime(Val(O), i, initTime, smallAdvance, taylorOpsCache[1], nextInputTime, x, quantum)
         if nextInputTime[i] > initTime + 2 * smallAdvance
           nextInputTime[i] = initTime + 2 * smallAdvance
@@ -133,7 +133,7 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_Data{0}, o
           end
         end
         clearCache(taylorOpsCache, Val(CS), Val(O))
-        f(j, q, t, d,taylorOpsCache)
+        f(j, q, t, d,taylorOpsCache,clF)
         computeDerivative(Val(O), x[j], taylorOpsCache[1])
         reComputeNextTime(Val(O), j, simt, nextStateTime, x, q, quantum)
       end
@@ -149,12 +149,12 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_Data{0}, o
       end
       tq[index] = simt
       clearCache(taylorOpsCache, Val(CS), Val(O))
-      f(index, q, t, d,taylorOpsCache)
+      f(index, q, t, d,taylorOpsCache,clF)
       computeDerivative(Val(O), x[index], taylorOpsCache[1])
       computeNextTime(Val(O), index, simt, nextInputTime, x, quantum)
       if nextInputTime[index] > simt + 2 * elapsed
         clearCache(taylorOpsCache, Val(CS), Val(O))
-        f(index, q, t + smallAdvance, d,taylorOpsCache)
+        f(index, q, t + smallAdvance, d,taylorOpsCache,clF)
         computeNextInputTime(Val(O), index, simt, smallAdvance, taylorOpsCache[1], nextInputTime, x, quantum)
         if nextInputTime[index] > simt + 2 * elapsed
           nextInputTime[index] = simt + 2 * elapsed
@@ -176,7 +176,7 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_Data{0}, o
           if elapsedq > 0 integrateState(Val(O - 1), q[b], elapsedq) ;tq[b] = simt end
         end
         clearCache(taylorOpsCache, Val(CS), Val(O))
-        f(j, q, t, d,taylorOpsCache)
+        f(j, q, t, d,taylorOpsCache,clF)
         computeDerivative(Val(O), x[j], taylorOpsCache[1])
         reComputeNextTime(Val(O), j, simt, nextStateTime, x, q, quantum)
       end

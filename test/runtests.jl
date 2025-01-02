@@ -15,7 +15,7 @@ using BSON
     u = [-1.0, -2.0]
     tspan=(0.0,1.0)
     odeprob=ODEProblem(sysb53,u,tspan)
-    @test typeof(odeprob) <: QuantizedSystemSolver.NLODEProblem{1,2,0,0,3} 
+    @test typeof(odeprob) <: NLODEProblem{Int64,1,2,0,0,3} 
     @test odeprob.prname == :sysb53
     @test odeprob.initConditions == [-1.0, -2.0]
     @test odeprob.jac == [[1,2], [1,2]] || odeprob.jac == [[2,1], [2,1]]
@@ -36,7 +36,7 @@ using BSON
     q=[q1,q2];
     t=Taylor0(zeros(Order + 1), Order)
     d=[0.0]
-     odeprob.eqs(1, q, t,d, cache)
+     odeprob.eqs(1, q, t,d, cache,0)
      @test cache[1][0]==-20.0*1.0-80.0*2.0+1600.0
 
      sol=solve(odeprob,nmliqss1())

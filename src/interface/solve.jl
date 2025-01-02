@@ -1,9 +1,9 @@
  # user does not provide solver. default mliqss2 is used
-function solve(prob::NLODEProblem{PRTYPE,T,D,Z,CS},tspan::Tuple{Float64, Float64};sparsity::Val{Sparsity}=Val(false),saveat=Inf::Float64,abstol=1e-4::Float64,reltol=1e-3::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where {PRTYPE,T,D,Z,CS,Sparsity}    
+function solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},tspan::Tuple{Float64, Float64};sparsity::Val{Sparsity}=Val(false),saveat=Inf::Float64,abstol=1e-4::Float64,reltol=1e-3::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where {F,PRTYPE,T,D,Z,CS,Sparsity}    
    solve(prob,QSSAlgorithm(Val(:nmliqss),Val(2)),tspan;sparsity=sparsity,saveat=saveat,abstol=abstol,reltol=reltol,maxErr=maxErr,maxiters=maxiters)  
 end
 """
-    solve(prob::NLODEProblem{PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};sparsity::Val{Sparsity}=Val(false),saveat=Inf::Float64,abstol=1e-4::Float64,reltol=1e-3::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{PRTYPE,T,D,Z,CS,SolverType,OrderType,Sparsity}   
+    solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};sparsity::Val{Sparsity}=Val(false),saveat=Inf::Float64,abstol=1e-4::Float64,reltol=1e-3::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,Sparsity}   
 
 dispatches on a specific integrator based on the algorithm provided and send a nonlinear ODE problem to the integrator.
 
@@ -17,16 +17,16 @@ With the exception of the argument prob and tspan, all other arguments are optio
   - The maxiters argument defaults to 1e7. It specifies the maximum number of steps allowed by the integrator. If the user wants to extend the limit on the maximum number of steps, this argument can be used. 
 After the simulation, the solution is returned as a Solution object.
 """
-function solve(prob::NLODEProblem{PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};sparsity::Val{Sparsity}=Val(false),saveat=Inf::Float64,abstol=1e-4::Float64,reltol=1e-3::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{PRTYPE,T,D,Z,CS,SolverType,OrderType,Sparsity}    
+function solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};sparsity::Val{Sparsity}=Val(false),saveat=Inf::Float64,abstol=1e-3::Float64,reltol=1e-2::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,Sparsity}    
    custom_Solve(prob,al,Val(Sparsity),tspan[2],saveat,tspan[1],abstol,reltol,maxErr,maxiters)
 end
 """
-    solve(prob::NLODEProblem{PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType};sparsity::Val{Sparsity}=Val(false),saveat=Inf::Float64,abstol=1e-4::Float64,reltol=1e-3::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{PRTYPE,T,D,Z,CS,SolverType,OrderType,Sparsity} 
+    solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType};sparsity::Val{Sparsity}=Val(false),saveat=Inf::Float64,abstol=1e-4::Float64,reltol=1e-3::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,Sparsity} 
 
 dispatches on a specific integrator based on the algorithm provided and send a nonlinear ODE problem to the integrator.
 
 # Arguments
-- `prob::NLODEProblem{PRTYPE,T,D,Z,CS}`: The nonlinear ODE problem to solve.
+- `prob::NLODEProblem{F,PRTYPE,T,D,Z,CS}`: The nonlinear ODE problem to solve.
 - `al::QSSAlgorithm{SolverType, OrderType}`: The QSS algorithm to use for solving the problem.
 - `sparsity::Val{Sparsity}`: A type parameter indicating whether to use sparsity (default: `Val(false)`).
 - `saveat::Float64`: The time interval at which to save the solution (default: `Inf`).
@@ -37,19 +37,19 @@ dispatches on a specific integrator based on the algorithm provided and send a n
 
 
 """
-function solve(prob::NLODEProblem{PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType};sparsity::Val{Sparsity}=Val(false),saveat=Inf::Float64,abstol=1e-4::Float64,reltol=1e-3::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{PRTYPE,T,D,Z,CS,SolverType,OrderType,Sparsity}    
+function solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType};sparsity::Val{Sparsity}=Val(false),saveat=Inf::Float64,abstol=1e-3::Float64,reltol=1e-2::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,Sparsity}    
    tspan=prob.tspan
     custom_Solve(prob,al,Val(Sparsity),tspan[2],saveat,tspan[1],abstol,reltol,maxErr,maxiters)
  end
 #default solve method: ...extension or modification is done through creating another custom_solve with different PRTYPE
 
 """
-    custom_Solve(prob::NLODEProblem{PRTYPE,T,D,Z,CS}, al::QSSAlgorithm{Solver, Order}, ::Val{Sparsity}, finalTime::Float64, saveat::Float64, initialTime::Float64, abstol::Float64, reltol::Float64, maxErr::Float64, maxiters::Int) where {PRTYPE,T,D,Z,CS,Solver,Order,Sparsity}
+    custom_Solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS}, al::QSSAlgorithm{Solver, Order}, ::Val{Sparsity}, finalTime::Float64, saveat::Float64, initialTime::Float64, abstol::Float64, reltol::Float64, maxErr::Float64, maxiters::Int) where {F,PRTYPE,T,D,Z,CS,Solver,Order,Sparsity}
 
 calls the integrator to solve the nonlinear ODE problem.
 
 # Arguments
-- `prob::NLODEProblem{PRTYPE,T,D,Z,CS}`: The nonlinear ODE problem to solve.
+- `prob::NLODEProblem{F,PRTYPE,T,D,Z,CS}`: The nonlinear ODE problem to solve.
 - `al::QSSAlgorithm{Solver, Order}`: The QSS algorithm to use for solving the problem.
 - `::Val{Sparsity}`: A type parameter indicating whether to use sparsity.
 - `finalTime::Float64`: The final time for the simulation.
@@ -61,7 +61,7 @@ calls the integrator to solve the nonlinear ODE problem.
 - `maxiters::Int`: The maximum number of iterations.
 
 """
-function custom_Solve(prob::NLODEProblem{PRTYPE,T,D,Z,CS},al::QSSAlgorithm{Solver, Order},::Val{Sparsity},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxiters::Int) where{PRTYPE,T,D,Z,CS,Solver,Order,Sparsity}
+function custom_Solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{Solver, Order},::Val{Sparsity},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxiters::Int) where{F,PRTYPE,T,D,Z,CS,Solver,Order,Sparsity}
     if saveat!=Inf error("saveat is not implemented") end
      commonQSSdata=createCommonData(prob,Val(Order),finalTime,saveat, initialTime,abstol,reltol,maxErr,maxiters)
      jac=getClosure(prob.jac)::Function #if in future jac and SD are different datastructures
@@ -69,7 +69,7 @@ function custom_Solve(prob::NLODEProblem{PRTYPE,T,D,Z,CS},al::QSSAlgorithm{Solve
     if Solver==:qss
         integrate(al,commonQSSdata,prob,prob.eqs,jac,SD)
     else
-          liqssdata=createLiqssData(prob,Val(Sparsity),Val(T),Val(Order))
+          liqssdata=createLiqssData(Val(Sparsity),Val(T),Val(Order))
            integrate(al,commonQSSdata,liqssdata,prob,prob.eqs,jac,SD,prob.exactJac)
     end
  end
@@ -82,12 +82,12 @@ function custom_Solve(prob::NLODEProblem{PRTYPE,T,D,Z,CS},al::QSSAlgorithm{Solve
 #helper methods...extension can be done through creating others via specializing on one PRTYPE or more of the symbols (PRTYPE,T,D,Z,Order) 
 #################################################################################################################################################################################
 """
-    createCommonData(prob::NLODEProblem{PRTYPE,T,D,Z,CS}, ::Val{Order}, finalTime::Float64, saveat::Float64, initialTime::Float64, abstol::Float64, reltol::Float64, maxErr::Float64, maxiters::Int) where {PRTYPE,T,D,Z,CS,Order}
+    createCommonData(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS}, ::Val{Order}, finalTime::Float64, saveat::Float64, initialTime::Float64, abstol::Float64, reltol::Float64, maxErr::Float64, maxiters::Int) where {F,PRTYPE,T,D,Z,CS,Order}
 
 creates the necessary data for the simulation and stores it in a CommonQSS_Data struct.
 
 # Arguments
-- `prob::NLODEProblem{PRTYPE,T,D,Z,CS}`: The nonlinear ODE problem to solve.
+- `prob::NLODEProblem{F,PRTYPE,T,D,Z,CS}`: The nonlinear ODE problem to solve.
 - `::Val{Order}`: The order of the algorithm.
 - `finalTime::Float64`: The final time for the simulation.
 - `saveat::Float64`: The time interval at which to save the solution.
@@ -100,7 +100,7 @@ creates the necessary data for the simulation and stores it in a CommonQSS_Data 
 # Returns
 - A data structure containing common data required for the QSS algorithm.
 """
-function createCommonData(prob::NLODEProblem{PRTYPE,T,D,Z,CS},::Val{Order},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxiters::Int)where{PRTYPE,T,D,Z,CS,Order}
+function createCommonData(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},::Val{Order},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxiters::Int)where{F,PRTYPE,T,D,Z,CS,Order}
     quantum =  zeros(T)
     x = Vector{Taylor0}(undef, T)
     q = Vector{Taylor0}(undef, T)
@@ -138,12 +138,11 @@ end
 
 
 """
-    createLiqssData(prob::NLODEProblem{PRTYPE,T,D,Z,CS},::Val{false},::Val{T},::Val{Order}) where {PRTYPE,T,D,Z,CS,Order}
+    createLiqssData(::Val{false},::Val{T},::Val{Order}) where {T,Order}
 
 Creates LIQSS-specific data required for solving an ODE problem.
 
 # Arguments
-- `prob::NLODEProblem{PRTYPE,T,D,Z,CS}`: The ODE problem to solve.
 - `::Val{Sparsity}`: A type parameter indicating whether to use sparsity.
 - `::Val{T}`: The number of continuous variables.
 - `::Val{Order}`: The order of the algorithm.
@@ -152,7 +151,7 @@ Creates LIQSS-specific data required for solving an ODE problem.
 - A data structure containing LIQSS-specific data required for liQSS algorithms.
 
 """
-function createLiqssData(prob::NLODEProblem{PRTYPE,T,D,Z,CS},::Val{false},::Val{T},::Val{Order}) where {PRTYPE,T,D,Z,CS,Order}
+function createLiqssData(::Val{false},::Val{T},::Val{Order}) where {T,Order}
     qaux = Vector{MVector{Order,Float64}}(undef, T)
     dxaux=Vector{MVector{Order,Float64}}(undef, T)
      for i=1:T

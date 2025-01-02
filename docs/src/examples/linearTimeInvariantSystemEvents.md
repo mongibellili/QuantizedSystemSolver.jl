@@ -22,7 +22,7 @@ u0= [-1.0, -2.0]
 p=[-20.0,-80.0,1600.0,1.24,0.01,0.2]
 prob = ODEProblem(funcName,u0,tspan,p)
 #Solve the problem
-sol = solve(odeprob,nmliqss2()abstol = 1e-4, reltol = 1e-2)
+sol = solve(odeprob,nmliqss2(),abstol = 1e-4, reltol = 1e-2)
 p1 = plot(sol);
 ```
 
@@ -78,8 +78,6 @@ tspan = (0.0,10.0)
 u0= [-1.0, -2.0]
 p=[-20.0,-80.0,1600.0,1.24,0.01,0.2]
 prob = ODEProblem(funcName,u0,tspan,p)
-absTol=1e-4
-relTol=1e-2
 function condition1( u, t, integrator) 
     (t-2.5)
 end
@@ -98,7 +96,7 @@ end
 cb1 = ContinuousCallback(condition1, affect1!,nothing;  )
 cb2 = ContinuousCallback(condition2, affect2!,nothing; )
 cbs = CallbackSet(cb1, cb2)
-solRosenbrock23 = solve(prob,Rosenbrock23(),callback = cbs,abstol = absTol, reltol = relTol) 
+solRosenbrock23 = solve(prob,Rosenbrock23(),callback = cbs,abstol = 1e-4, reltol = 1e-2) 
 p1=plot!(solRosenbrock23,title="Rosenbrock23")
 ```
 

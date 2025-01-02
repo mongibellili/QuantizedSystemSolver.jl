@@ -1,7 +1,7 @@
 # ADR problem
 
 
-The Advection diffusion reaction  equations describe many processes that include heat transfer, chemical reactions and many phenomena in areas of environmental sciences. They are ordinary differential equations that resulted from the method of lines (MOL). The resulting system in Eq.(\ref{ADREq}) is a stiff system with possible large entries outside the main diagonal. :
+The Advection diffusion reaction  equations describe many processes that include heat transfer, chemical reactions and many phenomena in areas of environmental sciences. They are ordinary differential equations that resulted from the method of lines (MOL). The resulting system is a large stiff system with possible large entries outside the main diagonal. :
 ```math
 \begin{align*}
 & \text{For} \; i=1...N-1  \quad \quad  \dot u_i=-a\frac{u_i-u_{i-1}}{\Delta x}+d\frac{u_{i+1}-2u_i+u_{i-1}}{\Delta x^2}+r(u_i^2-u_i^3) \nonumber \\
@@ -64,7 +64,7 @@ Other DifferentialEquations.jl solvers are tested and the following plot shows t
 ![plot_adrcompare](../assets/img/adrBenchmarks.png)
 
 In addition order1 is compared against the ImplicitEuler with a reference solution using an absolute
-tolerance abstol = 10−12 and relative tolerance reltol = 10−8 using the solver Feagin14 (aRunge-Kutta method of order14) :
+tolerance abstol = 10−12 and relative tolerance reltol = 10−8 using the solver Feagin14 (a Runge-Kutta method of order14) :
 
 |Solver   | @btime  | Relative Error
 |---|---|---|

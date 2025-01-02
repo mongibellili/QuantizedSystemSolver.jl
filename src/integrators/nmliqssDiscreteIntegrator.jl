@@ -1,6 +1,6 @@
 
 """
-    integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z}, liqssdata::LiQSS_Data{O,false}, odep::NLODEProblem{PRTYPE,T,D,Z,CS}, f::Function, jac::Function, SD::Function, exactA::Function) where {PRTYPE,O,T,D,Z,CS}
+    integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z}, liqssdata::LiQSS_Data{O,false}, odep::NLODEProblem{F,PRTYPE,T,D,Z,CS}, f::Function, jac::Function, SD::Function, exactA::Function) where {F,PRTYPE,O,T,D,Z,CS}
 
 Integrates a nonlinear ordinary differential equation (ODE) problem with `events` using the nmLiqss (modified Liqss that detect events) discrete integrator algorithm.
 
@@ -8,7 +8,7 @@ Integrates a nonlinear ordinary differential equation (ODE) problem with `events
 - `Al::QSSAlgorithm{:nmliqss,O}`: The QSS algorithm type for nmLiqss.
 - `CommonqssData::CommonQSS_Data{Z}`: Common QSS data structure.
 - `liqssdata::LiQSS_Data{O,false}`: LiQSS data structure.
-- `odep::NLODEProblem{PRTYPE,T,D,Z,CS}`: Nonlinear ODE problem to be solved.
+- `odep::NLODEProblem{F,PRTYPE,T,D,Z,CS}`: Nonlinear ODE problem to be solved.
 - `f::Function`: The function defining the ODE system.
 - `jac::Function`: The Jacobian dependency function of the ODE system.
 - `SD::Function`: The state derivative dependency function.
@@ -18,7 +18,7 @@ Integrates a nonlinear ordinary differential equation (ODE) problem with `events
 - A solution.
 
 """
-function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z}, liqssdata::LiQSS_Data{O,false}, odep::NLODEProblem{PRTYPE,T,D,Z,CS}, f::Function, jac::Function, SD::Function, exactA::Function) where {PRTYPE,O,T,D,Z,CS}
+function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z}, liqssdata::LiQSS_Data{O,false}, odep::NLODEProblem{F,PRTYPE,T,D,Z,CS}, f::Function, jac::Function, SD::Function, exactA::Function) where {F,PRTYPE,O,T,D,Z,CS}
   if VERBOSE println("integration...") end
   cacheA = liqssdata.cacheA
   ft = CommonqssData.finalTime
@@ -42,6 +42,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z
 
   #*********************************problem info*****************************************
   d = CommonqssData.d 
+  clF=odep.closureFuncs[1]
   zc_SimpleJac = odep.ZCjac
   HZ = odep.HZ
   HD = odep.HD
@@ -51,7 +52,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z
   dxaux = liqssdata.dxaux
  
   exactA(q, d, cacheA, 1, 1, initTime + 1e-9)
-  f(1, -1, -1, q, d, t, taylorOpsCache)
+  f(1, -1, -1, q, d, t, taylorOpsCache,clF)
   trackSimul = Vector{Int}(undef, 1)
   #********************************helper values*******************************  
   oldsignValue = MMatrix{Z,2}(zeros(Z * 2))  #usedto track if zc changed sign; each zc has a value and a sign 
@@ -65,7 +66,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z
     end # q computed from x and it is going to be used in the next x
     for i = 1:T
       clearCache(taylorOpsCache, Val(CS), Val(O))
-       f(i, -1, -1, q, d, t, taylorOpsCache)    
+       f(i, -1, -1, q, d, t, taylorOpsCache,clF)    
         if k==1
           x[i].coeffs[k+1] = (taylorOpsCache[1].coeffs[1])  
         elseif k==2
@@ -90,7 +91,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z
       computeNextTime(Val(O), i, initTime, nextInputTime, x, quantum)
       if nextInputTime[i] == Inf
         clearCache(taylorOpsCache, Val(CS), Val(O))
-        f(i, -1, -1, q, d, t + smallAdvance, taylorOpsCache)
+        f(i, -1, -1, q, d, t + smallAdvance, taylorOpsCache,clF)
         computeNextInputTime(Val(O), i, initTime, smallAdvance, taylorOpsCache[1], nextInputTime, x, quantum)
         if nextInputTime[i] > initTime + 2 * smallAdvance
           nextInputTime[i] = initTime + 2 * smallAdvance
@@ -102,7 +103,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z
   end
   for i = 1:Z
     clearCache(taylorOpsCache, Val(CS), Val(O))
-     f(-1, i, -1, x, d, t, taylorOpsCache)
+     f(-1, i, -1, x, d, t, taylorOpsCache,clF)
     oldsignValue[i, 2] = taylorOpsCache[1][0] #value
     oldsignValue[i, 1] = sign(taylorOpsCache[1][0]) #sign modify 
     computeNextEventTime(Val(O), i, taylorOpsCache[1], oldsignValue, initTime, nextEventTime, quantum, absQ)
@@ -169,7 +170,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z
           if nmisCycle_and_simulUpdate(  aij, aji, trackSimul, Val(O), index, j, dirI, x, q, quantum, exactA, d, cacheA, dxaux, qaux, tx, tq, simt, ft)
             simulStepCount += 1
             clearCache(taylorOpsCache, Val(CS), Val(O))
-            f(index, -1, -1, q, d, t, taylorOpsCache)
+            f(index, -1, -1, q, d, t, taylorOpsCache,clF)
             computeDerivative(Val(O), x[index], taylorOpsCache[1])
             for k in SD(j)  #j influences k
               if k != index && k != j
@@ -189,7 +190,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z
                   end
                 end
                 clearCache(taylorOpsCache, Val(CS), Val(O))
-                f(k, -1, -1, q, d, t, taylorOpsCache)
+                f(k, -1, -1, q, d, t, taylorOpsCache,clF)
                 computeDerivative(Val(O), x[k], taylorOpsCache[1])
                 Liqss_reComputeNextTime(Val(O), k, simt, nextStateTime, x, q, quantum)
               end#end if k!=0
@@ -200,7 +201,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z
                 if elapsedq > 0 integrateState(Val(O - 1), q[b], elapsedq) ;tq[b] = simt end
               end
               clearCache(taylorOpsCache, Val(CS), Val(O))
-              f(-1, k, -1, q, d, t, taylorOpsCache)   # run ZCF--------      
+              f(-1, k, -1, q, d, t, taylorOpsCache,clF)   # run ZCF--------      
               computeNextEventTime(Val(O), k, taylorOpsCache[1], oldsignValue, simt, nextEventTime, quantum, absQ)
             end#end for SZ
           end#end ifcycle check
@@ -223,7 +224,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z
         elapsedq = simt - tq[c]
          if elapsedq > 0 integrateState(Val(O - 1), q[c], elapsedq) ;tq[c] = simt end   # c never been visited 
        clearCache(taylorOpsCache, Val(CS), Val(O))
-        f(c, -1, -1, q, d, t, taylorOpsCache)
+        f(c, -1, -1, q, d, t, taylorOpsCache,clF)
          computeDerivative(Val(O), x[c], taylorOpsCache[1])
          Liqss_reComputeNextTime(Val(O), c, simt, nextStateTime, x, q, quantum)
       end#end for SD
@@ -233,7 +234,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z
           if elapsedq > 0  integrateState(Val(O - 1), q[b], elapsedq) ;tq[b] = simt end
         end
         clearCache(taylorOpsCache, Val(CS), Val(O))
-         f(-1, j, -1, q, d, t, taylorOpsCache)   # run ZCF--------      
+         f(-1, j, -1, q, d, t, taylorOpsCache,clF)   # run ZCF--------      
         computeNextEventTime(Val(O), j, taylorOpsCache[1], oldsignValue, simt, nextEventTime, quantum, absQ)
       end#end for SZ
     ##################################input########################################
@@ -249,12 +250,12 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z
       end
       tq[index] = simt
       clearCache(taylorOpsCache, Val(CS), Val(O))
-      f(index, -1, -1, q, d, t, taylorOpsCache)
+      f(index, -1, -1, q, d, t, taylorOpsCache,clF)
       computeDerivative(Val(O), x[index], taylorOpsCache[1])
       computeNextTime(Val(O), index, simt, nextInputTime, x, quantum) #
       if nextInputTime[index] > simt + 2 * elapsed
         clearCache(taylorOpsCache, Val(CS), Val(O))
-        f(index, -1, -1, q, d, t + smallAdvance, taylorOpsCache)
+        f(index, -1, -1, q, d, t + smallAdvance, taylorOpsCache,clF)
         computeNextInputTime(Val(O), index, simt, smallAdvance, taylorOpsCache[1], nextInputTime, x, quantum)
         if nextInputTime[index] > simt + 2 * elapsed
           nextInputTime[index] = simt + 2 * elapsed
@@ -280,7 +281,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z
           end
         end
         clearCache(taylorOpsCache, Val(CS), Val(O))
-        f(j, -1, -1, q, d, t, taylorOpsCache)
+        f(j, -1, -1, q, d, t, taylorOpsCache,clF)
         computeDerivative(Val(O), x[j], taylorOpsCache[1])
         reComputeNextTime(Val(O), j, simt, nextStateTime, x, q, quantum)
       end#end for
@@ -295,7 +296,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z
           if elapsedq > 0 integrateState(Val(O - 1), q[b], elapsedq) ;tq[b] = simt end
         end
         clearCache(taylorOpsCache, Val(CS), Val(O))
-        f(j, -1, -1, q, d, t, taylorOpsCache)
+        f(j, -1, -1, q, d, t, taylorOpsCache,clF)
         computeDerivative(Val(O), x[j], taylorOpsCache[1])
         reComputeNextTime(Val(O), j, simt, nextStateTime, x, q, quantum)
       end#end for
@@ -305,7 +306,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z
           if elapsedq > 0 integrateState(Val(O - 1), q[b], elapsedq); tq[b] = simt end
         end
         clearCache(taylorOpsCache, Val(CS), Val(O))
-        f(-1, j, -1, q, d, t, taylorOpsCache)   # run ZCF--------      
+        f(-1, j, -1, q, d, t, taylorOpsCache,clF)   # run ZCF--------      
         computeNextEventTime(Val(O), j, taylorOpsCache[1], oldsignValue, simt, nextEventTime, quantum, absQ)
       end#end for SZ
     #################################################################event########################################
@@ -318,7 +319,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z
         end
       end
       clearCache(taylorOpsCache, Val(CS), Val(O))
-      f(-1, index, -1, q, d, t, taylorOpsCache)    # run ZCF again to verify-------- 
+      f(-1, index, -1, q, d, t, taylorOpsCache,clF)    # run ZCF again to verify-------- 
       if oldsignValue[index, 2] * taylorOpsCache[1][0] >= 0 # if computeNextEvent errored 
         if abs(taylorOpsCache[1][0]) > 1e-9 * absQ # if error is negligeable then ok consider as event, else reject....if both have same sign and zcf is not very small: zc==1e-9*absQ is allowed as an event
           computeNextEventTime(Val(O), index, taylorOpsCache[1], oldsignValue, simt, nextEventTime, quantum, absQ)
@@ -347,7 +348,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z
           tq[b] = simt
         end
       end
-       f(-1, -1, modifiedIndex, x, d, t, taylorOpsCache)# execute event----------------no need to clear cache; events touch vectors directly
+       f(-1, -1, modifiedIndex, x, d, t, taylorOpsCache,clF)# execute event----------------no need to clear cache; events touch vectors directly
       for i in evDep[modifiedIndex].evCont
         quantum[i] = relQ * abs(x[i].coeffs[1])
         quantum[i] = quantum[i] < absQ ? absQ : quantum[i]
@@ -379,7 +380,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z
           end
         end
         clearCache(taylorOpsCache, Val(CS), Val(O))
-        f(j, -1, -1, q, d, t, taylorOpsCache)
+        f(j, -1, -1, q, d, t, taylorOpsCache,clF)
         computeDerivative(Val(O), x[j], taylorOpsCache[1])
         Liqss_reComputeNextTime(Val(O), j, simt, nextStateTime, x, q, quantum)
       end
@@ -392,7 +393,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{Z
           end
         end
         clearCache(taylorOpsCache, Val(CS), Val(O))
-        f(-1, j, -1, q, d, t, taylorOpsCache)  # run ZCF--------  
+        f(-1, j, -1, q, d, t, taylorOpsCache,clF)  # run ZCF--------  
         computeNextEventTime(Val(O), j, taylorOpsCache[1], oldsignValue, simt, nextEventTime, quantum, absQ)
       end
     end#end state/input/event

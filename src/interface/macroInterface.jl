@@ -99,7 +99,8 @@ in old interface, this prepares information about the ODE problem by replacing s
 - A `probHelper` struct containing the number of zero-crossings (`numZC`), a dictionary of symbols and expressions (`symDict`), .
 """
 function arrangeProb(x::Expr) # replace symbols and params , extract info about sizes,symbols,initconds
-    param=Dict{Symbol,Union{Float64,Expr}}()
+    #param=Dict{Symbol,Union{Float64,Expr}}()
+    param=Dict{Symbol,Union{Float64,Int64,Expr,Symbol}}()
     symDict=Dict{Symbol,Expr}()
     stateVarName=:u
     du=:nothing #default anything 

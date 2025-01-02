@@ -36,7 +36,7 @@ Then use DifferentialEquations instead of QuantizedSystemSolver and use solvers 
 This is a great example that shows when we need to use the explicit qss, the implicit liqss, or the modified implicit nmliqss. This is a stiff problem so we need to use the implicit methods, but it also contains larger entries outside the main diagonal of the Jacobian. Therefore, nmliqss should the most appropriate algorithm to use. 
 
 --- 
-There is another syntax to define a problem through a macro `@NLodeProblem`as it is shown in the following code.
+There is another syntax to define a problem through a macro `@NLodeProblem` as it is shown in the following code.
 
 ```jldoctest
 using QuantizedSystemSolver

@@ -1,5 +1,5 @@
 """
-    NLODEContProblem{PRTYPE,T,D,Z,CS}
+    NLODEContProblem{F,PRTYPE,T,D,Z,CS}
 A struct that holds the continuous problem. It has the following fields:  
   - `prname`: The name of the problem  
   - `prtype`: The type of the problem  
@@ -13,8 +13,9 @@ A struct that holds the continuous problem. It has the following fields:
   - `jac`: The Jacobian dependency  
   - `SD`: The state derivative dependency  
   - `exactJac`: The exact Jacobian function  
+  - `closureFuncs::Vector{F}` # function that holds closure function inside system defined by user
 """
-struct NLODEContProblem{PRTYPE,T,D,Z,CS}<: NLODEProblem{PRTYPE,T,D,Z,CS} 
+struct NLODEContProblem{F,PRTYPE,T,D,Z,CS}<: NLODEProblem{F,PRTYPE,T,D,Z,CS} 
   prname::Symbol # problem name used to distinguish printed results
   prtype::Val{PRTYPE} # problem type: not used but created in case in the future we want to handle problems differently
   a::Val{T} #problem size based on number of vars: T is used not a: 'a' is a mute var
@@ -27,9 +28,10 @@ struct NLODEContProblem{PRTYPE,T,D,Z,CS}<: NLODEProblem{PRTYPE,T,D,Z,CS}
   jac::Vector{Vector{Int}}#Jacobian dependency..I have a der and I want to know which vars affect it...opposite of SD...is a vect for direct method (later @resumable..closure..for saved method)
   SD::Vector{Vector{Int}}#  I have a var and I want the der that are affected by it
   exactJac::Function  # used only in the implicit intgration
+  closureFuncs::Vector{F} # function that holds closure function inside system defined by user
 end
 """
-    NLODEContProblemSpan{PRTYPE,T,D,Z,CS}
+    NLODEContProblemSpan{F,PRTYPE,T,D,Z,CS}
 A struct that holds the continuous problem with tspan. It has the following fields:  
   - `prname`: The name of the problem  
   - `prtype`: The type of the problem  
@@ -44,8 +46,9 @@ A struct that holds the continuous problem with tspan. It has the following fiel
   - `SD`: The state derivative dependency  
   - `exactJac`: The exact Jacobian function  
   - `tspan::Tuple{Float64, Float64}`:  This field variable did not exist in the original NLODEContProblem as this simulation time should part of the problem. However, to match the differentialEqation.jl interface, the tspan is added to the definition of the problem.
+  - `closureFuncs::Vector{F}` # function that holds closure function inside system defined by user
 """
-struct NLODEContProblemSpan{PRTYPE,T,D,Z,CS}<: NLODEProblem{PRTYPE,T,D,Z,CS} 
+struct NLODEContProblemSpan{F,PRTYPE,T,D,Z,CS}<: NLODEProblem{F,PRTYPE,T,D,Z,CS} 
   prname::Symbol # problem name used to distinguish printed results
   prtype::Val{PRTYPE} # problem type: not used but created in case in the future we want to handle problems differently
   a::Val{T} #problem size based on number of vars: T is used not a: 'a' is a mute var
@@ -59,11 +62,27 @@ struct NLODEContProblemSpan{PRTYPE,T,D,Z,CS}<: NLODEProblem{PRTYPE,T,D,Z,CS}
   SD::Vector{Vector{Int}}#  I have a var and I want the der that are affected by it
   exactJac::Function  # used only in the implicit intgration
   tspan::Tuple{Float64, Float64}
+  closureFuncs::Vector{F} # 
 end
- 
+struct NLODEContAdvProblemSpan{F,PRTYPE,T,D,Z,CS}<: NLODEProblem{F,PRTYPE,T,D,Z,CS} 
+  prname::Symbol # problem name used to distinguish printed results
+  prtype::Val{PRTYPE} # problem type: not used but created in case in the future we want to handle problems differently
+  a::Val{T} #problem size based on number of vars: T is used not a: 'a' is a mute var
+  c::Val{D} #number of discrete events=2*ZCF: Z is used not c: 'c' is a mute var
+  b::Val{Z} #number of Zero crossing functions (ZCF) based on number of 'if statements': Z is used not b: 'b' is a mute var
+  cacheSize::Val{CS}# CS= cache size is used  : 'cacheSize' is a mute var
+  initConditions::Vector{Float64}  # 
+  discreteVars::Vector{Float64} # to match the differentialEqation.jl interface that wants the parameter p to be part of the problem
+  eqs::Function#function that holds all ODEs
+  jac::Vector{Vector{Int}}#Jacobian dependency..I have a der and I want to know which vars affect it...opposite of SD...is a vect for direct method (later @resumable..closure..for saved method)
+  SD::Vector{Vector{Int}}#  I have a var and I want the der that are affected by it
+  exactJac::Function  # used only in the implicit intgration
+  tspan::Tuple{Float64, Float64}
+  closureFuncs::Vector{F} # 
+end
 
 """
-    NLODEDiscProblem{PRTYPE,T,D,Z,CS}
+    NLODEDiscProblem{F,PRTYPE,T,D,Z,CS}
 A struct that holds the Problem of a system of ODEs with a set of events. It has the following fields:  
   - `prname::Symbol`  
   - `prtype::Val{PRTYPE}`  
@@ -82,8 +101,9 @@ A struct that holds the Problem of a system of ODEs with a set of events. It has
   - `HD::Vector{Vector{Int}}`#  an ev occured and I want the der that are affected by it  
   - `SZ::Vector{Vector{Int}}`#  I have a var and I want the ZC that are affected by it  
   - `exactJac::Function` #used only in the implicit integration: linear approximation  
+  - `closureFuncs::Vector{F}` # function that holds closure function inside system defined by user
 """
-struct NLODEDiscProblem{PRTYPE,T,D,Z,CS}<: NLODEProblem{PRTYPE,T,D,Z,CS} 
+struct NLODEDiscProblem{F,PRTYPE,T,D,Z,CS}<: NLODEProblem{F,PRTYPE,T,D,Z,CS} 
   prname::Symbol
   prtype::Val{PRTYPE}
   a::Val{T}
@@ -101,9 +121,10 @@ struct NLODEDiscProblem{PRTYPE,T,D,Z,CS}<: NLODEProblem{PRTYPE,T,D,Z,CS}
   HD::Vector{Vector{Int}}#  an ev occured and I want the der that are affected by it
   SZ::Vector{Vector{Int}}#  I have a var and I want the ZC that are affected by it
   exactJac::Function #used only in the implicit integration: linear approximation
+  closureFuncs::Vector{F} # where {F<:Function}#function that holds all ODEs 
 end
 """
-    NLODEDiscProblemSpan{PRTYPE,T,D,Z,CS}
+    NLODEDiscProblemSpan{F,PRTYPE,T,D,Z,CS}
 A struct that holds the Problem of a system of ODEs with a set of events with tspan. It has the following fields:  
   -`prname::Symbol  `
   -`prtype::Val{PRTYPE} ` 
@@ -123,8 +144,9 @@ A struct that holds the Problem of a system of ODEs with a set of events with ts
   -`SZ::Vector{Vector{Int}}`#  I have a var and I want the ZC that are affected by it  
   -`exactJac::Function `#used only in the implicit integration: linear approximation  
   -`tspan::Tuple{Float64, Float64}`# This field variable did not exist in the original NLODEDiscProblem as this simulation time should part of the problem. However, to match the differentialEqation.jl interface, the tspan is added to the definition of the problem.
+  -`closureFuncs::Vector{F}` # function that holds closure function inside system defined by user
 """
-struct NLODEDiscProblemSpan{PRTYPE,T,D,Z,CS}<: NLODEProblem{PRTYPE,T,D,Z,CS} 
+struct NLODEDiscProblemSpan{F,PRTYPE,T,D,Z,CS}<: NLODEProblem{F,PRTYPE,T,D,Z,CS} 
   prname::Symbol
   prtype::Val{PRTYPE}
   a::Val{T}
@@ -143,6 +165,7 @@ struct NLODEDiscProblemSpan{PRTYPE,T,D,Z,CS}<: NLODEProblem{PRTYPE,T,D,Z,CS}
   SZ::Vector{Vector{Int}}#  I have a var and I want the ZC that are affected by it
   exactJac::Function #used only in the implicit integration: linear approximation
   tspan::Tuple{Float64, Float64}
+  closureFuncs::Vector{F} # 
 end
 
 

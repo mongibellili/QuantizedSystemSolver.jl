@@ -12,7 +12,7 @@ Creates an ODE problem with the given function `f`, initial conditions `u`, para
 # Returns
 - An ODE problem.
 """
-function ODEProblem(f::Function, u::Vector{Float64}, tspan::Tuple{Float64,Float64}, p::Vector{EM}) where {EM}# T used because for empty p=[] type is any
+function ODEProblem(f::Function, u::Vector{Float64}, tspan::Tuple{Float64,Float64}, p::Union{Vector{EM}, Tuple{Vararg{EM}}}) where{EM}#  used because for empty p=[] type is any #p::Union{Vector{EM},NTuple{G, EM}}
     odeestring = @code_string f(u, u, p, tspan)
     odeex = Meta.parse(odeestring)
     Base.remove_linenums!(odeex)
@@ -83,7 +83,7 @@ Prepares information about the ODE problem by replacing symbols and parameters, 
 - A `probInfo` struct containing the number of zero-crossings (`numZC`) and a dictionary of symbols and expressions (`symDict`).
 """
 function prepareInfo(x::Expr,stateVarName::Symbol) # replace symbols and params , extract info about sizes,symbols,initconds
-    param=Dict{Symbol,Union{Float64,Expr}}()
+    param=Dict{Symbol,Union{Float64,Int64,Expr,Symbol}}()
     symDict=Dict{Symbol,Expr}()
     numZC=0
     for argI in x.args
@@ -94,15 +94,39 @@ function prepareInfo(x::Expr,stateVarName::Symbol) # replace symbols and params 
             elseif y isa Symbol && rhs isa Expr && (rhs.head==:call || rhs.head==:ref) #params=epression fill dict of param
                     argI.args[2]=changeVarNames_params(rhs,stateVarName,:nothing,param,symDict)
                     param[y]=argI.args[2]
+ 
+
             elseif y isa Expr && y.head == :ref && (rhs isa Expr && rhs.head !=:vect)#&& rhs.head==:call or ref # a diff equa not in a loop
                 argI.args[2]=changeVarNames_params(rhs,stateVarName,:nothing,param,symDict)
+                if haskey(param, y.args[2])#symbol is a parameter in LHS
+                    y.args[2]=copy(param[y.args[2]]) 
+                end
+                #the following 3 commented lines are the beginning of the implementation of allowing du[expression]
+               #=  
+                if y.args[2] isa Expr && y.args[2].head==:call
+                    y.args[2]=changeVarNames_params(y.args[2],stateVarName,:nothing,param,symDict)
+                end =#
             elseif y isa Expr && y.head == :ref && rhs isa Symbol
                 if haskey(param, rhs)#symbol is a parameter
                     argI.args[2]=copy(param[rhs]) 
                 end
             end
+        elseif argI isa Expr && argI.head==:function
+            param[argI.args[1].args[1]]=:f_  #add counter
         elseif @capture(argI, for var_ in b_:niter_ loopbody__ end)
             argI.args[2]=changeVarNames_params(loopbody[1],stateVarName,var,param,symDict)
+            #the following 5 commented lines are the beginning of the implementation of allowing many du inside the loop
+           #=  tempVect=:()
+            for lpbody in loopbody
+                push!(tempVect.args,changeVarNames_params(lpbody,stateVarName,var,param,symDict))
+            end
+            argI.args[2]=tempVect =#
+            if !(argI.args[1].args[2].args[2] isa Int64)#if b is not a number
+                argI.args[1].args[2].args[2]=eval(changeVarNames_params(argI.args[1].args[2].args[2],stateVarName,:nothing,param,symDict))#
+            end
+            if !(argI.args[1].args[2].args[3] isa Int64)#if niter is not a number
+                argI.args[1].args[2].args[3]=eval(changeVarNames_params(argI.args[1].args[2].args[3],stateVarName,:nothing,param,symDict))#
+            end
         elseif argI isa Expr && argI.head==:if
             numZC+=1
             (length(argI.args)!=3 && length(argI.args)!=2) && error("use format if A>0 B else C or if A>0 B")
