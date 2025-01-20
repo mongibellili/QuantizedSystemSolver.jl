@@ -42,7 +42,7 @@ There is another syntax to define a problem through a macro `@NLodeProblem` as i
 using QuantizedSystemSolver
 
 odeprob = @NLodeProblem begin 
-        name=(sysb53,)
+        name=("sysb53",)
         u = [-1.0, -2.0]
         du[1] = -20.0*u[1]-80.0*u[2]+1600.0
         du[2] = 1.24*u[1]-0.01*u[2]+0.2
@@ -57,6 +57,6 @@ solnmliqss=solve(odeprob,nmliqss2(),tspan);
 
 # output
 
-(1424, 1468, 367)
+(843, 833, 363)
 
 ```

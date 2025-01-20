@@ -3,7 +3,7 @@ function solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},tspan::Tuple{Float64, Float
    solve(prob,QSSAlgorithm(Val(:nmliqss),Val(2)),tspan;sparsity=sparsity,saveat=saveat,abstol=abstol,reltol=reltol,maxErr=maxErr,maxiters=maxiters)  
 end
 """
-    solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};sparsity::Val{Sparsity}=Val(false),saveat=Inf::Float64,abstol=1e-4::Float64,reltol=1e-3::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,Sparsity}   
+    solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};sparsity::Val{Sparsity}=Val(false),saveat=Inf::Float64,abstol=1e-3::Float64,reltol=1e-2::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,Sparsity}     
 
 dispatches on a specific integrator based on the algorithm provided and send a nonlinear ODE problem to the integrator.
 
@@ -21,7 +21,7 @@ function solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType
    custom_Solve(prob,al,Val(Sparsity),tspan[2],saveat,tspan[1],abstol,reltol,maxErr,maxiters)
 end
 """
-    solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType};sparsity::Val{Sparsity}=Val(false),saveat=Inf::Float64,abstol=1e-4::Float64,reltol=1e-3::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,Sparsity} 
+    solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType};sparsity::Val{Sparsity}=Val(false),saveat=Inf::Float64,abstol=1e-3::Float64,reltol=1e-2::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,Sparsity}
 
 dispatches on a specific integrator based on the algorithm provided and send a nonlinear ODE problem to the integrator.
 
@@ -44,7 +44,7 @@ function solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType
 #default solve method: ...extension or modification is done through creating another custom_solve with different PRTYPE
 
 """
-    custom_Solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS}, al::QSSAlgorithm{Solver, Order}, ::Val{Sparsity}, finalTime::Float64, saveat::Float64, initialTime::Float64, abstol::Float64, reltol::Float64, maxErr::Float64, maxiters::Int) where {F,PRTYPE,T,D,Z,CS,Solver,Order,Sparsity}
+    custom_Solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{Solver, Order},::Val{Sparsity},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxiters::Int) where{F,PRTYPE,T,D,Z,CS,Solver,Order,Sparsity}
 
 calls the integrator to solve the nonlinear ODE problem.
 
@@ -82,7 +82,7 @@ function custom_Solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{Sol
 #helper methods...extension can be done through creating others via specializing on one PRTYPE or more of the symbols (PRTYPE,T,D,Z,Order) 
 #################################################################################################################################################################################
 """
-    createCommonData(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS}, ::Val{Order}, finalTime::Float64, saveat::Float64, initialTime::Float64, abstol::Float64, reltol::Float64, maxErr::Float64, maxiters::Int) where {F,PRTYPE,T,D,Z,CS,Order}
+    createCommonData(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},::Val{Order},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxiters::Int) where{F,PRTYPE,T,D,Z,CS,Order}
 
 creates the necessary data for the simulation and stores it in a CommonQSS_Data struct.
 
@@ -100,7 +100,7 @@ creates the necessary data for the simulation and stores it in a CommonQSS_Data 
 # Returns
 - A data structure containing common data required for the QSS algorithm.
 """
-function createCommonData(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},::Val{Order},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxiters::Int)where{F,PRTYPE,T,D,Z,CS,Order}
+function createCommonData(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},::Val{Order},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxiters::Int) where{F,PRTYPE,T,D,Z,CS,Order}
     quantum =  zeros(T)
     x = Vector{Taylor0}(undef, T)
     q = Vector{Taylor0}(undef, T)

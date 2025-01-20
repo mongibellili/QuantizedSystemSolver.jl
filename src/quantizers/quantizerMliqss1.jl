@@ -50,9 +50,24 @@ function nmisCycle_and_simulUpdate(aij::Float64,aji::Float64,trackSimul,::Val{1}
   dxP = aii * qi + aij * qj + uij #only future qi                                          
   qjplus = xj + sign(dxj) * quanj  #emulate updateQ(j)...
   dxi = aii * qi + aij * qjplus + uij #both future qi & qj   #emulate fi
-   if abs(dxj-ẋj)>abs(dxj+ẋj)/2 && abs(dxi-ẋi)>abs(dxi+ẋi)/2
+
+
+  if dxj*ẋj<0 && dxi*ẋi<0
     iscycle=true
    end
+
+#=    if abs(dxj-ẋj)>abs(dxj+ẋj)/2 && abs(dxi-ẋi)>abs(dxi+ẋi)/2
+    iscycle=true
+   end =#
+
+   #= if abs(dxj-ẋj)>abs(dxj+ẋj)/2 && abs(dxi-dxP)>abs(dxi+dxP)/2
+    iscycle=true
+   end =#
+
+   #= if dxj*ẋj<0 && dxi*dxP<0
+    iscycle=true
+   end =#
+
   if iscycle
       h = ft-simt
       Δ=(1-h*aii)*(1-h*ajj)-h*h*aij*aji
@@ -68,9 +83,12 @@ function nmisCycle_and_simulUpdate(aij::Float64,aji::Float64,trackSimul,::Val{1}
         qi = ((1-h*ajj)*(xi+h*uij)+h*aij*(xj+h*uji))/Δ
         qj = ((1-h*aii)*(xj+h*uji)+h*aji*(xi+h*uij))/Δ
       end
-      maxIter=1000
+      maxIter=2
       while (abs(qi - xi) >2.0* quani || abs(qj - xj) >2.0*quanj) && (maxIter>0)
         maxIter-=1
+        if maxIter < 1
+          return false
+        end
         h1 = h * sqrt(quani / abs(qi - xi));
         h2 = h * sqrt(quanj / abs(qj - xj));
         h=min(h1,h2)
@@ -80,10 +98,9 @@ function nmisCycle_and_simulUpdate(aij::Float64,aji::Float64,trackSimul,::Val{1}
         end
         qi = ((1-h*ajj)*(xi+h*uij)+h*aij*(xj+h*uji))/Δ
         qj = ((1-h*aii)*(xj+h*uji)+h*aji*(xi+h*uij))/Δ
-        if maxIter < 1
-          return false
-         end
-        end 
+       
+      end 
+      trackSimul[1]+=1
       q[index][0]=qi# store back helper vars
       q[j][0]=qj
       tq[j]=simt 

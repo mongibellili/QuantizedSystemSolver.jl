@@ -112,7 +112,7 @@ coefExpr=:(1.5qiminus1)
 
 # output
 
-:(1.5 * (q[i - 1])[0])
+:(1.5 * (q[i - 1])[0]) 
 ```
 """
 function restoreRef(coefExpr,symDict)
@@ -143,13 +143,13 @@ As the name suggests, this changes the continuous variables names to :q and the 
 ```jldoctest
 using QuantizedSystemSolver
 
-(ex, stateVarName, muteVar, param, symDict) = (:(du[k] = u[k] * u[k - 1] * coef2), :u, :k, Dict{Symbol, Union{Float64, Expr}}(:coef1 => 2.0, :coef2 => 1.5), Dict{Symbol, Expr}(:q2 => :(q[2]), :q1 => :(q[1])))
+(ex, stateVarName, muteVar, param, symDict) = (:(du[k] = u[k] * u[k - 1] * coef2), :u, :k, Dict{Symbol, Union{Float64, Int64,Expr,Symbol}}(:coef1 => 2.0, :coef2 => 1.5), Dict{Symbol, Expr}(:q2 => :(q[2]), :q1 => :(q[1])))
 
   newEx=QuantizedSystemSolver.changeVarNames_params(ex, stateVarName, muteVar, param, symDict)
 (newEx, stateVarName, muteVar, param, symDict)
 # output
 
-(:(du[i] = q[i] * q[i - 1] * 1.5), :u, :k, Dict{Symbol, Union{Float64, Expr}}(:coef1 => 2.0, :coef2 => 1.5), Dict{Symbol, Expr}(:qi => :(q[i]), :q2 => :(q[2]), :qiminus1 => :(q[i - 1]), :q1 => :(q[1])))
+(:(du[i] = q[i] * q[i - 1] * 1.5), :u, :k, Dict{Symbol, Union{Float64, Int64, Expr, Symbol}}(:coef1 => 2.0, :coef2 => 1.5), Dict{Symbol, Expr}(:qi => :(q[i]), :q2 => :(q[2]), :qiminus1 => :(q[i - 1]), :q1 => :(q[1])))
 ```
 """
 function changeVarNames_params(ex::Expr,stateVarName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}},symDict::Dict{Symbol,Expr})#
@@ -222,7 +222,7 @@ end
 
 
 """
-     extractJacDepNormal(varNum::Int,rhs::Union{Int,Expr},jac :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}}, exactJacExpr :: Dict{Expr,Union{Float64,Int,Symbol,Expr}},symDict::Dict{Symbol,Expr})
+    extractJacDepNormal(varNum::Int,rhs::Union{Int,Expr},jac :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}}, exactJacExpr :: Dict{Expr,Union{Float64,Int,Symbol,Expr}},symDict::Dict{Symbol,Expr})
 
 Extract the jacobian dependency as well as the exacte symbolic jacobian expression, in the form of dictionaries, from the simple differential equations.\n
  The function sarts by looking for the 'i' in q[i] in the RHS and storing this 'i' in a jacSet for the varNum. Then, it changes q[i] to qi for symbolic differentiation. After finding ``\\frac{\\partial f_i}{\\partial q_i} `` as the exact jacobian entry, it changes back qi to q[i]. Also, any mute variable from the differential equations is changed to 'i' and the symbol for the variable is changed to 'q'.
@@ -466,7 +466,7 @@ function createExactJacFun(Exactjac:: Dict{Expr,Union{Float64,Int,Symbol,Expr}},
 end
  
 """
-    function createContEqFun(equs::Dict{Union{Int,Expr},Expr},funName::Symbol)
+    createContEqFun(otherCode::Expr,equs::Dict{Union{Int,Expr},Union{Int,Symbol,Expr}},fname::Symbol,f::F) 
 
  constructs one function from all differential equations in the problem, which are transformed and stored in a dictionary in the NLodeProblemFunc function.\n
  
@@ -474,25 +474,25 @@ end
     # Example:   
 ```jldoctest
 using QuantizedSystemSolver
-equs = Dict{Union{Int64, Expr}, Expr}(10 => :(subT(q[1], q[10], cache[1])), :((2, 9)) => :(mulT(q[i], q[i - 1], cache[1])), 1 => :(subT(q[2], mulTT(2.0, q[1], q[2], cache[2], cache[3]), cache[1])));
-diffEqfun=QuantizedSystemSolver.createContEqFun(equs,:f);
-diffEqfun
+equs = Dict{Union{Int,Expr},Union{Int,Symbol,Expr}}(10 => :(subT(q[1], q[10], cache[1])), :((2, 9)) => :(mulT(q[i], q[i - 1], cache[1])), 1 => :(subT(q[2], mulTT(2.0, q[1], q[2], cache[2], cache[3]), cache[1])));
+diffEqfun=QuantizedSystemSolver.createContEqFun(:(),equs,:f,0); 
+diffEqfun 
 
 # output
 
-:(function f(i::Int, q::Vector{Taylor0}, t::Taylor0, p::Vector{Float64}, cache::Vector{Taylor0})
-      if i == 0
-          return nothing
-      elseif i == 10
-          subT(q[1], q[10], cache[1])
-          return nothing
-      elseif 2 <= i <= 9
-          mulT(q[i], q[i - 1], cache[1])
-          return nothing
-      elseif i == 1
-          subT(q[2], mulTT(2.0, q[1], q[2], cache[2], cache[3]), cache[1])
-          return nothing
-      end
+:(function f(i::Int, q::Vector{Taylor0}, t::Taylor0, p::Vector{Float64}, cache::Vector{Taylor0}, f_::F)    
+      (if i == 0
+              return nothing
+          elseif i == 10
+              subT(q[1], q[10], cache[1])
+              return nothing
+          elseif 2 <= i <= 9
+              mulT(q[i], q[i - 1], cache[1])
+              return nothing
+          elseif i == 1
+              subT(q[2], mulTT(2.0, q[1], q[2], cache[2], cache[3]), cache[1])
+              return nothing
+          end,)
   end)
 ```
 

@@ -1,5 +1,5 @@
 """
-    ODEProblem(f::Function, u::Vector{Float64}, tspan::Tuple{Float64,Float64}, p::Vector{EM}) where {EM}
+    ODEProblem(f::Function, u::Vector{Float64}, tspan::Tuple{Float64,Float64}, p::Union{Vector{EM}, Tuple{Vararg{EM}}}) where{EM}
 
 Creates an ODE problem with the given function `f`, initial conditions `u`, parameters `p`, and time span `tspan`.
 
@@ -129,10 +129,16 @@ function prepareInfo(x::Expr,stateVarName::Symbol) # replace symbols and params 
             end
         elseif argI isa Expr && argI.head==:if
             numZC+=1
-            (length(argI.args)!=3 && length(argI.args)!=2) && error("use format if A>0 B else C or if A>0 B")
-            !(argI.args[1] isa Expr && argI.args[1].head==:call && argI.args[1].args[1]==:> && (argI.args[1].args[3]==0||argI.args[1].args[3]==0.0)) && error("use the format 'if a>0: change if a>b to if a-b>0")
+            (length(argI.args)!=3 && length(argI.args)!=2) && error("use format if A>B C else D or if A>B C")
+           # !(argI.args[1] isa Expr && argI.args[1].head==:call && argI.args[1].args[1]==:> && (argI.args[1].args[3]==0||argI.args[1].args[3]==0.0)) && error("use the format 'if a>0: change if a>b to if a-b>0")
            #   !(argI.args[1].args[2] isa Expr) && error("LHS of >  must be be an expression!")
-              argI.args[1].args[2]=changeVarNames_params(argI.args[1].args[2],stateVarName,:nothing,param)#zcf
+           zcf_LHS=argI.args[1].args[2]
+           zcf_RHS=argI.args[1].args[3]
+           zcf=:()
+           zcf.head=:call
+           zcf.args=[:-,zcf_LHS,zcf_RHS]
+              #argI.args[1].args[2]=zcf
+              argI.args[1].args[2]=changeVarNames_params(zcf,stateVarName,:nothing,param)#zcf
               # name changes have to be per block
               if length(argI.args)==2 #user used if a b
                 argI.args[2]=changeVarNames_params(argI.args[2],stateVarName,:nothing,param) #posEv

@@ -153,9 +153,15 @@ function arrangeProb(x::Expr) # replace symbols and params , extract info about 
         elseif argI isa Expr && argI.head==:if
             numZC+=1
             (length(argI.args)!=3 && length(argI.args)!=2) && error("use format if A>0 B else C or if A>0 B")
-            !(argI.args[1] isa Expr && argI.args[1].head==:call && argI.args[1].args[1]==:> && (argI.args[1].args[3]==0||argI.args[1].args[3]==0.0)) && error("use the format 'if a>0: change if a>b to if a-b>0")
+           #!(argI.args[1] isa Expr && argI.args[1].head==:call && argI.args[1].args[1]==:> && (argI.args[1].args[3]==0||argI.args[1].args[3]==0.0)) && error("use the format 'if a>0: change if a>b to if a-b>0")
            #   !(argI.args[1].args[2] isa Expr) && error("LHS of >  must be be an expression!")
-              argI.args[1].args[2]=changeVarNames_params(argI.args[1].args[2],stateVarName,:nothing,param)#zcf
+           zcf_LHS=argI.args[1].args[2]
+           zcf_RHS=argI.args[1].args[3]
+           zcf=:()
+           zcf.head=:call
+           zcf.args=[:-,zcf_LHS,zcf_RHS]
+              #argI.args[1].args[2]=zcf
+              argI.args[1].args[2]=changeVarNames_params(zcf,stateVarName,:nothing,param)#zcf
               # name changes have to be per block
               if length(argI.args)==2 #user used if a b
                 argI.args[2]=changeVarNames_params(argI.args[2],stateVarName,:nothing,param) #posEv

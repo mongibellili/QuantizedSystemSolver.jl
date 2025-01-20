@@ -82,10 +82,8 @@ The Buck is a converter that decreases voltage and increases current with a grea
 
 The diode $D$ and the switch $S$ can be modeled as two variables resistors $RD$ and $RS$. A mesh and a nodal analysis give the relationship between the different components in the circuit as follows:
 
-$i_d = \frac{RS.i_l-V1}{RS+RD}$
-
-$\frac{du_c}{dt} = \frac{i_l-\frac{u_c}{R}}{C}$
-
+$i_d = \frac{RS.i_l-V1}{RS+RD}$; 
+$\frac{du_c}{dt} = \frac{i_l-\frac{u_c}{R}}{C}$; 
 $\frac{di_l}{dt} = \frac{-uc-i_d.RD}{L}$
 
 The buck problem contains frequent discontinuities and can be solved by the QuantizedSystemSolver.jl package using the following code:

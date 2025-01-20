@@ -46,11 +46,16 @@ function nmisCycle_and_simulUpdate(aij::Float64,aji::Float64,trackSimul,::Val{2}
   αidir=xi1+hi*xi2/2
   βj=xj1+hj*xj2/2
   ########cycle detection condition
-  if (abs(dxj-xj1)>(abs(dxj+xj1)/2) || abs(ddxj-xj2)>(abs(ddxj+xj2)/2))  || dqjplus*newDiff<0.0 #(dqjplus*qj1)<=0.0 with dir is better since when dir =0 we do not enter
-    if (abs(dxi-xi1)>(abs(dxi+xi1)/2) || abs(ddxi-xi2)>(abs(ddxi+xi2)/2)) || βidir*dirI<0.0
+  if (abs(dxj-xj1)>(abs(dxj+xj1)/2) || abs(ddxj-xj2)>(abs(ddxj+xj2)/2))  #|| dqjplus*newDiff<0.0 #(dqjplus*qj1)<=0.0 with dir is better since when dir =0 we do not enter
+    if (abs(dxi-xi1)>(abs(dxi+xi1)/2) || abs(ddxi-xi2)>(abs(ddxi+xi2)/2)) #|| βidir*dirI<0.0
       iscycle=true
     end
   end 
+#=   if (abs(dxj-xj1)>(abs(dxj+xj1)/2) || abs(ddxj-xj2)>(abs(ddxj+xj2)/2))  || dqjplus*newDiff<0.0 #(dqjplus*qj1)<=0.0 with dir is better since when dir =0 we do not enter
+    if (abs(dxi-xi1)>(abs(dxi+xi1)/2) || abs(ddxi-xi2)>(abs(ddxi+xi2)/2)) || βidir*dirI<0.0
+      iscycle=true
+    end
+  end  =#
   if iscycle
         aiijj=aii+ajj
         aiijj_=aij*aji-aii*ajj
@@ -83,7 +88,7 @@ function nmisCycle_and_simulUpdate(aij::Float64,aji::Float64,trackSimul,::Val{2}
           end
         end
         if (abs(qi - xi) > 2.0*quani || abs(qj - xj) > 2.0*quanj) 
-          h1 = sqrt(abs(2*quani/ddxi));h2 = sqrt(abs(2*quanj/ddxj));   #later add derderX =1e-12 when x2==0?
+          h1 = sqrt(abs(2*quani/xi2));h2 = sqrt(abs(2*quanj/xj2));   #later add derderX =1e-12 when x2==0?
           h=min(h1,h2)
           Δ1=1.0-h*(aiijj)-h*h*(aiijj_)
           if abs(Δ1)!=0.0 
@@ -95,9 +100,13 @@ function nmisCycle_and_simulUpdate(aij::Float64,aji::Float64,trackSimul,::Val{2}
             end
           end
         end
-        maxIter=10000
+        maxIter=2
         while (abs(qi - xi) > 2.0*quani || abs(qj - xj) > 2.0*quanj) && (maxIter>0)
           maxIter-=1
+          if maxIter==0  #ie simul step failed
+           # println("simulstep ord2 failed maxiter")
+            return false
+          end
           h1 = h * sqrt(quani / abs(qi - xi));
           h2 = h * sqrt(quanj / abs(qj - xj));
           h=min(h1,h2)
@@ -111,13 +120,7 @@ function nmisCycle_and_simulUpdate(aij::Float64,aji::Float64,trackSimul,::Val{2}
             end
           end
         end
-        if maxIter<900  #ie simul step failed
-          println("simulstep ord2  $maxIter")
-        end
-        if maxIter==0  #ie simul step failed
-          println("simulstep ord2 failed maxiter")
-          return false
-        end
+ 
         if  0<h<1e-20  #ie simul step failed # h==0 is allowed because is like an equilibrium
           println("simulstep ord2 failed small h=",h)
           return false

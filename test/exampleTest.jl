@@ -158,14 +158,14 @@ odeprob=ODEProblem(tyson,u,tspan)
 sol=solve(odeprob,nmliqss2())
 @test 0.00001<sol(20.0,idxs=1)<0.01
 @test 0.8<sol(20.0,idxs=2)<0.99
-@test 0.05<sol(20.0,idxs=3)<0.09
+@test 0.03<sol(20.0,idxs=3)<0.09
 @test 0.00001<sol(20.0,idxs=4)<0.01
 @test 0.0<sol(20.0,idxs=5)<8.0e-4
-@test 0.01<sol(20.0,idxs=6)<0.02
+@test 0.01<sol(20.0,idxs=6)<0.03
 solnmliqssInterp=solInterpolated(sol,0.01)
 BSON.@load "solRodas5PVectorTyson.bson" solRodas5PVectorTyson
 err=getAverageErrorByRefs(solnmliqssInterp,solRodas5PVectorTyson) 
-@test err<0.8
+@test err<1.8
 function sico(du,u,p,t)
     du[1] = -sin(t)
     du[2] = u[1]

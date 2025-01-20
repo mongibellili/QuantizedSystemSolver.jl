@@ -64,22 +64,7 @@ struct NLODEContProblemSpan{F,PRTYPE,T,D,Z,CS}<: NLODEProblem{F,PRTYPE,T,D,Z,CS}
   tspan::Tuple{Float64, Float64}
   closureFuncs::Vector{F} # 
 end
-struct NLODEContAdvProblemSpan{F,PRTYPE,T,D,Z,CS}<: NLODEProblem{F,PRTYPE,T,D,Z,CS} 
-  prname::Symbol # problem name used to distinguish printed results
-  prtype::Val{PRTYPE} # problem type: not used but created in case in the future we want to handle problems differently
-  a::Val{T} #problem size based on number of vars: T is used not a: 'a' is a mute var
-  c::Val{D} #number of discrete events=2*ZCF: Z is used not c: 'c' is a mute var
-  b::Val{Z} #number of Zero crossing functions (ZCF) based on number of 'if statements': Z is used not b: 'b' is a mute var
-  cacheSize::Val{CS}# CS= cache size is used  : 'cacheSize' is a mute var
-  initConditions::Vector{Float64}  # 
-  discreteVars::Vector{Float64} # to match the differentialEqation.jl interface that wants the parameter p to be part of the problem
-  eqs::Function#function that holds all ODEs
-  jac::Vector{Vector{Int}}#Jacobian dependency..I have a der and I want to know which vars affect it...opposite of SD...is a vect for direct method (later @resumable..closure..for saved method)
-  SD::Vector{Vector{Int}}#  I have a var and I want the der that are affected by it
-  exactJac::Function  # used only in the implicit intgration
-  tspan::Tuple{Float64, Float64}
-  closureFuncs::Vector{F} # 
-end
+
 
 """
     NLODEDiscProblem{F,PRTYPE,T,D,Z,CS}

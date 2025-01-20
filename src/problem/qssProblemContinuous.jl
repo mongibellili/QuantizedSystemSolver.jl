@@ -1,6 +1,6 @@
 
 """
-    NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{0},initConditions::Vector{Float64},du::Symbol,symDict::Dict{Symbol,Expr},tspan::Tuple{Float64, Float64},discrVars::Vector{EM},prbName::Symbol) where {T,D,EM}
+    NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{0},initConditions::Vector{Float64},du::Symbol,symDict::Dict{Symbol,Expr},tspan::Tuple{Float64, Float64},discrVars::Union{Vector{EM}, Tuple{Vararg{EM}}},prbName::Symbol) where {T,D,EM} # 
 
 This function continues building a continuous problem. it receives an expression and useful info from the main interface. it calls the transform function from the taylorEquationConstruction.jl file to change the AST of all operations to personlized ones and update the needed cache size. It also construct via helper functions the Exact jacobian function, the jacobian dependecy and the state-derivative dependency (opposite of jacobian) as vectors. Finally, it groups all differential equations in one function, and constructs a continous problem from the qssProblemDefinition.jl file.
 # Arguments
@@ -70,7 +70,7 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{0},initConditio
     if odeExprs.args[1] isa Expr && odeExprs.args[1].args[2] isa Expr && odeExprs.args[1].args[2].head == :tuple#user has to enter problem info in a tuple (old maco)
         fname= Symbol(odeExprs.args[1].args[2].args[1])
     end
-
+ 
     exacteJacfunction=createExactJacFun(exacteJacExpr,fname)
     exactJacfunctionF=@RuntimeGeneratedFunction(exacteJacfunction)
    

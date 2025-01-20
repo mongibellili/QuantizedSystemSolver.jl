@@ -22,16 +22,16 @@ approximation coefficients.
 ## Internals
 
 ```@docs
-QuantizedSystemSolver.custom_Solve(prob::NLODEProblem{PRTYPE,T,Z,D,CS}, al::QSSAlgorithm{Solver, Order}, ::Val{Sparsity}, finalTime::Float64, saveat::Float64, initialTime::Float64, abstol::Float64, reltol::Float64, maxErr::Float64, maxiters::Int) where {PRTYPE,T,Z,D,CS,Solver,Order,Sparsity}     
+QuantizedSystemSolver.custom_Solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{Solver, Order},::Val{Sparsity},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxiters::Int) where{F,PRTYPE,T,D,Z,CS,Solver,Order,Sparsity}    
 ```
 
 
-```@docs
-QuantizedSystemSolver.createCommonData(prob::NLODEProblem{PRTYPE,T,Z,D,CS}, ::Val{Order}, finalTime::Float64, saveat::Float64, initialTime::Float64, abstol::Float64, reltol::Float64, maxErr::Float64, maxiters::Int) where {PRTYPE,T,Z,D,CS,Order}
+```@docs 
+QuantizedSystemSolver.createCommonData(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},::Val{Order},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxiters::Int) where{F,PRTYPE,T,D,Z,CS,Order}
 ```
 
 ```@docs
-QuantizedSystemSolver.createLiqssData(prob::NLODEProblem{PRTYPE,T,Z,D,CS},::Val{false},::Val{T},::Val{Order}) where{PRTYPE,T,Z,D,CS,Order}  
+QuantizedSystemSolver.createLiqssData(::Val{false},::Val{T},::Val{Order}) where {T,Order} 
 ```
 
 
@@ -40,7 +40,7 @@ QuantizedSystemSolver.createLiqssData(prob::NLODEProblem{PRTYPE,T,Z,D,CS},::Val{
 QuantizedSystemSolver.CommonQSS_Data{Z}
 ```
 
-
+ 
 
 ```@docs 
  QuantizedSystemSolver.LiQSS_Data{O,Sparsity}

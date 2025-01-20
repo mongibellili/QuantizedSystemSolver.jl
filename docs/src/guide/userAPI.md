@@ -4,7 +4,7 @@
 ## Problem definition
 
 ```@docs
-ODEProblem(f::Function, u::Vector{Float64}, tspan::Tuple{Float64,Float64}, p::Vector{EM}) where {EM}
+ODEProblem(f::Function, u::Vector{Float64}, tspan::Tuple{Float64,Float64}, p::Union{Vector{EM}, Tuple{Vararg{EM}}}) where{EM}
 ```
 ```@docs
 ODEProblem(f::Function, u::Vector{Float64}, tspan::Tuple{Float64,Float64})
@@ -18,11 +18,11 @@ NLodeProblem(odeExprs)
 ## The solve function:
 
 ```@docs
-solve(prob::NLODEProblem{PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType};sparsity::Val{Sparsity}=Val(false),saveat=Inf::Float64,abstol=1e-4::Float64,reltol=1e-3::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{PRTYPE,T,D,Z,CS,SolverType,OrderType,Sparsity}     
+solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType};sparsity::Val{Sparsity}=Val(false),saveat=Inf::Float64,abstol=1e-3::Float64,reltol=1e-2::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,Sparsity}   
 ```
 
 ```@docs
-solve(prob::NLODEProblem{PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};sparsity::Val{Sparsity}=Val(false),saveat=Inf::Float64,abstol=1e-4::Float64,reltol=1e-3::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{PRTYPE,T,D,Z,CS,SolverType,OrderType,Sparsity}     
+solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};sparsity::Val{Sparsity}=Val(false),saveat=Inf::Float64,abstol=1e-3::Float64,reltol=1e-2::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,Sparsity}       
 ```
 
 ## Algorithms

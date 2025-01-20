@@ -4,7 +4,7 @@
 The same previous LTI example is extended to contain events (discontinuities). At times 2.5 and 5.0 the differential equations are changed. This is modeled through discrete variables passed in the p vector. The events are defined through ``if-statements``.
 ```julia
 using QuantizedSystemSolver
-function sysb53(du,u,p,t)
+function funcName(du,u,p,t)
     du[1] = p[1]*u[1]+p[2]*u[2]+p[3]
     du[2] = p[4]*u[1]+p[5]*u[2]+p[6]
     if t-2.5>0.0
@@ -22,7 +22,7 @@ u0= [-1.0, -2.0]
 p=[-20.0,-80.0,1600.0,1.24,0.01,0.2]
 prob = ODEProblem(funcName,u0,tspan,p)
 #Solve the problem
-sol = solve(odeprob,nmliqss2(),abstol = 1e-4, reltol = 1e-2)
+sol = solve(prob,nmliqss2(),abstol = 1e-4, reltol = 1e-2)
 p1 = plot(sol);
 ```
 

@@ -179,6 +179,9 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{0
       if trackSimul[1] != 0  #qi changed after throw
         Liqss_reComputeNextTime(Val(O), index, simt, nextStateTime, x, q, quantum)
       end
+     #=  if trackSimul[1] > 1
+        simulStepCount += 1
+      end =#
       #-------------------------------------------------------------------------------------
       #---------------------------------normal liqss: proceed--------------------------------
       #-------------------------------------------------------------------------------------

@@ -47,7 +47,7 @@ Extracts the jacobian dependency (jac) as well as the exacte symbolic jacobian e
   # Example:
 ```jldoctest
 using QuantizedSystemSolver
-(varNum, rhs, jac, exactJacExpr, symDict, dD) = (1, :(p[2] - 2.0 * q[1] * p[2]), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(), Dict{Expr, Union{Float64, Int64, Expr, Symbol}}(), Dict{Symbol, Expr}(:q10 => :(q[10]), :d2 => :(p[2]), :qiminus1 => :(q[i - 1]), :d1 => :(p[1]), :q1 => :(q[1])), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}())
+(varNum, rhs, jac, exactJacExpr, symDict, dD) = (1, :(p[2] - 2.0 * q[1] * p[2]), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(), Dict{Expr, Union{Float64, Int64, Expr, Symbol}}(), Dict{Symbol, Expr}(:q10 => :(q[10]), :p2 => :(p[2]), :qiminus1 => :(q[i - 1]), :p1 => :(p[1]), :q1 => :(q[1])), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}())
 QuantizedSystemSolver.extractJacDepNormalDiscrete(varNum, rhs, jac, exactJacExpr, symDict, dD )
 (jac, exactJacExpr, dD) 
 
@@ -98,7 +98,7 @@ This function is similar to the [`extractJacDepNormalDiscrete`](@ref)  function 
     # Example:
 ```jldoctest
 using QuantizedSystemSolver
-(b, niter, rhs, jac, exactJacExpr, symDict, dD) = (2, 9, :(p[1] * q[i - 1] * 1.5), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(1 => Set([1])), Dict{Expr, Union{Float64, Int64, Expr, Symbol}}(:((1, 1)) => :(-2.0 * p[2])), Dict{Symbol, Expr}(:q10 => :(q[10]), :d2 => :(p[2]), :qiminus1 => :(q[i - 1]), :d1 => :(p[1]), :q1 => :(q[1])), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(2 => Set([1])))
+(b, niter, rhs, jac, exactJacExpr, symDict, dD) = (2, 9, :(p[1] * q[i - 1] * 1.5), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(1 => Set([1])), Dict{Expr, Union{Float64, Int64, Expr, Symbol}}(:((1, 1)) => :(-2.0 * p[2])), Dict{Symbol, Expr}(:q10 => :(q[10]), :p2 => :(p[2]), :qiminus1 => :(q[i - 1]), :p1 => :(p[1]), :q1 => :(q[1])), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(2 => Set([1])))
 QuantizedSystemSolver.extractJacDepLoopDiscrete(b, niter, rhs, jac, exactJacExpr, symDict, dD )
 (jac, exactJacExpr, dD) 
 

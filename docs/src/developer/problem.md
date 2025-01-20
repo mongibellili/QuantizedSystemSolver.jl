@@ -5,7 +5,7 @@ The NLodeProblem function is the entry point for defining a new problem to be so
 ## Problem extension
 Problem extension can be achieved easily via PRTYPE which is of type Val, or another subtype of this superclass can be created.
 ```@docs
- QuantizedSystemSolver.NLODEProblem{PRTYPE,T,Z,Y,CS}
+ QuantizedSystemSolver.NLODEProblem{F,PRTYPE,T,D,Z,CS}
 ```
 ### What is needed with a new problem:
 The more different the new problem from the `NLODEContProblem`, the more functions are needed to be extended. In general the following functions need to be extended.
@@ -16,7 +16,7 @@ The more different the new problem from the `NLODEContProblem`, the more functio
 
 ### Example
 ```julia
-struct SmallODEProblem{CS}<: NLODEProblem{1,1,0,0,CS} 
+struct SmallODEProblem{CS}<: NLODEProblem{0,1,1,0,0,CS} 
   cacheSize::Val{CS}# CS= cache size 
   initConditions::Float64   
   eq::Function#function that holds the differential equation
@@ -25,7 +25,7 @@ end
 This new problem type takes care of one differential equation. There is no need for the Jacobian nor for the dependencies. This needs an extension of the custom_Solve method that just removes the references to the `jac` and the `SD`. An extension of the integrate method is also needed since the implementation is a lot simpler than what is currently implemented.
 
 ## Further reading about the functions creating the problem
-*NLODEDiscProblem{PRTYPE,T,D,Z,CS}:* This is the struct that holds all
+*NLODEDiscProblem{F,PRTYPE,T,D,Z,CS}:* This is the struct that holds all
 the necessary data for a nonlinear ordinary differential equation (ODE) 
 problem with discrete events. The structure includes various fields such
 as initial conditions, discrete variables, Jacobians, event
@@ -150,14 +150,14 @@ The diff(basi, symarg) function from the SymEngine.jl (Copyright (c) 2015-2017 I
 ### Problem definition
 
 ```@docs
-QuantizedSystemSolver.NLODEContProblem{PRTYPE,T,Z,Y,CS}
+QuantizedSystemSolver.NLODEContProblem{F,PRTYPE,T,D,Z,CS}
 ```
 ```@docs
 QuantizedSystemSolver.NLODEContProblemSpan{PRTYPE,T,Z,Y,CS}
 ```
 
 ```@docs
-QuantizedSystemSolver.NLODEDiscProblem{PRTYPE,T,Z,D,CS}
+QuantizedSystemSolver.NLODEDiscProblem{F,PRTYPE,T,D,Z,CS}
 ```
 
 
@@ -216,13 +216,12 @@ QuantizedSystemSolver.symbolFromRefdiscrete(refEx)
 QuantizedSystemSolver.restoreRef(coefExpr,symDict)
 ```
 ```@docs
-QuantizedSystemSolver.changeVarNames_params(ex::Expr,stateVarName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Expr}},symDict::Dict{Symbol,Expr})
+QuantizedSystemSolver.changeVarNames_params(ex::Expr,stateVarName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}},symDict::Dict{Symbol,Expr})
 ```
 ```@docs
-QuantizedSystemSolver.changeVarNames_params(ex::Expr,stateVarName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Expr}})
-```
+QuantizedSystemSolver.changeVarNames_params(ex::Expr,stateVarName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}})
 ```@docs
-QuantizedSystemSolver.changeVarNames_params(element::Symbol,stateVarName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Expr}})
+QuantizedSystemSolver.changeVarNames_params(element::Symbol,stateVarName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}})
 ```
 
 ```@docs
@@ -234,7 +233,7 @@ QuantizedSystemSolver.transformF(ex)
 ```
 
 
-
+ 
 ```@docs
 QuantizedSystemSolver.extractJacDepNormal(varNum::Int,rhs::Union{Int,Expr},jac :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}}, exactJacExpr :: Dict{Expr,Union{Float64,Int,Symbol,Expr}},symDict::Dict{Symbol,Expr})
 ```
@@ -251,7 +250,7 @@ QuantizedSystemSolver.createSDVect(jac:: Dict{Union{Int,Expr},Set{Union{Int,Symb
 QuantizedSystemSolver.createExactJacFun(Exactjac:: Dict{Expr,Union{Float64,Int,Symbol,Expr}},funName::Symbol)
 ```
 ```@docs
-QuantizedSystemSolver.createContEqFun(equs::Dict{Union{Int,Expr},Expr},funName::Symbol)
+QuantizedSystemSolver.createContEqFun(otherCode::Expr,equs::Dict{Union{Int,Expr},Union{Int,Symbol,Expr}},fname::Symbol,f::F) 
 ```
 ```@docs
 QuantizedSystemSolver.extractJacDepNormalDiscrete(varNum::Int,rhs::Union{Symbol,Int,Expr},jac :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},exactJacExpr :: Dict{Expr,Union{Float64,Int,Symbol,Expr}},symDict::Dict{Symbol,Expr},dD :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}}) 
