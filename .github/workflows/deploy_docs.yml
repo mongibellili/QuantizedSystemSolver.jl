@@ -3,7 +3,7 @@ name: Documentation
 on:
   push:
     branches:
-      - main  # or your default branch
+      - carry_code # main  # temp branch switch
 
 jobs:
   build:
