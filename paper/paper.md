@@ -38,7 +38,7 @@ The general form of a problem composed of a set of ODEs and a set of events that
 
 $$\dot X = f(X,P,t)\textnormal{; if } zc(X,P,t)\textnormal{: set } x_i=H(X,P,t) \textnormal{ and } p_j=L(X,P,t),$$
 
-where $X = [x_1,x_2...,x_n]^T$ is the state vector, $f:\mathbb{R}^n \times {R}^m \times {R}^+ \rightarrow \mathbb{R}^n$ is the derivative function, and $t$ is the independent variable. $P = [p_1,p_2...,p_m]^T$ is the vector of the system discrete variables. $n$ and $m$ are the number of state variables and discrete variables of the system respectively. $zc$ is an event condition, $H$ and $L$ are functions used in the effects of the event $zc$.
+where $X = [x_1,x_2...,x_n]^T$ is the state vector, $f:\mathbb{R}^n \times \mathbb{R}^m \times \mathbb{R}^+ \rightarrow \mathbb{R}^n$ is the derivative function, and $t$ is the independent variable. $P = [p_1,p_2...,p_m]^T$ is the vector of the system discrete variables. $n$ and $m$ are the number of state variables and discrete variables of the system respectively. $zc$ is an event condition, $H$ and $L$ are functions used in the effects of the event $zc$.
 
 In QSS, besides the step size, the difference between $x_i(t_k)$ (the current value) and $x_i(t_{k+1})$ (the next value) is called the quantum $\Delta_i$. Depending on the type of the QSS method (explicit or implicit), a new variable $q_i$ is set to equal $x_i(t_k)$  or $x_i(t_{k+1})$ respectively. $q_i$ is called the quantized state of $x_i$, and it is used in updating the derivative function [@elbellili].  A general description of a QSS algorithm is given as follows:
 ![](alg.png)
@@ -47,7 +47,7 @@ In QSS, besides the step size, the difference between $x_i(t_k)$ (the current va
 
 While the package is optimized to be fast, extensibility is not compromised. It is divided into three entities that can be extended separately: The ``problem``, the ``algorithm``, and the ``solution``. The rest of the code creates these entities and glues them together. The API was designed to match the DifferentialEquations.jl interface while providing an easier way to handle events. The problem is defined inside a function, in which the user may introduce any parameters, variables, equations, and events:
 ```julia
-function func(du,u,p,t)
+function func(du, u, p, t)
   # parameters, helpers, differential eqs., if-statements for events; e.g.:
   du[1] = p[1] * u[1]
   if (t - 1.0 > 0.0) p[1] = -10.0 end
@@ -91,7 +91,7 @@ The buck problem contains frequent discontinuities and can be solved by the Quan
 
 ```julia
 using QuantizedSystemSolver
-function buck(du,u,p,t)
+function buck(du, u, p, t)
   # Constant parameters
   C = 1e-4; L = 1e-4; R = 10.0; V1 = 24.0; T = 1e-4; ROn = 1e-5; ROff = 1e5
   # Optional rename of the continuous and discrete variables
