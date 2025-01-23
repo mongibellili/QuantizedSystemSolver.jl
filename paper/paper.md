@@ -45,7 +45,7 @@ In QSS, besides the step size, the difference between $x_i(t_k)$ (the current va
 
 # Package description
 
-While the package is optimized to be fast, extensibility is not compromised. It is divided into three entities that can be extended separately: The ``problem``, the ``algorithm``, and the ``solution``. The rest of the code creates these entities and glues them together. The API was designed to match the DifferentialEquations.jl interface while providing an easier way to handle events. The problem is defined inside a function, in which the user may introduce any parameters, variables, equations, and events:
+While the package is optimized to be fast, extensibility is not compromised. It is divided into three entities that can be extended separately: the ``problem``, the ``algorithm``, and the ``solution``. The rest of the code creates these entities and glues them together. The API was designed to match the DifferentialEquations.jl interface while providing an easier way to handle events. The problem is defined inside a function, in which the user may introduce any parameters, variables, equations, and events:
 ```julia
 function func(du, u, p, t)
   # parameters, helpers, differential eqs., if-statements for events; e.g.:
@@ -73,7 +73,7 @@ sol.stats           # get statistics about the simulation
 plot(sol)           # plot the solution
 ```
 
-The solver uses other packages such as  [`MacroTools.jl`]( https://github.com/FluxML/MacroTools.jl) [@MacroTools] for user-code parsing, [`SymEngine.jl`]( https://github.com/symengine/SymEngine.jl) [@SymEngine] for Jacobian computation and dependency extraction. It also uses a modified [`TaylorSeries.jl`](https://github.com/JuliaDiff/TaylorSeries.jl/) [@TaylorSeries] that implements caching to obtain free Taylor variable operations, since the current version of TaylorSeries creates a heap allocated object for every operation. The approximation through Taylor variables transforms any complicated equations to polynomials, making root finding cheaper--a process that QSS methods rely on heavily.
+The solver uses other packages such as  [`MacroTools.jl`]( https://github.com/FluxML/MacroTools.jl) [@MacroTools] for user-code parsing and [`SymEngine.jl`]( https://github.com/symengine/SymEngine.jl) [@SymEngine] for Jacobian computation and dependency extraction. It also uses a modified [`TaylorSeries.jl`](https://github.com/JuliaDiff/TaylorSeries.jl/) [@TaylorSeries] that implements caching to obtain free Taylor variable operations, since the current version of TaylorSeries creates a heap allocated object for every operation. The approximation through Taylor variables transforms any complicated equations to polynomials, making root finding cheaper--a process that QSS methods rely on heavily.
 
 # The buck converter example
 
