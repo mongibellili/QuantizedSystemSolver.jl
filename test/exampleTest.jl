@@ -1,16 +1,12 @@
-odeprob = NLodeProblem(quote
+odeprob = @NLodeProblem begin 
     name=("sysb1",)
     u = [-1.0, -2.0]
     du[1] = -2.0
     du[2] =1.24*u[1]-0.01*u[2]+0.2
-end)  
+end
 tspan=(0.0,1.0)
-sol=solve(odeprob,qss1(),tspan)
-sol=solve(odeprob,qss2(),tspan)
-sol=solve(odeprob,liqss1(),tspan)
-sol=solve(odeprob,liqss2(),tspan)
-sol=solve(odeprob,nmliqss1(),tspan)
 sol=solve(odeprob,nmliqss2(),tspan)
+@show sol.stats
 @test -2.6<sol(0.7,1)<-2.2
 @test -3.517<sol(0.7,idxs=2)<-3.117
 
@@ -48,23 +44,24 @@ sol=solve(odeprob,nmliqss1())
 sol=solve(odeprob,nmliqss2())
 @test 0.5<sol(0.7,idxs=1)<0.7
 @test -2.4<sol(0.7,idxs=2)<-2.2
+plot_Sol(sol)
+plot_Sol(sol,1)
 function sysb53(du,u,p,t)
-    du[1] = -20.0*u[1]-80.0*u[2]+1600.0
-    du[2] =1.24*u[1]-0.01*u[2]+0.2
+  du[1] = -20.0*u[1]-80.0*u[2]+1600.0
+  du[2] =1.24*u[1]-0.01*u[2]+0.2
 end
 tspan=(0.0,1.0)
 u = [-1.0, -2.0]
 odeprob=ODEProblem(sysb53,u,tspan)
-sol=solve(odeprob,qss1())
-sol=solve(odeprob,qss2())
-sol=solve(odeprob,liqss1())
-sol=solve(odeprob,liqss2())
-sol=solve(odeprob,nmliqss1())
-sol=solve(odeprob,nmliqss2())
-plot_Sol(sol)
-plot_Sol(sol,1)
+for N=0:6
+  solve(odeprob,nmliqss2(),detection=Detection(N))
+end
+for N=0:13
+  solve(odeprob,nmliqss1(),detection=Detection(N))
+end
 
 
+sol=solve(odeprob,nmliqss2(),reltol=1e-3,abstol=1e-5)
 
 u1, u2 = -8.73522174738572, -7.385745994549763
 λ1, λ2 = -10.841674966758294, -9.168325033241706
@@ -79,6 +76,8 @@ er1=getError(solnmliqssInterp,1,x1)
 er2=getError(solnmliqssInterp,2,x2) 
 @test 0.0<er1<0.01
 @test 0.0<er2<0.01
+avgErr=getAverageError(solnmliqssInterp,[x1,x2])
+@test 0.0<avgErr<0.01
 
 
 function buck(dy,y,p,t)# api requires four args
@@ -107,10 +106,10 @@ function buck(dy,y,p,t)# api requires four args
 end
 tspan = (0.0,0.001)
 p = [1e5,1e-5,1e-4,0.0,0.0];u0 = [0.0,0.0]
-prob = ODEProblem(buck,u0,tspan,p)
-sol= solve(prob,liqss2(),abstol=1e-3,reltol=1e-2) 
+odeprob = ODEProblem(buck,u0,tspan,p)
+sol= solve(odeprob,liqss2(),abstol=1e-3,reltol=1e-2) 
 @test 19.2<sol(0.0005,idxs=2)<19.7
-sol= solve(prob,nmliqss2(),abstol=1e-3,reltol=1e-2)   
+sol= solve(odeprob,nmliqss2(),abstol=1e-3,reltol=1e-2)   
 @test 19.2<sol(0.0005,idxs=2)<19.5
 
 BSON.@load "solVectAdvection_N1000d01_Feagin14e-12.bson" solFeagin14VectorN1000d01
@@ -130,9 +129,9 @@ end
 tspan=(0.0,5.0)
 u=zeros(1000)
 u[1:333].=1.0
-prob=ODEProblem(adr,u,tspan)
-sol=solve(prob,nmliqss1(),abstol=1e-5,reltol=1e-2)#
-sol=solve(prob,abstol=1e-5,reltol=1e-2,tspan)#
+odeprob=ODEProblem(adr,u,tspan)
+sol=solve(odeprob,nmliqss1(),abstol=1e-5,reltol=1e-2)#
+sol=solve(odeprob,abstol=1e-5,reltol=1e-2,tspan)#
 solnmliqssInterp=solInterpolated(sol,0.01)
 getErrorByRefs(solnmliqssInterp,1,solFeagin14VectorN1000d01)
 err4=getAverageErrorByRefs(solnmliqssInterp,solFeagin14VectorN1000d01)
@@ -162,6 +161,7 @@ sol=solve(odeprob,nmliqss2())
 @test 0.00001<sol(20.0,idxs=4)<0.01
 @test 0.0<sol(20.0,idxs=5)<8.0e-4
 @test 0.01<sol(20.0,idxs=6)<0.03
+solInterpolated(sol,1,0.01)
 solnmliqssInterp=solInterpolated(sol,0.01)
 BSON.@load "solRodas5PVectorTyson.bson" solRodas5PVectorTyson
 err=getAverageErrorByRefs(solnmliqssInterp,solRodas5PVectorTyson) 
@@ -283,8 +283,8 @@ plot_SolSum(sol,1,2,xlims=(0.0,1.0),ylims=(0.0,2.0))
 plot_SolSum(sol,1,2,xlims=(0.0,1.0),ylims=(0.0,0.0))
 plot_SolSum(sol,1,2,xlims=(0.0,0.0),ylims=(0.0,1.0))
 plot_SolSum(sol,1,2)
-save_Sol(sol,1,2,3,4,5)
-save_SolSum(sol,1,2) 
+#= save_Sol(sol,1,2,3,4,5)
+save_SolSum(sol,1,2)  =#
 plot_Sol(sol,1,2,3)
 plot_Sol(sol,1,2,xlims=(0.0,1.0),ylims=(0.0,2.0))
 plot_Sol(sol,1,2,xlims=(0.0,1.0),ylims=(0.0,0.0))
@@ -339,7 +339,7 @@ function onetevsloop2(du,u,p,t)
     for k in 2:5 
         du[k]=p[1]*(u[k]-u[k-1]) ;
     end 
-    if t-5.0>0.0
+    if t>5.0
         p[1]=0.0
     end
     if u[1]-2.0>0.0
@@ -360,6 +360,16 @@ sol=solve(odeprob,nmliqss2())
 @test -0.35<sol(0.5,idxs=2)<-0.2
 sol=solve(odeprob,liqss2())
 
+odeprob = @NLodeProblem begin 
+  name=("sysb11",)
+  u = [-1.0, -2.0]
+  du[1] = -2.0
+  du[2] =1.24*u[1]-0.01*u[2]+0.2
+  if t>5.0
+    u[2]=0.0
+  end
+end
+
 function onetevsloop3(du,u,p,t)
     du[1] = t+u[2]
     
@@ -369,7 +379,7 @@ function onetevsloop3(du,u,p,t)
     if t-5.0>0.0
         p[2]=0.0
     end
-    if u[1]+u[2]-3.0>0.0
+    if u[1]+u[2]>3.0
         u[1] = 1.0
         u[3] = 1.0
         u[4] = 0.0
@@ -473,3 +483,33 @@ sol= solve(odeprob,nmliqss2(),abstol=1e-4,reltol=1e-3)
 @test 0.4<sol(0.0004,idxs=5)<0.45
 @test 2.55<sol(0.0004,idxs=9)<2.57
 @test -2.98<sol(0.0004,idxs=13)<-2.9
+
+
+
+function Power_Grid(du, u, p, t)
+  # System size and parameters
+  N = 5  
+  C=1
+  M = [1.0, 1.2, 0.9, 1.1, 1.0] 
+  D = [0.2, 0.3, 0.25, 0.22, 0.2] 
+  α, β= 12.0, 10.001
+  a=u[2]
+    # Differential equations   
+  for k in C:N-1
+      du[k] = β*u[k+N] / M[k] 
+  end
+  du[N-1+C] = β*u[N+N] / M[N] 
+  for k in 6:10
+      du[k] = - a*α*u[k] - D[k-5] * u[k] 
+  end
+end
+
+# Initial conditions
+u0 = [0.1, 0.2, 0.15, 0.05, 0.1,5.0, 1.0, 0.5, 2.0, 0.0]
+
+# Time span
+tspan = (0.0, 5.0)
+
+# odeprob
+odeprob = ODEProblem(Power_Grid, u0, tspan)
+

@@ -23,7 +23,7 @@ Plots = "1.40"
 RuntimeGeneratedFunctions = "0.5.12"
 StaticArrays = "1"
 SymEngine = "0.11"
-julia = "1.6"
+julia = "1.9"
 
 [extras]
 BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"

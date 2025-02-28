@@ -57,6 +57,6 @@ solnmliqss=solve(odeprob,nmliqss2(),tspan);
 
 # output
 
-(843, 833, 363)
+(843, 833, 84)
 
 ```

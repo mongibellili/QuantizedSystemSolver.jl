@@ -1,6 +1,6 @@
 
 """
-    updateQ(::Val{2}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{2,Float64}}, qaux::Vector{MVector{2,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64})
+    updateQ(::Val{2}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{2,Float64}}, qaux::Vector{MVector{2,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64},f::F) where{F} 
 
 Update the quantized state for the second-order quantizer.
 
@@ -23,9 +23,9 @@ Update the quantized state for the second-order quantizer.
 
 
 """
-function updateQ(::Val{2}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{2,Float64}}, qaux::Vector{MVector{2,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64})
+function updateQ(::Val{2}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{2,Float64}}, qaux::Vector{MVector{2,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64},f::F) where{F} 
     cacheA[1] = 0.0
-    exactA(qv, d, cacheA, i, i, simt)
+    exactA(qv, d, cacheA, i, i, simt,f)
     a = cacheA[1]
     # exactA(xv,cacheA,i,i);a=cacheA[1]
     q = qv[i][0]
@@ -100,15 +100,15 @@ function updateQ(::Val{2}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, qua
 end
 
 """
-    updateQInit(::Val{2}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{2,Float64}}, qaux::Vector{MVector{2,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64})
+    updateQInit(::Val{2}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{2,Float64}}, qaux::Vector{MVector{2,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64},f::F) where{F} 
 
 Initialize the quantized state variables for the LIQSS2 method. It is similar to the [`updateQ`](@ref) function but does not accept q to be set to x when all derivatives are zero, which is the case when an equilibrium ocurrs during the simulation.
 
 
 """
-function updateQInit(::Val{2}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{2,Float64}}, qaux::Vector{MVector{2,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64})
+function updateQInit(::Val{2}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{2,Float64}}, qaux::Vector{MVector{2,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64},f::F) where{F} 
     cacheA[1] = 0.0
-    exactA(qv, d, cacheA, i, i, simt)
+    exactA(qv, d, cacheA, i, i, simt,f)
     a = cacheA[1]
     q = qv[i][0]
     q1 = qv[i][1]

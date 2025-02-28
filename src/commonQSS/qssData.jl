@@ -26,19 +26,19 @@
 end
 
 """
-    LiQSS_Data{O,Sparsity}
+    LiQSS_Data{O,M}
 helper datastructures needed only for implicit case
 The field variables are:
-  - vs::Val{Sparsity} #
+  - cd::Val{M} #
   - cacheA::MVector{1,Float64}
   - qaux::Vector{MVector{O,Float64}}
   - dxaux::Vector{MVector{O,Float64}}
 """
-struct LiQSS_Data{O,Sparsity}
-    vs::Val{Sparsity}               # not needed with the coef a computed from a function
+struct LiQSS_Data{O,M}
+    cd::Val{M}               # cycle detection mechanism
     cacheA::MVector{1,Float64}      # the coef a is computed from a function and the result is saved in a chache.
     qaux::Vector{MVector{O,Float64}} # to update u, q^- and dx^- are needed
     dxaux::Vector{MVector{O,Float64}} # so these 2 are to save the old values
 end
 
- 
+

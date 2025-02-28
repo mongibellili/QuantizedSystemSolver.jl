@@ -10,19 +10,17 @@ ODEProblem(f::Function, u::Vector{Float64}, tspan::Tuple{Float64,Float64}, p::Un
 ODEProblem(f::Function, u::Vector{Float64}, tspan::Tuple{Float64,Float64})
 ```
 
-```@docs 
-NLodeProblem(odeExprs) 
-```
+
 
 
 ## The solve function:
 
 ```@docs
-solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType};sparsity::Val{Sparsity}=Val(false),saveat=Inf::Float64,abstol=1e-3::Float64,reltol=1e-2::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,Sparsity}   
+solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType};detection::Val{M}=Val(3),saveat=Inf::Float64,abstol=1e-3::Float64,reltol=1e-2::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,M} 
 ```
 
 ```@docs
-solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};sparsity::Val{Sparsity}=Val(false),saveat=Inf::Float64,abstol=1e-3::Float64,reltol=1e-2::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,Sparsity}       
+solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};detection::Val{M}=Val(3),saveat=Inf::Float64,abstol=1e-3::Float64,reltol=1e-2::Float64,maxErr=Inf::Float64,maxiters=Int(1e7)::Int) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,M}        
 ```
 
 ## Algorithms
@@ -102,14 +100,7 @@ plot(sol::Sol{T,O};idxs=Int[]::Vector{Int},note=" "::String,xlims=(0.0,0.0)::Tup
 plot_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool,marker=:circle::Symbol,title="") where{T,O}
 ```
 
-```@docs
-save_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}
-```
 
-
-```@docs
-save_SolSum(sol::Sol{T,O},xvars::Int...;interp=0.0001,note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}
-```
 
 ```@docs
 plot_SolSum(sol::Sol{T,O},xvars::Int...;interp=0.0001,note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}

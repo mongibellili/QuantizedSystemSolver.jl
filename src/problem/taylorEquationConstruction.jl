@@ -1,7 +1,7 @@
 
 
 """
-    transformFSimplecase(ex)
+    transformFSimplecase(ex::Union{Float64,Int64,Expr,Symbol})
 
  transforms expressions of the right hand side of differential equations and zero-crossing functions to personalized ones that use caching to a form that can be used in the [`createT`](@ref) function. The right hand side of the equations should be a number or a q[i] term.
 # Example:   
@@ -13,11 +13,12 @@ newEx=QuantizedSystemSolver.transformFSimplecase(ex);
 
 # output
 
-:(createT(q[2], cache[1]))
+:(createT(q[2], cache[1])) 
 
 ```
 """  
-function transformFSimplecase(ex)#  it s easier and healthier to leave the big case alone in one prewalk (below) when returning the size of the distributed cache
+function transformFSimplecase(ex::Union{Float64,Int64,Expr,Symbol})
+    #  it s easier and healthier to leave the big case alone in one prewalk (below) when returning the size of the distributed cache
     ex=Expr(:call, :createT,ex)# case where rhs of eq is a number needed to change to taylor (in cache) to be used for qss ||  #case where rhs is q[i]...return cache that contains it
     cachexpr = Expr(:ref, :cache)   # add cache[1] to createT(ex,....)
     push!(cachexpr.args,1)
@@ -26,7 +27,7 @@ function transformFSimplecase(ex)#  it s easier and healthier to leave the big c
 end 
 
 """
-    transformF(ex)
+    transformF(ex::Expr)
 
  transforms expressions of the right hand side of differential equations and zero-crossing functions to personalized ones that use caching to a form that can be used in functions like  [`addT`](@ref), [`subT`](@ref), [`mulT`](@ref), [`muladdT`](@ref). The right hand side of the equations can be any form of expression.
 # Example:   
@@ -42,7 +43,7 @@ newEx=QuantizedSystemSolver.transformF(ex);
 
 ```
 """  
-function transformF(ex)# name to be changed later....i call this funciton in the docs the function that does the transformation
+function transformF(ex::Expr)# name to be changed later....i call this funciton in the docs the function that does the transformation
    cachexpr_lengthtracker = Expr(:mongi)# an expr to track the number of distributed caches
     prewalk(ex) do x
       #############################minus sign#############################################
@@ -182,7 +183,7 @@ function transformF(ex)# name to be changed later....i call this funciton in the
                 cachexpr2 = Expr(:ref, :cache)   
                 push!(cachexpr2.args,length(cachexpr_lengthtracker.args))#construct cache[2]
                 push!(x.args, cachexpr2)        
-      elseif false #holder for "myviewing" for next symbol for other functions..
+      elseif false #holder for next symbol for other functions..
          
       end
       return x # this is the line that actually enables modification of the original expression (prewalk only)

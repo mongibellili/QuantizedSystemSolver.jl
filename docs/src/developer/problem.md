@@ -87,7 +87,7 @@ handles different cases (i.e., which equation to evaluate based on an
 index of a state change or an event).
 
 **Building Dependencies:** Several helper functions that build the
-dependencies between variables, events. They build dependency vectors
+dependencies between variables, events. They build dependency vectors 
 that track how discrete and continous variables influence the system.
 This is used to know what variables to update and determine when
 specific events should be checked. By tracking the relationships between
@@ -180,17 +180,17 @@ QuantizedSystemSolver.NLODEDiscProblemSpan{PRTYPE,T,Z,D,CS}
  
 
 
-```@docs
-QuantizedSystemSolver.NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{0},initConditions::Vector{Float64},du::Symbol,symDict::Dict{Symbol,Expr},tspan::Tuple{Float64, Float64},discrVars::Vector{EM},prbName::Symbol) where {T,D,EM}
+```@docs 
+QuantizedSystemSolver. NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{0},initConditions::Vector{Float64},du::Symbol,tspan::Tuple{Float64, Float64},discrVars::Union{Vector{EM}, Tuple{Vararg{EM}}},prbName::Symbol) where {T,D,EM} 
 ```
 
 ```@docs
-QuantizedSystemSolver.NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Vector{Float64},du::Symbol,symDict::Dict{Symbol,Expr},tspan::Tuple{Float64, Float64},discrVars::Vector{EM},prbName::Symbol) where {T,D,Z,EM}
+QuantizedSystemSolver.NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{Z},initCond::Vector{Float64},du::Symbol,tspan::Tuple{Float64, Float64},discrVars::Union{Vector{EM}, Tuple{Vararg{EM}}},prbName::Symbol) where {T,D,Z,EM} 
 ```
 
 ### Problem construction helpers
 ```@docs
-QuantizedSystemSolver.prepareInfo(x::Expr,stateVarName::Symbol)
+QuantizedSystemSolver.prepareInfo(odeExprs::Expr,stateVarName::Symbol,discrParamName::Symbol) 
 ```
 ```@docs
 QuantizedSystemSolver.probHelper
@@ -199,37 +199,38 @@ QuantizedSystemSolver.probHelper
 QuantizedSystemSolver.arrangeProb(x::Expr)
 ```
 
-```@docs
-QuantizedSystemSolver.eliminateRef(a::Expr)
-```
+
 
 ```@docs
 QuantizedSystemSolver.changeExprToFirstValue(ex::Expr)
 ```
 ```@docs
-QuantizedSystemSolver.symbolFromRef(refEx)
+QuantizedSystemSolver.symbolFromRef(el::Symbol,refEx::Union{Int64,Expr,Symbol}) 
 ```
-```@docs
-QuantizedSystemSolver.symbolFromRefdiscrete(refEx)
-```
+
 ```@docs
 QuantizedSystemSolver.restoreRef(coefExpr,symDict)
 ```
 ```@docs
-QuantizedSystemSolver.changeVarNames_params(ex::Expr,stateVarName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}},symDict::Dict{Symbol,Expr})
+QuantizedSystemSolver.changeVarNames_params(ex::Expr,stateVarName::Symbol,discrParamName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}})
 ```
+
+
 ```@docs
-QuantizedSystemSolver.changeVarNames_params(ex::Expr,stateVarName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}})
+QuantizedSystemSolver.changeVarNames_params(element::Symbol,stateVarName::Symbol,discrParamName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}})
+```
+
+
 ```@docs
-QuantizedSystemSolver.changeVarNames_params(element::Symbol,stateVarName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}})
+QuantizedSystemSolver.handleEvents(argI::Expr,eventequs::Vector{Expr},length_zcequs::Int64,evsArr::Vector{EventDependencyStruct})
 ```
 
 ```@docs
-QuantizedSystemSolver.transformFSimplecase(ex)
+QuantizedSystemSolver.transformFSimplecase(ex::Union{Float64,Int64,Expr,Symbol})
 ```
 
 ```@docs
-QuantizedSystemSolver.transformF(ex)
+QuantizedSystemSolver.transformF(ex::Expr)
 ```
 
 
@@ -241,16 +242,16 @@ QuantizedSystemSolver.extractJacDepNormal(varNum::Int,rhs::Union{Int,Expr},jac :
 QuantizedSystemSolver.extractJacDepLoop(b::Int,niter::Int,rhs::Union{Int,Expr},jac :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}} ,exactJacExpr :: Dict{Expr,Union{Float64,Int,Symbol,Expr}},symDict::Dict{Symbol,Expr})
 ```
 ```@docs
-QuantizedSystemSolver.createJacVect(jac:: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},::Val{T}) where{T}
+QuantizedSystemSolver.createJacVect(jac:: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},::Val{T}) where {T}
 ```
 ```@docs
-QuantizedSystemSolver.createSDVect(jac:: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},::Val{T}) where{T}
+QuantizedSystemSolver.createSDVect(jac:: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},::Val{T}) where {T}
 ```
 ```@docs
-QuantizedSystemSolver.createExactJacFun(Exactjac:: Dict{Expr,Union{Float64,Int,Symbol,Expr}},funName::Symbol)
+QuantizedSystemSolver.createExactJacFun(otherCode::Expr,Exactjac:: Dict{Expr,Union{Float64,Int,Symbol,Expr}},funName::Symbol,f::F) where{F} 
 ```
 ```@docs
-QuantizedSystemSolver.createContEqFun(otherCode::Expr,equs::Dict{Union{Int,Expr},Union{Int,Symbol,Expr}},fname::Symbol,f::F) 
+QuantizedSystemSolver.createContEqFun(otherCode::Expr,equs::Dict{Union{Int,Expr},Union{Int,Symbol,Expr}},fname::Symbol,f::F) where {F}
 ```
 ```@docs
 QuantizedSystemSolver.extractJacDepNormalDiscrete(varNum::Int,rhs::Union{Symbol,Int,Expr},jac :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},exactJacExpr :: Dict{Expr,Union{Float64,Int,Symbol,Expr}},symDict::Dict{Symbol,Expr},dD :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}}) 
@@ -268,11 +269,11 @@ QuantizedSystemSolver.EventDependencyStruct
 ```
 
 ```@docs
-QuantizedSystemSolver.createSZvect(SZ :: Dict{Int64, Set{Int64}},::Val{T}) where{T} 
+QuantizedSystemSolver.createSZVect(SZ :: Dict{Int64, Set{Int64}},::Val{T}) where{T} 
 ```
 
 ```@docs
-QuantizedSystemSolver.createdDvect(dD::Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}},::Val{D}) where{D}
+QuantizedSystemSolver.createdDVect(dD::Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}},::Val{D}) where{D}
 ```
 
 ```@docs

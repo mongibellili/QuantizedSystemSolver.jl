@@ -1,5 +1,5 @@
 """
-    updateQ(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{1,Float64}}, qaux::Vector{MVector{1,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64})
+    updateQ(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{1,Float64}}, qaux::Vector{MVector{1,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64},f::F) where{F} 
 
 Update the quantized state for the LIQSS1 (Linearly Implicit Quantized State System 1) method.
 
@@ -23,9 +23,9 @@ Update the quantized state for the LIQSS1 (Linearly Implicit Quantized State Sys
 # Returns
 - None. The function updates the quantized state and other info in place.
 """
-function updateQ(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{1,Float64}}, qaux::Vector{MVector{1,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64})
+function updateQ(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{1,Float64}}, qaux::Vector{MVector{1,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64},f::F) where{F} 
     cacheA[1] = 0.0
-    exactA(qv, d, cacheA, i, i, simt)
+    exactA(qv, d, cacheA, i, i, simt,f)
     a = cacheA[1]
     q = qv[i][0]
     x = xv[i][0]
@@ -70,7 +70,7 @@ function updateQ(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, qua
             end
         end
     else
-        if x1 > 0.0
+        #= if x1 > 0.0
             q = x + Δ
         else
             q = x - Δ
@@ -79,6 +79,14 @@ function updateQ(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, qua
             h = (abs(Δ / x1))
         else
             h = Inf
+        end =#
+        if x1 != 0.0
+            #quantum[i]=1quan
+            h = abs(1 * Δ / x1)   # *10 just to widen the step otherwise it would behave like 1st order
+            q = x + h * x1
+        else
+            h = Inf
+            q = x
         end
     end
     qv[i][0] = q
@@ -86,7 +94,7 @@ function updateQ(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, qua
     return h
 end
 """
-    updateQInit(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{1,Float64}}, qaux::Vector{MVector{1,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64})
+    updateQInit(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{1,Float64}}, qaux::Vector{MVector{1,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64},f::F) where{F} 
 
 Initialize the quantized state for the LIQSS1 method.
 
@@ -110,9 +118,9 @@ Initialize the quantized state for the LIQSS1 method.
 # Description
 This function initializes the quantized state for the LIQSS1 method by updating the quantized state variables and their associated times based on the provided state variables, derivatives, and quantum values.
 """
-function updateQInit(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{1,Float64}}, qaux::Vector{MVector{1,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64})
+function updateQInit(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{1,Float64}}, qaux::Vector{MVector{1,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64},f::F) where{F} 
     cacheA[1] = 0.0
-    exactA(qv, d, cacheA, i, i, simt)
+    exactA(qv, d, cacheA, i, i, simt,f)
     a = cacheA[1]
     q = qv[i][0]
     x = xv[i][0]
@@ -157,7 +165,7 @@ function updateQInit(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0},
             end
         end
     else
-        if x1 > 0.0
+      #=   if x1 > 0.0
             q = x + Δ
         else
             q = x - Δ
@@ -165,7 +173,15 @@ function updateQInit(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0},
         if x1 != 0
             h = (abs(Δ / x1))
         else
+            h = Inf 
+        end =#
+        if x1 != 0.0
+            #quantum[i]=1quan
+            h = abs(1 * Δ / x1)   # *10 just to widen the step otherwise it would behave like 1st order
+            q = x + h * x1
+        else
             h = Inf
+            q = x+Δ
         end
     end
     qv[i][0] = q

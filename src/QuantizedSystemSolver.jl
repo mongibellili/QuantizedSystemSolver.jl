@@ -19,7 +19,7 @@ module QuantizedSystemSolver
     zero, one, zeros, ones, isinf, isnan, iszero,
     convert,  show,abs
                 ##### list of public (API) 
-  export ODEProblem,@NLodeProblem,NLodeProblem,solve ,NLODEProblem# 
+  export ODEProblem,@NLodeProblem,NLodeProblem,solve ,NLODEProblem,Detection# 
   export qss1,qss2,qss3,liqss1,liqss2,liqss3,saveat,nmliqss1,nmliqss2,nmliqss3
   export save_Sol,plot_Sol,getPlot,getPlot!,save_SolSum,solInterpolated,plot_SolSum,plot
   export getErrorByRefs,getAverageErrorByRefs,getError,getAverageError

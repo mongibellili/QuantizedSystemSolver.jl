@@ -1,6 +1,6 @@
 
 """
-    NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{0},initConditions::Vector{Float64},du::Symbol,symDict::Dict{Symbol,Expr},tspan::Tuple{Float64, Float64},discrVars::Union{Vector{EM}, Tuple{Vararg{EM}}},prbName::Symbol) where {T,D,EM} # 
+    NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{0},initConditions::Vector{Float64},du::Symbol,tspan::Tuple{Float64, Float64},discrVars::Union{Vector{EM}, Tuple{Vararg{EM}}},prbName::Symbol) where {T,D,EM} 
 
 This function continues building a continuous problem. it receives an expression and useful info from the main interface. it calls the transform function from the taylorEquationConstruction.jl file to change the AST of all operations to personlized ones and update the needed cache size. It also construct via helper functions the Exact jacobian function, the jacobian dependecy and the state-derivative dependency (opposite of jacobian) as vectors. Finally, it groups all differential equations in one function, and constructs a continous problem from the qssProblemDefinition.jl file.
 # Arguments
@@ -14,8 +14,8 @@ This function continues building a continuous problem. it receives an expression
 - `tspan::Tuple{Float64, Float64}`: stores the initial time and final time of the simulation.  
 - `prbName::Symbol`: The problem name as chosen by the user to be carried to the solution for displaying purposes.  
 """
-function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{0},initConditions::Vector{Float64},du::Symbol,symDict::Dict{Symbol,Expr},tspan::Tuple{Float64, Float64},discrVars::Union{Vector{EM}, Tuple{Vararg{EM}}},prbName::Symbol) where {T,D,EM} # 
-    if VERBOSE println("nlodeprobfun  T= $T") end
+function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{0},initConditions::Vector{Float64},du::Symbol,tspan::Tuple{Float64, Float64},discrVars::Union{Vector{EM}, Tuple{Vararg{EM}}},prbName::Symbol) where {T,D,EM} 
+    symDict=Dict{Symbol,Expr}()
     equs=Dict{Union{Int,Expr},Union{Int,Symbol,Expr}}() #du[int] or du[i]==du[a<i<b]==du[(a:b)]
     jac = Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}}()# datastrucutre 'Set' used because we do not want to insert an existing varNum
     exacteJacExpr = Dict{Expr,Union{Float64,Int,Symbol,Expr}}()
@@ -28,8 +28,15 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{0},initConditio
             discrVars = Vector{Float64}(argI.args[2].args)
         #only diff eqs: du[]= number || ref || call 
         elseif argI isa Expr &&  argI.head == :(=)  && argI.args[1] isa Expr && argI.args[1].head == :ref && argI.args[1].args[1]==du#expr LHS=RHS and LHS is du
-            y=argI.args[1];rhs=argI.args[2]
-            varNum=y.args[2] # order/index of variable
+            rhs=argI.args[2];varNum=argI.args[1].args[2] # varnum is the order/index of variable
+            
+           #=  if !(varNum isa Int) #case du[i]=number
+                @show "! ",varNum
+                varNum=eval(varNum) #convert to int
+                
+            else
+                @show varNum
+            end =#
             if rhs isa Number # rhs of equ =number  
                 equs[varNum]=transformFSimplecase(rhs) #change rhs from N to cache=taylor0=[[N,0,0],2] for order 2 for exple
             elseif rhs isa Symbol # case du=t   
@@ -70,9 +77,6 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{0},initConditio
     if odeExprs.args[1] isa Expr && odeExprs.args[1].args[2] isa Expr && odeExprs.args[1].args[2].head == :tuple#user has to enter problem info in a tuple (old maco)
         fname= Symbol(odeExprs.args[1].args[2].args[1])
     end
- 
-    exacteJacfunction=createExactJacFun(exacteJacExpr,fname)
-    exactJacfunctionF=@RuntimeGeneratedFunction(exacteJacfunction)
    
     jacVect=createJacVect(jac,Val(T)) #jacobian dependency
     SDVect=createSDVect(jac,Val(T))  # state derivative dependency
@@ -87,22 +91,23 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{0},initConditio
         #closurefunc=()->nothing 
         closurefunc=@RuntimeGeneratedFunction(functionEx.args[2]) 
         diffEqfunction=createContEqFun(otherCode,equs,fname,closurefunc)# diff equations before this are stored in a dict:: now we have a giant function that holds all diff equations
-        
+        exacteJacfunction=createExactJacFun(otherCode,exacteJacExpr,fname,closurefunc)
     else
         closurefunc=0
         diffEqfunction=createContEqFun(otherCode,equs,fname,closurefunc)# diff equations before this are stored in a dict:: now we have a giant function that holds all diff equations
+        exacteJacfunction=createExactJacFun(otherCode,exacteJacExpr,fname,closurefunc)
     end
-
+    exactJacfunctionF=@RuntimeGeneratedFunction(exacteJacfunction)
     diffEqfunctionF=@RuntimeGeneratedFunction(diffEqfunction) # @RuntimeGeneratedFunction changes a fun expression to actual fun without running into world age problems
     prob=NLODEContProblemSpan(fname,Val(1),Val(T),Val(D),Val(0),Val(num_cache_equs),initConditions,collect(discrVars),diffEqfunctionF,jacVect,SDVect,exactJacfunctionF,tspan,[closurefunc])# prtype type 1...prob not saved and struct contains vects
 end
  
 
 #old interface without tspan
-function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{0},initCond::Vector{Float64},du::Symbol,symDict::Dict{Symbol,Expr})where {T,D}
+function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{0},initCond::Vector{Float64},du::Symbol)where {T,D}
     discrVars=Vector{Float64}()
     tspan = (0.0,1.0)
     prbName=:_
-    probspan=NLodeProblemFunc(odeExprs,Val(T),Val(D),Val(0),initCond,du,symDict,tspan,discrVars,prbName)  
+    probspan=NLodeProblemFunc(odeExprs,Val(T),Val(D),Val(0),initCond,du,tspan,discrVars,prbName)  
     myodeProblem =NLODEContProblem(probspan.prname,Val(1),Val(T),Val(D),Val(0),probspan.cacheSize,probspan.initConditions,probspan.discreteVars,probspan.eqs,probspan.jac,probspan.SD,probspan.exactJac,probspan.closureFuncs)
 end

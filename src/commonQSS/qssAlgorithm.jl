@@ -26,7 +26,7 @@ qss1()=QSSAlgorithm(Val(:qss),Val(1))
 
 """
     qss2()
-calls the explicit quantized state system solver with order 2
+calls the explicit quantized state system solver with order 2 
 """
 qss2()=QSSAlgorithm(Val(:qss),Val(2))
 

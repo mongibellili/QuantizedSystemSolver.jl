@@ -1,12 +1,12 @@
 """
-    integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{0}, liqssdata::LiQSS_Data{O,false}, odep::NLODEProblem{F,PRTYPE,T,D,0,CS}, f::Function, jac::Function, SD::Function, exactA::Function) where {F,PRTYPE,CS,O,T,D}
+    integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{0}, liqssdata::LiQSS_Data{O,M}, odep::NLODEProblem{F,PRTYPE,T,D,0,CS}, f::Function, jac::Function, SD::Function, exactA::Function) where {F,PRTYPE,CS,O,T,D,M}
 
 Integrates a nonlinear ordinary differential equation (ODE) problem (without events) using the nmLiqss (modified Liqss that detect events) algorithm.
 
 # Arguments
 - `Al::QSSAlgorithm{:nmliqss,O}`: The QSS algorithm to be used for integration.
 - `CommonqssData::CommonQSS_Data{0}`: Common data structure for QSS algorithms.
-- `liqssdata::LiQSS_Data{O,false}`: Data specific to the LiQSS algorithm.
+- `liqssdata::LiQSS_Data{O,M}`: Data specific to the LiQSS algorithm.
 - `odep::NLODEProblem{F,PRTYPE,T,0,0,CS}`: The nonlinear ODE problem to be solved.
 - `f::Function`: The function defining the ODE system.
 - `jac::Function`: The Jacobian dependency function of the ODE system.
@@ -14,10 +14,10 @@ Integrates a nonlinear ordinary differential equation (ODE) problem (without eve
 - `exactA::Function`: The exact jacobian expression function for the ODE system.
 
 # Returns
-- A solution
+- A solution 
 
 """
-function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{0}, liqssdata::LiQSS_Data{O,false}, odep::NLODEProblem{F,PRTYPE,T,D,0,CS}, f::Function, jac::Function, SD::Function, exactA::Function) where {F,PRTYPE,CS,O,T,D}
+function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{0}, liqssdata::LiQSS_Data{O,M}, odep::NLODEProblem{F,PRTYPE,T,D,0,CS}, f::Function, jac::Function, SD::Function, exactA::Function) where {F,PRTYPE,CS,O,T,D,M}
   if VERBOSE println("integration...") end
   cacheA = liqssdata.cacheA
   ft = CommonqssData.finalTime
@@ -44,8 +44,14 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{0
  d = CommonqssData.d 
  clF=odep.closureFuncs[1]
  #clF=0
-  exactA(q, d, cacheA, 1, 1, initTime + 1e-9)
+  exactA(q, d, cacheA, 1, 1, initTime + 1e-9,clF)
   trackSimul = Vector{Int}(undef, 1)
+  A=Array{Float64, 2}(undef, 3, 3)
+  
+  I=[1.0 0.0 0.0;0.0 1.0 0.0;0.0 0.0 1.0]
+  U=[0.0;0.0;0.0]
+  X=[0.0;0.0;0.0]
+
   numSteps = Vector{Int}(undef, T)
   #######################################compute initial values##################################################
   n = 1
@@ -88,7 +94,7 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{0
         end 
       end
     else
-      updateQ(Val(O), i, x, q, quantum, exactA, d, cacheA, dxaux, qaux, tx, tq, initTime + 1e-12, ft, nextStateTime) #1e-9 exactAfunc contains 1/t???
+      updateQInit(Val(O), i, x, q, quantum, exactA, d, cacheA, dxaux, qaux, tx, tq, initTime + 1e-12, ft, nextStateTime,clF) #1e-9 exactAfunc contains 1/t???
     end
   end
   ###################################################################################################################################################################
@@ -129,56 +135,59 @@ function integrate(Al::QSSAlgorithm{:nmliqss,O}, CommonqssData::CommonQSS_Data{0
           tq[b] = simt
         end
       end
-      firstguess = updateQ(Val(O), index, x, q, quantum, exactA, d, cacheA, dxaux, qaux, tx, tq, simt, ft, nextStateTime)
+      firstguess = updateQ(Val(O), index, x, q, quantum, exactA, d, cacheA, dxaux, qaux, tx, tq, simt, ft, nextStateTime,clF)
       tq[index] = simt
       #----------------------------------------------------check dependecy cycles---------------------------------------------   
       trackSimul[1] = 0
       for j in SD(index)
-        for b in (jac(j))    # update Qb: to be used to calculate exacte Ajb
-          elapsedq = simt - tq[b]
-          if elapsedq > 0
-            integrateState(Val(O - 1), q[b], elapsedq)
-            tq[b] = simt
+        if trackSimul[1] != j
+          for b in (jac(j))    # update Qb: to be used to calculate exacte Ajb
+            elapsedq = simt - tq[b]
+            if elapsedq > 0
+              integrateState(Val(O - 1), q[b], elapsedq)
+              tq[b] = simt
+            end
           end
-        end
-        cacheA[1] = 0.0
-        exactA(q, d, cacheA, index, j, simt)
-        aij = cacheA[1]# 
-        cacheA[1] = 0.0
-        exactA(q, d, cacheA, j, index, simt)
-        aji = cacheA[1]
-        if j != index && aij * aji != 0.0
-          if nmisCycle_and_simulUpdate( aij, aji, trackSimul, Val(O), index, j, dirI, x, q, quantum, exactA, d, cacheA, dxaux, qaux, tx, tq, simt, ft)
-            simulStepCount += 1
-            clearCache(taylorOpsCache, Val(CS), Val(O))
-            f(index, q, t, d,taylorOpsCache,clF)
-            computeDerivative(Val(O), x[index], taylorOpsCache[1])
-            for k in SD(j)  #j influences k
-              if k != index && k != j
-                elapsedx = simt - tx[k]
-                x[k].coeffs[1] = x[k](elapsedx)
-                tx[k] = simt
-                elapsedq = simt - tq[k]
-                if elapsedq > 0 integrateState(Val(O - 1), q[k], elapsedq) ;tq[k] = simt end
-                for b in (jac(k))
-                  elapsedq = simt - tq[b]
-                  if elapsedq > 0
-                    integrateState(Val(O - 1), q[b], elapsedq)
-                    tq[b] = simt
+          cacheA[1] = 0.0
+          exactA(q, d, cacheA, index, j, simt,clF)
+          aij = cacheA[1]# 
+          cacheA[1] = 0.0
+          exactA(q, d, cacheA, j, index, simt,clF)# can have clF also
+          aji = cacheA[1]
+          if j != index && aij * aji != 0.0
+            if nmisCycle_and_simulUpdate(aij, aji, trackSimul, Val(O),Val(M), index, j, dirI, x, q, quantum, exactA, d, cacheA, dxaux, qaux, tx, tq, simt, ft,clF)
+              simulStepCount += 1
+              clearCache(taylorOpsCache, Val(CS), Val(O))
+              f(index, q, t, d,taylorOpsCache,clF)
+              computeDerivative(Val(O), x[index], taylorOpsCache[1])
+              Liqss_reComputeNextTime(Val(O), index, simt, nextStateTime, x, q, quantum)
+              for k in SD(j)  #j influences k
+                if k != index && k != j
+                  elapsedx = simt - tx[k]
+                  x[k].coeffs[1] = x[k](elapsedx)
+                  tx[k] = simt
+                  elapsedq = simt - tq[k]
+                  if elapsedq > 0 integrateState(Val(O - 1), q[k], elapsedq) ;tq[k] = simt end
+                  for b in (jac(k))
+                    elapsedq = simt - tq[b]
+                    if elapsedq > 0
+                      integrateState(Val(O - 1), q[b], elapsedq)
+                      tq[b] = simt
+                    end
                   end
-                end
-                clearCache(taylorOpsCache, Val(CS), Val(O))
-                f(k, q, t, d,taylorOpsCache,clF)
-                computeDerivative(Val(O), x[k], taylorOpsCache[1])
-                Liqss_reComputeNextTime(Val(O), k, simt, nextStateTime, x, q, quantum)
-              end#end if k!=0
-            end#end for k depend on j          
-          end#end ifcycle check
-        end#end if j!=0
+                  clearCache(taylorOpsCache, Val(CS), Val(O))
+                  f(k, q, t, d,taylorOpsCache,clF)
+                  computeDerivative(Val(O), x[k], taylorOpsCache[1])
+                  Liqss_reComputeNextTime(Val(O), k, simt, nextStateTime, x, q, quantum)
+                end#end if k!=0
+              end#end for k depend on j          
+            end#end ifcycle check
+          end#end if j!=index
+        end#end if trackSimul[1] != j
       end#end FOR_cycle check
-      if trackSimul[1] != 0  #qi changed after throw
+     #=  if trackSimul[1] != 0  #qi changed after throw
         Liqss_reComputeNextTime(Val(O), index, simt, nextStateTime, x, q, quantum)
-      end
+      end =#
      #=  if trackSimul[1] > 1
         simulStepCount += 1
       end =#

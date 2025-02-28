@@ -112,11 +112,11 @@ generates a plot of the solution of the system (returned as a plot object).
 """
 function plot_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool,marker=:circle::Symbol,title="") where{T,O}
   idxs=Int64[]
-          if xvars!=()
-            for k in xvars 
-              push!(idxs,k)
-            end
-          end
+  if xvars!=()
+    for k in xvars 
+      push!(idxs,k)
+    end
+  end
   plot(sol,idxs=idxs,note=note,xlims=xlims,ylims=ylims,legend=legend,marker=marker,title=title)
 end
 
@@ -168,7 +168,7 @@ end
 
 
 
-"""
+#= """
     save_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}
 
 Saves the plot of the system solution for the variables xvars.
@@ -207,6 +207,6 @@ function save_SolSum(sol::Sol{T,O},xvars::Int...;interp=0.0001,note=" "::String,
   timestamp=(string(year(mydate),"_",month(mydate),"_",day(mydate),"_",hour(mydate),"_",minute(mydate),"_",second(mydate)))
   savefig(p1, "plot_$(sol.sysName)_$(sol.algName)_$(xvars)_$(sol.absQ)_$(note)_ft_$(sol.ft)_$(timestamp).png")
 end
-
+ =#
 
 

@@ -1,4 +1,4 @@
-
+#= 
 """
     NLodeProblem(odeExprs) 
 Old interface that requires the user to enter 'quote' in the problem definition parses the user code to dispatches on a specific problem construction.
@@ -30,19 +30,18 @@ function NLodeProblem(odeExprs)
    #= if discSize==0
     NLodeProblemFunc(odeExprs,Val(probSize),Val(discSize),Val(zcSize),initConds,du,symDict)     #returns  prob   
    else =#
-    NLodeProblemFunc(odeExprs,Val(probSize),Val(discSize),Val(zcSize),initConds,du,symDict)     #returns  prob   
+    NLodeProblemFunc(odeExprs,Val(probSize),Val(discSize),Val(zcSize),initConds,du)     #returns  prob   
    #end
-end
+end =#
 
 macro NLodeProblem(odeExprs) 
     Base.remove_linenums!(odeExprs)
-    if VERBOSE println("starting prob parsing...") end 
     probHelper=arrangeProb(odeExprs)# replace symbols and params , extract info about size,symbols,initconds
     probSize=probHelper.problemSize
     discSize=probHelper.discreteSize
     zcSize=probHelper.numZC
     initConds=probHelper.initConditions # vector
-    symDict=probHelper.symDict
+    #symDict=probHelper.symDict
     du=probHelper.du
     if length(initConds)==0  #user chose shortcuts...initcond saved in a dict
         initConds=zeros(probSize)# vector of init conds to be created
@@ -60,7 +59,7 @@ macro NLodeProblem(odeExprs)
    #= if discSize==0
     NLodeProblemFunc(odeExprs,Val(probSize),Val(discSize),Val(zcSize),initConds,du,symDict)     #returns  prob   
    else =#
-    NLodeProblemFunc(odeExprs,Val(probSize),Val(discSize),Val(zcSize),initConds,du,symDict)     #returns  prob   
+    NLodeProblemFunc(odeExprs,Val(probSize),Val(discSize),Val(zcSize),initConds,du)     #returns  prob   
    #end
 end
 
@@ -87,7 +86,7 @@ struct probHelper #helper struct to return stuff from arrangeProb
     savedInitCond::Dict{Union{Int,Expr},Float64}
     initConditions::Vector{Float64}
     du::Symbol
-    symDict::Dict{Symbol,Expr}
+    #symDict::Dict{Symbol,Expr}
 end
 
 """
@@ -101,7 +100,7 @@ in old interface, this prepares information about the ODE problem by replacing s
 function arrangeProb(x::Expr) # replace symbols and params , extract info about sizes,symbols,initconds
     #param=Dict{Symbol,Union{Float64,Expr}}()
     param=Dict{Symbol,Union{Float64,Int64,Expr,Symbol}}()
-    symDict=Dict{Symbol,Expr}()
+    #symDict=Dict{Symbol,Expr}()
     stateVarName=:u
     du=:nothing #default anything 
     problemSize=0
@@ -115,7 +114,7 @@ function arrangeProb(x::Expr) # replace symbols and params , extract info about 
             if y isa Symbol && rhs isa Number #params: fill dict of param
                 param[y]=rhs
             elseif y isa Symbol && rhs isa Expr && (rhs.head==:call || rhs.head==:ref) #params=epression fill dict of param
-                    argI.args[2]=changeVarNames_params(rhs,stateVarName,:nothing,param,symDict)
+                    argI.args[2]=changeVarNames_params(rhs,stateVarName,:discrete,:nothing,param)
                     param[y]=argI.args[2]
             elseif y isa Expr && y.head == :ref && rhs isa Number #initial conds "1st way"  u[a]=N or u[a:b]=N...
                if string(y.args[1])[1] !='d' #prevent the case diffEq du[]=Number
@@ -142,14 +141,14 @@ function arrangeProb(x::Expr) # replace symbols and params , extract info about 
                     discreteSize = length(rhs.args)  
                 end    
             elseif y isa Expr && y.head == :ref && (rhs isa Expr && rhs.head !=:vect)#&& rhs.head==:call or ref # a diff equa not in a loop
-                argI.args[2]=changeVarNames_params(rhs,stateVarName,:nothing,param,symDict)
+                argI.args[2]=changeVarNames_params(rhs,stateVarName,:discrete,:nothing,param)
             elseif y isa Expr && y.head == :ref && rhs isa Symbol
                 if haskey(param, rhs)#symbol is a parameter
                     argI.args[2]=copy(param[rhs]) 
                 end
             end
         elseif @capture(argI, for var_ in b_:niter_ loopbody__ end)
-            argI.args[2]=changeVarNames_params(loopbody[1],stateVarName,var,param,symDict)
+            argI.args[2]=changeVarNames_params(loopbody[1],stateVarName,:discrete,var,param)
         elseif argI isa Expr && argI.head==:if
             numZC+=1
             (length(argI.args)!=3 && length(argI.args)!=2) && error("use format if A>0 B else C or if A>0 B")
@@ -161,15 +160,15 @@ function arrangeProb(x::Expr) # replace symbols and params , extract info about 
            zcf.head=:call
            zcf.args=[:-,zcf_LHS,zcf_RHS]
               #argI.args[1].args[2]=zcf
-              argI.args[1].args[2]=changeVarNames_params(zcf,stateVarName,:nothing,param)#zcf
+              argI.args[1].args[2]=changeVarNames_params(zcf,stateVarName,:discrete,:nothing,param)#zcf
               # name changes have to be per block
               if length(argI.args)==2 #user used if a b
-                argI.args[2]=changeVarNames_params(argI.args[2],stateVarName,:nothing,param) #posEv
+                argI.args[2]=changeVarNames_params(argI.args[2],stateVarName,:discrete,:nothing,param) #posEv
               elseif length(argI.args)==3 #user used if a b else c
-                argI.args[2]=changeVarNames_params(argI.args[2],stateVarName,:nothing,param)#posEv
-                argI.args[3]=changeVarNames_params(argI.args[3],stateVarName,:nothing,param)#negEv
+                argI.args[2]=changeVarNames_params(argI.args[2],stateVarName,:discrete,:nothing,param)#posEv
+                argI.args[3]=changeVarNames_params(argI.args[3],stateVarName,:discrete,:nothing,param)#negEv
               end
         end#end cases of argI
     end#end for argI in args
-    p=probHelper(problemSize,discreteSize,numZC,savedInitCond,initConditions,du,symDict)
+    p=probHelper(problemSize,discreteSize,numZC,savedInitCond,initConditions,du)
 end#end function

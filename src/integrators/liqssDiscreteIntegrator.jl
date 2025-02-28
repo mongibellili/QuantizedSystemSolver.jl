@@ -1,12 +1,12 @@
 """
-    integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_Data{Z}, liqssdata::LiQSS_Data{O,false}, odep::NLODEProblem{F,PRTYPE,T,D,Z,CS}, f::Function, jac::Function, SD::Function, exactA::Function) where {F,PRTYPE,O,T,D,Z,CS}
+    integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_Data{Z}, liqssdata::LiQSS_Data{O,3}, odep::NLODEProblem{F,PRTYPE,T,D,Z,CS}, f::Function, jac::Function, SD::Function, exactA::Function) where {F,PRTYPE,O,T,D,Z,CS}
 
 Integrates a nonlinear ordinary differential equation (ODE) problem with `events` using the LiQSS (Linearized Quantized State System) algorithm.
 
 # Arguments
 - `Al::QSSAlgorithm{:liqss,O}`: The QSS algorithm type for LiQSS.
 - `CommonqssData::CommonQSS_Data{Z}`: Common data structure for QSS algorithms.
-- `liqssdata::LiQSS_Data{O,false}`: Data structure specific to the LiQSS algorithm.
+- `liqssdata::LiQSS_Data{O,1}`: Data structure specific to the LiQSS algorithm.
 - `odep::NLODEProblem{F,PRTYPE,T,D,Z,CS}`: The nonlinear ODE problem to be solved.
 - `f::Function`: The function defining the ODE system.
 - `jac::Function`: The Jacobian dependency function of the ODE system.
@@ -17,7 +17,7 @@ Integrates a nonlinear ordinary differential equation (ODE) problem with `events
 - A solution after the integration process.
 
 """
-function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_Data{Z}, liqssdata::LiQSS_Data{O,false}, odep::NLODEProblem{F,PRTYPE,T,D,Z,CS}, f::Function, jac::Function, SD::Function, exactA::Function) where {F,PRTYPE,O,T,D,Z,CS}
+function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_Data{Z}, liqssdata::LiQSS_Data{O,3}, odep::NLODEProblem{F,PRTYPE,T,D,Z,CS}, f::Function, jac::Function, SD::Function, exactA::Function) where {F,PRTYPE,O,T,D,Z,CS}
   if VERBOSE println("integration...") end
   cacheA = liqssdata.cacheA
   ft = CommonqssData.finalTime
@@ -49,7 +49,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_Data{Z},
   SZ = odep.SZ
   evDep = odep.eventDependencies
  
-  exactA(q, d, cacheA, 1, 1, initTime + 1e-9)
+  exactA(q, d, cacheA, 1, 1, initTime + 1e-9,clF)
   f(1, -1, -1, q, d, t, taylorOpsCache,clF)
   trackSimul = Vector{Int}(undef, 1)
   #********************************helper values*******************************  
@@ -98,7 +98,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_Data{Z},
         end
       end
     else
-      updateQ(Val(O), i, x, q, quantum, exactA, d, cacheA, dxaux, qaux, tx, tq, initTime + 1e-12, ft, nextStateTime) 
+      updateQInit(Val(O), i, x, q, quantum, exactA, d, cacheA, dxaux, qaux, tx, tq, initTime + 1e-12, ft, nextStateTime,clF) 
     end
   end
   for i = 1:Z
@@ -140,7 +140,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_Data{Z},
       quantum[index] = relQ * abs(x[index].coeffs[1])
       quantum[index] = quantum[index] < absQ ? absQ : quantum[index]
       quantum[index] = quantum[index] > maxErr ? maxErr : quantum[index]
-      firstguess = updateQ(Val(O), index, x, q, quantum, exactA, d, cacheA, dxaux, qaux, tx, tq, simt, ft, nextStateTime)
+      firstguess = updateQ(Val(O), index, x, q, quantum, exactA, d, cacheA, dxaux, qaux, tx, tq, simt, ft, nextStateTime,clF)
       tq[index] = simt
       for c in SD(index)   #index influences c  
         elapsedx = simt - tx[c]
@@ -291,7 +291,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_Data{Z},
         quantum[i] = relQ * abs(x[i].coeffs[1])
         quantum[i] = quantum[i] < absQ ? absQ : quantum[i]
         quantum[i] = quantum[i] > maxErr ? maxErr : quantum[i]
-        firstguess = updateQ(Val(O), i, x, q, quantum, exactA, d, cacheA, dxaux, qaux, tx, tq, simt, ft, nextStateTime)
+        firstguess = updateQ(Val(O), i, x, q, quantum, exactA, d, cacheA, dxaux, qaux, tx, tq, simt, ft, nextStateTime,clF)
         tx[i] = simt;tq[i] = simt
         Liqss_reComputeNextTime(Val(O), i, simt, nextStateTime, x, q, quantum)
       end

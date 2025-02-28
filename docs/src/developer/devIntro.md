@@ -43,9 +43,13 @@ The other components of the solver include the NLodeProblem function, the solve 
 
 ![The QSS Solver Structure.](../assets/img/diagram.png)
 
+
+### Create Problem structure
+
+![The problem creation Structure.](../assets/img/Probdiagram.png)
+
 ## Future work
 
-  - Currently, to introduce an event the user must define the condition of the event in this syntax: condition>0. We want to improve the way to define the conditions to include any boolean entry instead. 
   - Improve the performance of constructing the problem using ODEProblem (similar to the performance when using @NLodeProblem).
   - Extend the quantizer to handle order 3.
   - Create more functions to the Taylor object.

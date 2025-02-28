@@ -1,14 +1,14 @@
 """
-    nmisCycle_and_simulUpdate(aij::Float64, aji::Float64, trackSimul, ::Val{2}, index::Int, j::Int, dirI::Float64, x::Vector{Taylor0}, q::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{2,Float64}}, qaux::Vector{MVector{2,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64)
+    nmisCycle_and_simulUpdate(aij::Float64,aji::Float64,trackSimul,::Val{2},Val(M),index::Int,j::Int,dirI::Float64, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64},exactA::Function,d::Vector{Float64},cacheA::MVector{1,Float64},dxaux::Vector{MVector{2,Float64}},qaux::Vector{MVector{2,Float64}},tx::Vector{Float64},tq::Vector{Float64},simt::Float64,ft::Float64,f::F) where {M,F}
 
 Performs a simultaneous update of two quantized variables `qi` and `qj` and their derivatives if cycle conditions are met.
 This is similar to the [`nmisCycle_and_simulUpdate`](@ref) order 1 function.
 """
-function nmisCycle_and_simulUpdate(aij::Float64,aji::Float64,trackSimul,::Val{2},index::Int,j::Int,dirI::Float64, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64},exactA::Function,d::Vector{Float64},cacheA::MVector{1,Float64},dxaux::Vector{MVector{2,Float64}},qaux::Vector{MVector{2,Float64}},tx::Vector{Float64},tq::Vector{Float64},simt::Float64,ft::Float64)
-  cacheA[1]=0.0;exactA(q,d,cacheA,index,index,simt)
+function nmisCycle_and_simulUpdate(aij::Float64,aji::Float64,trackSimul,::Val{2},::Val{M},index::Int,j::Int,dirI::Float64, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64},exactA::Function,d::Vector{Float64},cacheA::MVector{1,Float64},dxaux::Vector{MVector{2,Float64}},qaux::Vector{MVector{2,Float64}},tx::Vector{Float64},tq::Vector{Float64},simt::Float64,ft::Float64,f::F) where {M,F}
+  cacheA[1]=0.0;exactA(q,d,cacheA,index,index, simt,f)
   aii=cacheA[1]
-  cacheA[1]=0.0; exactA(q,d,cacheA,j,j,simt)
-  ajj=cacheA[1]
+  cacheA[1]=0.0; exactA(q,d,cacheA,j,j, simt,f)
+  ajj=cacheA[1] 
   uii=dxaux[index][1]-aii*qaux[index][1]
   ui2=dxaux[index][2]-aii*qaux[index][2]
   xi=x[index][0];xj=x[j][0];qi=q[index][0];qj=q[j][0];qi1=q[index][1];qj1=q[j][1];xi1=x[index][1];xi2=2*x[index][2];xj1=x[j][1];xj2=2*x[j][2]
@@ -16,6 +16,7 @@ function nmisCycle_and_simulUpdate(aij::Float64,aji::Float64,trackSimul,::Val{2}
   e1 = simt - tx[j];e2 = simt - tq[j];
   prevXj=x[j][0]
   x[j][0]= x[j](e1);xj=x[j][0];tx[j]=simt
+  recentjDir=(xj-prevXj)
   qj=qj+e2*qj1  ;qaux[j][1]=qj;tq[j] = simt    ;q[j][0]=qj  
   xj1=x[j][1]+e1*xj2;
   newDiff=(xj-prevXj)
@@ -46,11 +47,14 @@ function nmisCycle_and_simulUpdate(aij::Float64,aji::Float64,trackSimul,::Val{2}
   αidir=xi1+hi*xi2/2
   βj=xj1+hj*xj2/2
   ########cycle detection condition
-  if (abs(dxj-xj1)>(abs(dxj+xj1)/2) || abs(ddxj-xj2)>(abs(ddxj+xj2)/2))  #|| dqjplus*newDiff<0.0 #(dqjplus*qj1)<=0.0 with dir is better since when dir =0 we do not enter
+
+  iscycle=detect2(Val(M),xi1,dxi,dxithrow,xi2,ddxi,ddxithrow,βidir,βidth,xj1,dxj,xj2,ddxj,dqjplus,recentjDir,dirI) 
+
+ #=  if (abs(dxj-xj1)>(abs(dxj+xj1)/2) || abs(ddxj-xj2)>(abs(ddxj+xj2)/2))  #|| dqjplus*newDiff<0.0 #(dqjplus*qj1)<=0.0 with dir is better since when dir =0 we do not enter
     if (abs(dxi-xi1)>(abs(dxi+xi1)/2) || abs(ddxi-xi2)>(abs(ddxi+xi2)/2)) #|| βidir*dirI<0.0
       iscycle=true
     end
-  end 
+  end  =#
 #=   if (abs(dxj-xj1)>(abs(dxj+xj1)/2) || abs(ddxj-xj2)>(abs(ddxj+xj2)/2))  || dqjplus*newDiff<0.0 #(dqjplus*qj1)<=0.0 with dir is better since when dir =0 we do not enter
     if (abs(dxi-xi1)>(abs(dxi+xi1)/2) || abs(ddxi-xi2)>(abs(ddxi+xi2)/2)) || βidir*dirI<0.0
       iscycle=true
@@ -138,4 +142,80 @@ function nmisCycle_and_simulUpdate(aij::Float64,aji::Float64,trackSimul,::Val{2}
         trackSimul[1]+=1 # do not have to recomputeNext if qi never changed
       end #end if iscycle
   return iscycle
+end
+
+
+
+function detect2(::Val{0},xi1,dxi,dxithrow,xi2,ddxi,ddxithrow,βidir,βidth,xj1,dxj,xj2,ddxj,dqjplus,recentjDir,dirI)
+  return false
+end
+
+
+function detect2(::Val{1},xi1,dxi,dxithrow,xi2,ddxi,ddxithrow,βidir,βidth,xj1,dxj,xj2,ddxj,dqjplus,recentjDir,dirI)
+  if (abs(dxj-xj1)>(abs(dxj+xj1)/2) || abs(ddxj-xj2)>(abs(ddxj+xj2)/2))  
+    
+    if (abs(dxi-xi1)>(abs(dxi+xi1)/2) || abs(ddxi-xi2)>(abs(ddxi+xi2)/2)) 
+       return true
+    else
+      return false
+    end
+else  
+  return false
+end
+end
+function detect2(::Val{2},xi1,dxi,dxithrow,xi2,ddxi,ddxithrow,βidir,βidth,xj1,dxj,xj2,ddxj,dqjplus,recentjDir,dirI)
+  if (abs(dxj-xj1)>(abs(dxj+xj1)/2) || abs(ddxj-xj2)>(abs(ddxj+xj2)/2))  
+    
+    if (abs(dxi-dxithrow)>(abs(dxi+dxithrow)/2) || abs(ddxi-ddxithrow)>(abs(ddxi+ddxithrow)/2)) 
+    return true
+  else
+    return false
+    end
+else  
+  return false
+end
+end
+
+function detect2(::Val{3},xi1,dxi,dxithrow,xi2,ddxi,ddxithrow,βidir,βidth,xj1,dxj,xj2,ddxj,dqjplus,recentjDir,dirI)
+  if (abs(dxj-xj1)>(abs(dxj+xj1)/2) || abs(ddxj-xj2)>(abs(ddxj+xj2)/2))  || dqjplus*recentjDir<0.0 #(dqjplus*qj1)<=0.0 with dir is better since when dir =0 we do not enter
+    
+    if (abs(dxi-xi1)>(abs(dxi+xi1)/2) || abs(ddxi-xi2)>(abs(ddxi+xi2)/2)) || βidir*dirI<0.0
+       return true
+      else
+        return false
+    end
+else  
+  return false
+end
+end
+
+function detect2(::Val{4},xi1,dxi,dxithrow,xi2,ddxi,ddxithrow,βidir,βidth,xj1,dxj,xj2,ddxj,dqjplus,recentjDir,dirI)
+  if (abs(dxj-xj1)>(abs(dxj+xj1)/2) || abs(ddxj-xj2)>(abs(ddxj+xj2)/2))  || dqjplus*recentjDir<0.0 #(dqjplus*qj1)<=0.0 with dir is better since when dir =0 we do not enter
+    
+    if (abs(dxi-dxithrow)>(abs(dxi+dxithrow)/2) || abs(ddxi-ddxithrow)>(abs(ddxi+ddxithrow)/2)) || βidir*βidth<0.0
+    return true
+  else
+    return false
+    end
+else  
+  return false
+end
+end
+
+
+function detect2(::Val{5},xi1,dxi,dxithrow,xi2,ddxi,ddxithrow,βidir,βidth,xj1,dxj,xj2,ddxj,dqjplus,recentjDir,dirI)
+  if dqjplus*recentjDir<=0.0 && βidir*dirI<=0.0
+      return true
+  else  
+    #@show dxj,ẋj,dxi,dxP
+    return false
+  end
+end
+
+function detect2(::Val{6},xi1,dxi,dxithrow,xi2,ddxi,ddxithrow,βidir,βidth,xj1,dxj,xj2,ddxj,dqjplus,recentjDir,dirI)
+    if dqjplus*recentjDir<=0.0 && βidth*βidir<=0.0
+        return true
+    else  
+      return false
+    end
 end
