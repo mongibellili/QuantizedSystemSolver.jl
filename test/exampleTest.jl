@@ -274,10 +274,7 @@ plot_SolSum(sol,1,2,xlims=(0.0,0.0),ylims=(0.0,1.0))
 plot_SolSum(sol,1,2)
 #= save_Sol(sol,1,2,3,4,5)
 save_SolSum(sol,1,2)  =#
-plot_Sol(sol,1,2,3)
-plot_Sol(sol,1,2,xlims=(0.0,1.0),ylims=(0.0,2.0))
-plot_Sol(sol,1,2,xlims=(0.0,1.0),ylims=(0.0,0.0))
-plot_Sol(sol,1,2,xlims=(0.0,0.0),ylims=(0.0,1.0))
+
 plot(sol,idxs=[1],xlims=(0.0,1.0),ylims=(0.0,2.0))
 plot(sol,idxs=[1],xlims=(0.0,1.0),ylims=(0.0,0.0))
 plot(sol,idxs=[1],xlims=(0.0,0.0),ylims=(0.0,1.0))

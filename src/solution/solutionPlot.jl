@@ -1,4 +1,4 @@
-"""
+#= """
     plot(sol::Sol{T,O};idxs=Int[]::Vector{Int},note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool,marker=:circle::Symbol,title="") where{T,O}
 
 generates a plot of the solution of the system (returned as a plot object).
@@ -15,7 +15,7 @@ generates a plot of the solution of the system (returned as a plot object).
 - `marker::Symbol`: The marker to use for the plot.
 - `title::String`: The title of the plot.
   
-"""
+""" =#
 #= function plot(sol::Sol{T,O};idxs=Int[]::Vector{Int},note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool,marker=:circle::Symbol,title="") where{T,O}
   if title==""
     title="$(sol.sysName)_$(sol.algName)_$(sol.absQ)_$(sol.stats.totalSteps)_$(sol.stats.simulStepCount)_$(sol.stats.evCount) \n $note"
