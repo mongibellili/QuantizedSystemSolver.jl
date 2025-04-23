@@ -145,7 +145,7 @@ function transformF(ex::Expr)# name to be changed later....i call this funciton 
                 cachexpr = Expr(:ref, :cache)
                 push!(cachexpr.args,length(cachexpr_lengthtracker.args))
                 push!(x.args, cachexpr)
-      elseif x isa Expr && x.head == :call && (x.args[1] == :exp ||x.args[1] == :log ||x.args[1] == :sqrt ||x.args[1] == :abs )
+      elseif x isa Expr && x.head == :call && (x.args[1] == :exp ||x.args[1] == :log ||x.args[1] == :sqrt ||x.args[1] == :abs ||x.args[1] == :atan2)
                 push!(cachexpr_lengthtracker.args,:b)
                 cachexpr = Expr(:ref, :cache)
                 push!(cachexpr.args,length(cachexpr_lengthtracker.args))

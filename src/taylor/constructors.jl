@@ -57,5 +57,6 @@ end
 (p::Taylor0)(x) = evaluate(p, x)
 
 
+sign(x::Taylor0) =sign(x[0])
 
-
+isless(T::Float64, ::Taylor0)=isless(T, x[0])

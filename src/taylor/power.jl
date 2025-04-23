@@ -88,7 +88,11 @@ end
         aux = r * (kprime - i) - i
         @inbounds c[k] += aux * c[i+lnull] * a[l0+kprime-i]
     end
-    @inbounds c[k] = c[k] / (kprime * a[l0])
+    kprimeAl0=(kprime * a[l0])
+    if kprimeAl0 ==0.0
+        kprimeAl0=1e-9
+    end
+    @inbounds c[k] = c[k] / kprimeAl0
     return nothing
 end
 function square(a::Taylor0)
@@ -129,7 +133,7 @@ function sqrt(a::Taylor0)
     return c
 end
 
-@inline function sqrt!(c::Taylor0, a::Taylor0, k::Int, k0::Int=0)
+@inline function sqrt!(c::Taylor0, a::Taylor0, k::Int, k0::Int=0) 
     kodd = (k - k0) % 2
     kend = div(k - k0 - 2 + kodd, 2)
     imax = min(k0 + kend, a.order)
@@ -147,6 +151,9 @@ end
     end
     if kodd == 0
         @inbounds aux = aux - (c[kend+k0+1])^2
+    end
+    if c[k0] == 0.0
+        c[k0]=1e-9
     end
     @inbounds c[k] = aux / (2 * c[k0])
     return nothing

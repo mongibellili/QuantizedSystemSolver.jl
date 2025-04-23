@@ -79,6 +79,7 @@ Calculates the square root of `a` and stores the result in `cache1`.
 - `cache1::Taylor0`: The result of `sqrt(a)`.
 """
 function sqrt(a::Taylor0, cache1::Taylor0)
+   
     l0nz = findfirst(a)
     if l0nz < 0
         return cache1
@@ -87,6 +88,7 @@ function sqrt(a::Taylor0, cache1::Taylor0)
     for k = 1:a.order
         sqrt!(cache1, a, k, 0)
     end
+    #@show cache1
     return cache1
 end
 

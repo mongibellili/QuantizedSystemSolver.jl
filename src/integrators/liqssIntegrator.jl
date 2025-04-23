@@ -18,6 +18,7 @@ Integrates a nonlinear ordinary differential equation (ODE) problem (without eve
 
 """
 function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_Data{0}, liqssdata::LiQSS_Data{O,3}, odep::NLODEProblem{F,PRTYPE,T,D,0,CS}, f::Function, jac::Function, SD::Function, exactA::Function) where {F,PRTYPE,CS,O,T,D}
+  VERBOSE=CommonqssData.verbose
   if VERBOSE println("integration...") end
   cacheA = liqssdata.cacheA
   ft = CommonqssData.finalTime
@@ -40,10 +41,13 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_Data{0},
   taylorOpsCache = CommonqssData.taylorOpsCache#
   d = CommonqssData.d 
   clF=odep.closureFuncs[1]
+
+
   #***************************************************************  
   qaux = liqssdata.qaux
   dxaux = liqssdata.dxaux#olddxSpec=liqssdata.olddxSpec;olddx=liqssdata.olddx
   numSteps = Vector{Int}(undef, T)
+  numInputSteps = Vector{Int}(undef, T)
   d = [0.0]# this is a dummy var used in updateQ and simulUpdate because in the discrete world exactA needs d
   exactA(q, d, cacheA, 1, 1, initTime + 1e-9,clF)
   #######################################compute initial values##################################################
@@ -55,7 +59,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_Data{0},
    end # q computed from x and it is going to be used in the next x
    for i = 1:T
      clearCache(taylorOpsCache, Val(CS), Val(O))
-     f(i, q, t, d,taylorOpsCache,clF)
+     f(i, q, d, t,taylorOpsCache,clF)
        if k==1
          x[i].coeffs[k+1] = (taylorOpsCache[1].coeffs[1]) 
        elseif k==2
@@ -71,6 +75,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_Data{0},
   t[0] = initTime
   for i = 1:T
     numSteps[i] = 0
+    numInputSteps[i] = 0
     push!(savedVars[i], x[i][0])
     push!(savedTimes[i], initTime)
     quantum[i] = relQ * abs(x[i].coeffs[1])
@@ -79,12 +84,13 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_Data{0},
     if isempty(jac(i))
       computeNextTime(Val(O), i, initTime, nextInputTime, x, quantum)
       if nextInputTime[i] == Inf
-        clearCache(taylorOpsCache, Val(CS), Val(O))
-        f(i, q, t + smallAdvance, d,taylorOpsCache,clF)
-        computeNextInputTime(Val(O), i, initTime, smallAdvance, taylorOpsCache[1], nextInputTime, x, quantum)
-        if nextInputTime[i] == Inf
+        #= clearCache(taylorOpsCache, Val(CS), Val(O))
+        f(i, q, t + smallAdvance, d,taylorOpsCache,clF) =#
+        #computeNextInputTime(Val(O), i, initTime, smallAdvance, taylorOpsCache[1], nextInputTime, x, quantum)
+        computeNextInputTime(Val(O), i, t, f,clF,d, taylorOpsCache, nextInputTime, x,q, quantum) 
+        #= if nextInputTime[i] == Inf
           nextInputTime[i] = initTime + 10 * smallAdvance
-        end
+        end =#
       end
     else
       updateQInit(Val(O), i, x, q, quantum, exactA, d, cacheA, dxaux, qaux, tx, tq, initTime + 1e-12, ft, nextStateTime,clF) #1e-9 exactAfunc contains 1/t???
@@ -99,7 +105,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_Data{0},
   totalSteps = 0
   while simt < ft && totalSteps < maxiters
     if totalSteps == maxiters - 1
-      @warn("The algorithm liqss$O is taking too long to converge. The simulation will be stopped. Consider using a different algorithm!")
+      @warn("The algorithm liqss$O reached max iterations. The simulation will be stopped. Consider using a different algorithm!")
     end
     sch = updateScheduler(Val(T), nextStateTime, nextEventTime, nextInputTime)
     simt = sch[2]
@@ -139,26 +145,29 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_Data{0},
           end
         end
         clearCache(taylorOpsCache, Val(CS), Val(O))
-        f(j, q, t, d,taylorOpsCache,clF)
+        f(j, q, d, t,taylorOpsCache,clF)
         computeDerivative(Val(O), x[j], taylorOpsCache[1])
         Liqss_reComputeNextTime(Val(O), j, simt, nextStateTime, x, q, quantum)
       end#end for SD
     ##################################input########################################
-    elseif sch[3] == :ST_INPUT  # time of change has come to a state var that does not depend on anything...   
+    elseif sch[3] == :ST_INPUT  # time of change has come to a state var that does not depend on anything...  
+      numInputSteps[index] += 1 
       elapsed = simt - tx[index]
       integrateState(Val(O), x[index], elapsed)
       tx[index] = simt
       quantum[index] = relQ * abs(x[index].coeffs[1])
       quantum[index] = quantum[index] < absQ ? absQ : quantum[index]
       quantum[index] = quantum[index] > maxErr ? maxErr : quantum[index]
-      for k = 1:O
+     #=  for k = 1:O
         q[index].coeffs[k] = x[index].coeffs[k]
-      end
+      end =#
+      updateQ(Val(O), index, x, q, quantum, exactA, d, cacheA, dxaux, qaux, tx, tq, simt, ft, nextStateTime,clF)
       tq[index] = simt
       clearCache(taylorOpsCache, Val(CS), Val(O))
-      f(index, q, t, d,taylorOpsCache,clF)
+      f(index, q, d, t,taylorOpsCache,clF)
       computeDerivative(Val(O), x[index], taylorOpsCache[1])
-      computeNextTime(Val(O), index, simt, nextInputTime, x, quantum) #
+      computeNextInputTime(Val(O), index, t, f,clF,d, taylorOpsCache, nextInputTime, x,q, quantum)
+      #= computeNextTime(Val(O), index, simt, nextInputTime, x, quantum) #
       if nextInputTime[index] > simt + 2 * elapsed
         clearCache(taylorOpsCache, Val(CS), Val(O))
         f(index, q, t + smallAdvance, d,taylorOpsCache,clF)
@@ -166,7 +175,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_Data{0},
         if nextInputTime[index] > simt + 2 * elapsed
           nextInputTime[index] = simt + 2 * elapsed
         end
-      end
+      end =#
       for j in (SD(index))
         elapsedx = simt - tx[j]
         if elapsedx > 0
@@ -186,7 +195,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_Data{0},
           end
         end
         clearCache(taylorOpsCache, Val(CS), Val(O))
-        f(j, q, t, d,taylorOpsCache,clF)
+        f(j, q, d, t,taylorOpsCache,clF)
         computeDerivative(Val(O), x[j], taylorOpsCache[1])
         reComputeNextTime(Val(O), j, simt, nextStateTime, x, q, quantum)
       end#end for
@@ -194,7 +203,7 @@ function integrate(Al::QSSAlgorithm{:liqss,O}, CommonqssData::CommonQSS_Data{0},
     push!(savedVars[index], x[index][0])
     push!(savedTimes[index], simt)
   end#end while
-  stats=Stats(totalSteps,0,0,numSteps)
+  stats=Stats(totalSteps,0,0,numSteps,numInputSteps)
   createSol(Val(T), Val(O), savedTimes, savedVars, "liqss$O", string(odep.prname), absQ, stats, ft)
 end#end integrate
 

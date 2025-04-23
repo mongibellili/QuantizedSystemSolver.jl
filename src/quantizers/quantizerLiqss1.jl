@@ -35,6 +35,10 @@ function updateQ(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, qua
     dxaux[i][1] = x1
     h = 0.0
     Δ = quantum[i]
+    if isnan(a)
+        @warn("a is NaN: The Jacobian is not defined at this instant ",simt,". This may be due to  an undefined operation. Consider computing the Jacobian coefficient manually.")
+        a = 0.0
+    end
     if a != 0.0
         α = -(a * x + u) / a
         h1denom = a * (x + Δ) + u
@@ -130,6 +134,10 @@ function updateQInit(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0},
     dxaux[i][1] = x1
     h = 0.0
     Δ = quantum[i]
+    if isnan(a)
+        @warn("a is NaN: The Jacobian is not defined at this instant ",simt,". This may be due to  an undefined operation. Consider computing the Jacobian coefficient manually.")
+        a = 0.0
+    end
     if a != 0.0
         α = -(a * x + u) / a
         h1denom = a * (x + Δ) + u

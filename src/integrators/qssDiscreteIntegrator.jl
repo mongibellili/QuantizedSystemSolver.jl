@@ -24,6 +24,7 @@ Integrates a nonlinear ordinary differential equation (ODE) problem with `events
 - A solution
 """
 function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_Data{Z}, odep::NLODEProblem{F,PRTYPE,T,D,Z,CS}, f::Function, jac::Function, SD::Function) where {F,PRTYPE,O,T,D,Z,CS}
+  VERBOSE=CommonqssData.verbose
   if VERBOSE println("integration...") end
   ft = CommonqssData.finalTime
   initTime = CommonqssData.initialTime
@@ -52,6 +53,7 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_Data{Z}, o
   evDep = odep.eventDependencies
   oldsignValue = MMatrix{Z,2}(zeros(Z * 2))
   numSteps = Vector{Int}(undef, T)
+  numInputSteps = Vector{Int}(undef, T)
   n = 1
   for k = 1:O # compute initial derivatives for x and q (similar to a recursive way )
    n = n * k
@@ -76,21 +78,23 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_Data{Z}, o
   t[0] = initTime
   for i = 1:T
     numSteps[i] = 0
+    numInputSteps[i] = 0
     push!(savedVars[i], x[i][0])
     push!(savedTimes[i], initTime)
     quantum[i] = relQ * abs(x[i].coeffs[1])
     quantum[i] = quantum[i] < absQ ? absQ : quantum[i]
     quantum[i] = quantum[i] > maxErr ? maxErr : quantum[i]
     if isempty(jac(i))
-      computeNextTime(Val(O), i, initTime, nextInputTime, x, quantum)
+      #= computeNextTime(Val(O), i, initTime, nextInputTime, x, quantum)
       if nextInputTime[i] == Inf
         clearCache(taylorOpsCache, Val(CS), Val(O))
-        f(i, -1, -1, q, d, t + smallAdvance, taylorOpsCache,clF)
-        computeNextInputTime(Val(O), i, initTime, smallAdvance, taylorOpsCache[1], nextInputTime, x, quantum)
-        if nextInputTime[i] > initTime + 2 * smallAdvance
+        f(i, -1, -1, q, d, t + smallAdvance, taylorOpsCache,clF) =#
+       # discrete_computeNextInputTime(Val(O), i, initTime, smallAdvance, taylorOpsCache[1], nextInputTime, x, quantum)
+        discrete_computeNextInputTime(Val(O), i, t, f,clF,d, taylorOpsCache, nextInputTime, x,q, quantum) 
+        #= if nextInputTime[i] > initTime + 2 * smallAdvance
           nextInputTime[i] = initTime + 2 * smallAdvance
-        end
-      end
+        end =#
+      #end
     else
       computeNextTime(Val(O), i, initTime, nextStateTime, x, quantum)
     end
@@ -114,7 +118,7 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_Data{Z}, o
   #################################################################################################################################################################### 
   
   while simt < ft && totalSteps < maxiters
-    if totalSteps == maxiters - 1 @warn("The algorithm qss$O is taking too long to converge. The simulation will be stopped. Consider using a different algorithm!") end
+    if totalSteps == maxiters - 1 @warn("The algorithm qss$O reached max iterations. The simulation will be stopped. Consider using a different algorithm!") end
     sch = updateScheduler(Val(T), nextStateTime, nextEventTime, nextInputTime)
     simt = sch[2]
     index = sch[1]
@@ -171,6 +175,7 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_Data{Z}, o
         computeNextEventTime(Val(O), j, taylorOpsCache[1], oldsignValue, simt, nextEventTime, quantum, absQ)
       end
     elseif stepType == :ST_INPUT
+      numInputSteps[index] += 1
       elapsed = simt - tx[index]
       integrateState(Val(O), x[index], elapsed)
       tx[index] = simt
@@ -184,15 +189,16 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_Data{Z}, o
       clearCache(taylorOpsCache, Val(CS), Val(O))
       f(index, -1, -1, q, d, t, taylorOpsCache,clF)
       computeDerivative(Val(O), x[index], taylorOpsCache[1])
-      computeNextTime(Val(O), index, simt, nextInputTime, x, quantum)
+      discrete_computeNextInputTime(Val(O), index, t, f,clF,d, taylorOpsCache, nextInputTime, x,q, quantum)
+     #=  computeNextTime(Val(O), index, simt, nextInputTime, x, quantum)
       if nextInputTime[index] > simt + 2 * elapsed
         clearCache(taylorOpsCache, Val(CS), Val(O))
         f(index, -1, -1, q, d, t + smallAdvance, taylorOpsCache,clF)
-        computeNextInputTime(Val(O), index, simt, smallAdvance, taylorOpsCache[1], nextInputTime, x, quantum)
+        discrete_computeNextInputTime(Val(O), index, simt, smallAdvance, taylorOpsCache[1], nextInputTime, x, quantum)
         if nextInputTime[index] > simt + 2 * elapsed
           nextInputTime[index] = simt + 2 * elapsed
         end
-      end
+      end =#
       for j in (SD(index))
         elapsedx = simt - tx[j]
         if elapsedx > 0
@@ -334,6 +340,6 @@ function integrate(Al::QSSAlgorithm{:qss,O}, CommonqssData::CommonQSS_Data{Z}, o
       end
     end
   end
-  stats=Stats(totalSteps,0,evCount,numSteps)
+  stats=Stats(totalSteps,0,evCount,numSteps,numInputSteps )
   createSol(Val(T), Val(O), savedTimes, savedVars, "qss$O", string(odep.prname), absQ, stats, ft)
 end

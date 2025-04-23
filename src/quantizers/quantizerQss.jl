@@ -93,14 +93,16 @@ Compute the next time of change for a given state variable.
 - The function updates the `nextTime` vector with the computed next time values for the state variables.
 """
 function computeNextTime(::Val{1}, i::Int, simt::Float64, nextTime::Vector{Float64}, x::Vector{Taylor0}, quantum::Vector{Float64})#i can be absorbed
-  absDeltaT=1e-12 # minimum deltaT to protect against der=Inf coming from sqrt(0) for example...similar to min ΔQ
+  absDeltaT=1e-9 # minimum deltaT to protect against der=Inf coming from sqrt(0) for example...similar to min ΔQ
     if (x[i].coeffs[2]) != 0
         tempTime=max(abs(quantum[i] /(x[i].coeffs[2])),absDeltaT)# i can avoid the use of max
         if tempTime!=absDeltaT #normal
             nextTime[i] = simt + tempTime#sqrt(abs(quantum[i] / ((x[i].coeffs[3])*2))) #*2 cuz coeff contains fact()
+            #println("nextTime=",nextTime, "x: ", x)
         else#usual (quant/der) is very small
           x[i].coeffs[2]=sign(x[i].coeffs[2])*(abs(quantum[i])/absDeltaT)# adjust  derivative if it is too high
           nextTime[i] = simt + tempTime
+          println("tempTime=",tempTime)
         end
     else
       nextTime[i] = Inf
@@ -211,7 +213,7 @@ Compute the next input time for a given state variable in a first order method. 
 # Returns
 - Nothing, it updates the `nextInputTime` vector with the next input times for the state variables.
 """
-function computeNextInputTime(::Val{1}, i::Int, simt::Float64,elapsed::Float64, tt::Taylor0 ,nextInputTime::Vector{Float64}, x::Vector{Taylor0}, quantum::Vector{Float64})
+#= function computeNextInputTime(::Val{1}, i::Int, simt::Float64,elapsed::Float64, tt::Taylor0 ,nextInputTime::Vector{Float64}, x::Vector{Taylor0}, quantum::Vector{Float64})
     df=0.0
     oldDerX=x[i].coeffs[2]
     newDerX=tt.coeffs[1] 
@@ -223,28 +225,199 @@ function computeNextInputTime(::Val{1}, i::Int, simt::Float64,elapsed::Float64, 
     if df!=0.0
        nextInputTime[i]=simt+sqrt(abs(2*quantum[i] / df))
     else
-      nextInputTime[i] = Inf
+      if x[i].coeffs[1]!=0 #predicted second derivative is 0 & should not be used to determine nexttime. use 1st der
+        nextInputTime[i]=simt+(abs(1*quantum[i] / x[i].coeffs[2]))  #I used the same formulae(sqrt) even with 1st der so that it is fair to other vars
+      else
+        nextInputTime[i] = Inf
+      end
+     
     end
     return nothing
-end
+end =#
+function computeNextInputTime(::Val{1}, i::Int, t::Taylor0,f::F,clF::FF,d::Vector{Float64}, taylorOpsCache::Vector{Taylor0} ,nextInputTime::Vector{Float64}, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64}) where {F,FF}
+  df=0.0
+  oldDerX=x[i].coeffs[2]
+
+  simt=t[0]
+    if oldDerX!=0 #
+      
+      tempstep=abs(1*quantum[i] / oldDerX)
+      
+      t[0]=simt+tempstep
+      f(i, q, d,t,taylorOpsCache,clF)
+      
+      predictedDer=taylorOpsCache[1].coeffs[1]  
+
+      if abs(predictedDer-oldDerX)>abs(predictedDer+oldDerX)/2 #significant change-->bad prediction --> lower stepsize
+        nextInputTime[i]=simt+tempstep/100  
+      else
+        nextInputTime[i]=simt+tempstep
+      end
+     # @show simt,t[0],predictedDer,oldDerX, nextInputTime[i]
+      
+    
+    
+    else # think over this case
+      t[0]=simt+1e-3
+      f(i, q, d,t,taylorOpsCache,clF)
+      
+      predictedDer=taylorOpsCache[1].coeffs[1]  
+      if predictedDer!=0.0
+        nextInputTime[i]=simt+abs(1*quantum[i] / 10.0*predictedDer)
+      else
+        nextInputTime[i] = Inf
+      end
+      #@show "older==0 ",simt,t[0],predictedDer, nextInputTime[i]
+    end
+    t[0]=simt
   
+  return nothing
+end
+
+function discrete_computeNextInputTime(::Val{1}, i::Int, t::Taylor0,f::F,clF::FF,d::Vector{Float64}, taylorOpsCache::Vector{Taylor0} ,nextInputTime::Vector{Float64}, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64}) where {F,FF}
+  df=0.0
+  oldDerX=x[i].coeffs[2]
+
+  simt=t[0]
+    if oldDerX!=0 #
+      
+      tempstep=abs(1*quantum[i] / oldDerX)
+      
+      t[0]=simt+tempstep
+      f(i,-1, -1, q, d,t,taylorOpsCache,clF)
+      
+      predictedDer=taylorOpsCache[1].coeffs[1]  
+
+      if abs(predictedDer-oldDerX)>abs(predictedDer+oldDerX)/2 #significant change-->bad prediction --> lower stepsize
+        nextInputTime[i]=simt+tempstep/100  
+      else
+        nextInputTime[i]=simt+tempstep
+      end
+     # @show simt,t[0],predictedDer,oldDerX, nextInputTime[i]
+      
+    
+    
+    else # think over this case
+      t[0]=simt+1e-3
+      f(i,-1, -1, q, d,t,taylorOpsCache,clF)
+      
+      predictedDer=taylorOpsCache[1].coeffs[1]  
+      if predictedDer!=0.0
+        nextInputTime[i]=simt+abs(1*quantum[i] / 10.0*predictedDer)
+      else
+        nextInputTime[i] = Inf
+      end
+      #@show "older==0 ",simt,t[0],predictedDer, nextInputTime[i]
+    end
+    t[0]=simt
+  
+  return nothing
+end
+
+function computeNextInputTime(::Val{2}, i::Int, t::Taylor0,f::F,clF::FF,d::Vector{Float64}, taylorOpsCache::Vector{Taylor0} ,nextInputTime::Vector{Float64}, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64}) where {F,FF}
+  df=0.0
+  oldDerX=x[i].coeffs[3]*2.0
+
+  simt=t[0]
+    if oldDerX!=0 #
+      
+      tempstep=sqrt(abs(2*quantum[i] / oldDerX))
+      
+      t[0]=simt+tempstep
+      f(i, q, d,t,taylorOpsCache,clF)
+      
+      predictedDer=taylorOpsCache[1].coeffs[2]*2 
+
+      if abs(predictedDer-oldDerX)>abs(predictedDer+oldDerX)/2 #significant change-->bad prediction --> lower stepsize
+        nextInputTime[i]=simt+tempstep/10
+      else
+        nextInputTime[i]=simt+tempstep
+      end
+     # @show simt,t[0],predictedDer,oldDerX, nextInputTime[i]
+      
+    
+    
+    else # think over this case
+      t[0]=simt+1e-3
+      f(i, q,  d,t,taylorOpsCache,clF) 
+      
+      predictedDer=taylorOpsCache[1].coeffs[1]  
+      if predictedDer!=0.0
+        nextInputTime[i]=simt+sqrt(abs(2*quantum[i] / 1.0*predictedDer))
+      else
+        nextInputTime[i] = Inf
+      end
+     # @show "older==0 ",simt,t[0],predictedDer, nextInputTime[i]
+    end
+    t[0]=simt
+  
+  return nothing
+end
+function discrete_computeNextInputTime(::Val{2}, i::Int, t::Taylor0,f::F,clF::FF,d::Vector{Float64}, taylorOpsCache::Vector{Taylor0} ,nextInputTime::Vector{Float64}, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64}) where {F,FF}
+  df=0.0
+  oldDerX=x[i].coeffs[3]*2.0
+
+  simt=t[0]
+    if oldDerX!=0 #
+      
+      tempstep=sqrt(abs(2*quantum[i] / oldDerX))
+      
+      t[0]=simt+tempstep
+   
+      f(i, -1, -1, q, d, t, taylorOpsCache,clF)
+     # @show taylorOpsCache
+
+     
+      predictedDer=taylorOpsCache[1].coeffs[2]*2 
+     # @show predictedDer
+      if abs(predictedDer-oldDerX)>abs(predictedDer+oldDerX)/2 #significant change-->bad prediction --> lower stepsize
+        nextInputTime[i]=simt+tempstep/10
+      else
+        nextInputTime[i]=simt+tempstep
+      end
+     # @show simt,t[0],predictedDer,oldDerX, nextInputTime[i]
+      
+    
+    
+    else # think over this case
+      t[0]=simt+1e-3
+      f(i,-1, -1, q, d,t,taylorOpsCache,clF) 
+      predictedDer=taylorOpsCache[1].coeffs[1]  
+      if predictedDer!=0.0
+        nextInputTime[i]=simt+sqrt(abs(2*quantum[i] / 1.0*predictedDer))
+      else
+        nextInputTime[i] = Inf
+      end
+     # @show "older==0 ",simt,t[0],predictedDer, nextInputTime[i]
+    end
+    t[0]=simt
+  
+  return nothing
+end
 """
     computeNextInputTime(::Val{2}, i::Int, simt::Float64, elapsed::Float64, tt::Taylor0, nextInputTime::Vector{Float64}, x::Vector{Taylor0}, quantum::Vector{Float64})
 
 Compute the next input time for a given state variable in a second order method. This is needed when the differential equation depends on time only (i.e. does not depend on other state variables). It uses a prediction of the derivatives.
 
 """
-function computeNextInputTime(::Val{2}, i::Int, simt::Float64,elapsed::Float64, tt::Taylor0 ,nextInputTime::Vector{Float64}, x::Vector{Taylor0}, quantum::Vector{Float64})
+#= function computeNextInputTime(::Val{2}, i::Int, simt::Float64,elapsed::Float64, tt::Taylor0 ,nextInputTime::Vector{Float64}, x::Vector{Taylor0}, quantum::Vector{Float64})
   ddf=0.0;df=0.0
-  oldDerDerX=((x[i].coeffs[3])*2.0)
+  oldDerDerX=((x[i].coeffs[3])*2.0) 
   newDerDerX=(tt.coeffs[2])# 1st der of tt cuz tt itself is derx=f
+  #=   if oldDerDerX * newDerDerX < 0.0 # this means that the sign of the second derivative has changed
+      nextInputTime[i]=simt+1e-3
+      @show "sign change",i, simt,elapsed,oldDerDerX,newDerDerX, quantum[i], nextInputTime[i]
+      return nothing
+    end =#
   if elapsed > 0.0
       ddf=(newDerDerX-oldDerDerX)/(elapsed)
   else
       ddf= quantum[i]*1e6#*1e12
+      @show "elapsed<0",ddf,i, nextInputTime[i]
   end       
   if ddf!=0.0
-      nextInputTime[i]=simt+cbrt((abs(quantum[i]/df)))    #ddf mimics 3rd der 
+      nextInputTime[i]=simt+cbrt((abs(6*quantum[i]/ddf)))    #ddf mimics 3rd der 
+      @show simt,i,elapsed,ddf, nextInputTime[i], simt, quantum[i]
   else #df=0->newddx=oldddx ->
     oldDerX=((x[i].coeffs[2]))
      newDerX=(tt.coeffs[1])# 1st der of tt cuz tt itself is derx=f
@@ -252,20 +425,57 @@ function computeNextInputTime(::Val{2}, i::Int, simt::Float64,elapsed::Float64, 
          df=(newDerX-oldDerX)/(elapsed) #df mimic second derivative
      else
          df= quantum[i]*1e6#*1e12
-     end       
+     end      
+    # @show df,i, nextInputTime[i] 
      if df!=0.0
-         nextInputTime[i]=simt+sqrt((abs(quantum[i]/df))) 
+         nextInputTime[i]=simt+sqrt((abs(2*quantum[i]/df))) 
+         
      else
-      if x[i][1]!=0 #predicted second derivative is 0 & should not be used to determine nexttime. use 1st der
-        nextInputTime[i]=simt+sqrt(abs(1*quantum[i] / x[i][1]))  #I used the same formulae even with 1st der so that it is fair to other vars
-     else
-         nextInputTime[i] = Inf
-     end
+        #= if x[i][1]!=0 #predicted second derivative is 0 & should not be used to determine nexttime. use 1st der
+            nextInputTime[i]=simt+sqrt(abs(1*quantum[i] / x[i][1]))  #I used the same formulae(sqrt) even with 1st der so that it is fair to other vars
+            #@show  i,nextInputTime[i]
+          else =#
+            nextInputTime[i] = Inf
+        #end
      end
   end
     return nothing
-end
+end =#
+function computeNextInputTime(::Val{2}, i::Int, simt::Float64,elapsed::Float64, tt::Taylor0 ,nextInputTime::Vector{Float64}, x::Vector{Taylor0}, quantum::Vector{Float64})
 
+    DerX=((x[i].coeffs[2]))
+    DerDerX=((x[i].coeffs[3])*2.0) 
+
+     if DerDerX!=0.0
+         nextInputTime[i]=simt+sqrt((abs(2*quantum[i]/DerDerX))) 
+         
+     else
+      if DerX!=0.0
+         nextInputTime[i]=simt+((abs(1*quantum[i]/DerX))) 
+      else
+        nextInputTime[i] = Inf
+      end
+
+     end
+  
+    return nothing
+end
+#= function computeNextInputTime(::Val{2}, index::Int, simt::Float64,elapsed::Float64, tt::Taylor0 ,nextInputTime::Vector{Float64}, x::Vector{Taylor0}, q::Vector{Taylor0}, quantum::Vector{Float64})
+  ddf=0.0;df=0.0
+  oldDerDerX=((x[index].coeffs[3])*2.0) 
+  newDerDerX=(tt.coeffs[2])# 1st der of tt cuz tt itself is derx=f
+  absDeltaT=1e-15
+  if abs(q[index].coeffs[1] - (x[index].coeffs[1])) >= quantum[index] # this happened when var i and j s turns are now...var i depends on j, j is asked here for next time
+    nextInputTime[index] = simt+1e-12
+  else
+    time1 =  minPosRoot(q[index].coeffs[1] - (x[index].coeffs[1]) - quantum[index], q[index].coeffs[2]-x[index].coeffs[2],-x[index].coeffs[3], Val(2))
+    time2 =  minPosRoot(q[index].coeffs[1] - (x[index].coeffs[1]) + quantum[index], q[index].coeffs[2]-x[index].coeffs[2],-x[index].coeffs[3], Val(2))
+    timeTemp = time1 < time2 ? time1 : time2
+    tempTime=max(timeTemp,absDeltaT)#guard against very small Δt 
+    nextInputTime[index] = simt +tempTime
+  end
+    return nothing
+end =#
 """
     computeNextEventTime(::Val{O},j::Int,ZCFun::Taylor0,oldsignValue::MMatrix{Z,2} ,simt::Float64,  nextEventTime :: MVector{Z,Float64}, quantum::Vector{Float64},absQ::Float64) where {O, Z}
 
@@ -285,10 +495,31 @@ Compute the next event time for a given zero-crossing function.
 - The computed next event time for the state variable `j`.
 """
 function computeNextEventTime(::Val{O},j::Int,ZCFun::Taylor0,oldsignValue::MMatrix{Z,2} ,simt::Float64,  nextEventTime :: MVector{Z,Float64}, quantum::Vector{Float64},absQ::Float64) where {O, Z}
-  if (oldsignValue[j,1] != sign(ZCFun[0])) && abs(oldsignValue[j,2]) >1e-9*absQ #prevent double tapping: when zcf is leaving zero it should be considered an event
-       nextEventTime[j]=simt 
-  elseif oldsignValue[j,2] ==0.0 && ZCFun[0] ==0.0  # initial value 0 --> do not do anything
+ 
+  if oldsignValue[j,2] ==0.0 && ZCFun[0] ==0.0  # initial value 0 --> do not do anything
     nextEventTime[j]=Inf
+  elseif (oldsignValue[j,1] != sign(ZCFun[0])) && abs(oldsignValue[j,2]) >1e-9*absQ #prevent double tapping: when zcf is leaving zero it should be considered an event
+    nextEventTime[j]=simt 
+    #@show simt,oldsignValue[j,1], sign(ZCFun[0])
+  else # old and new ZCF both pos or both neg
+    mpr=minPosRoot(ZCFun, Val(O)) 
+    if mpr<1e-13 # prevent very close events
+      mpr=1e-10
+     end
+     #@show simt,mpr
+    nextEventTime[j] =simt + mpr
+    oldsignValue[j,1]=sign(ZCFun[0])#update the values
+    oldsignValue[j,2]=ZCFun[0]
+  end
+  
+end
+#= function computeNextEventTime(::Val{O},j::Int,ZCFun::Taylor0,oldsignValue::MMatrix{Z,2} ,simt::Float64,  nextEventTime :: MVector{Z,Float64}, quantum::Vector{Float64},absQ::Float64) where {O, Z}
+  if abs(oldsignValue[j,2]) < 1e-9*absQ #&& ZCFun[0] ==0.0  # initial value 0 --> do not do anything
+    nextEventTime[j]=Inf
+  elseif (oldsignValue[j,1] != sign(ZCFun[0])) #&& abs(ZCFun[0]) <1e-6*absQ #prevent double tapping: when zcf is leaving zero it should be considered an event
+    nextEventTime[j]=simt 
+  elseif (oldsignValue[j,1] == sign(ZCFun[0])) && abs(ZCFun[0]) <=1e-9*absQ
+    nextEventTime[j]=simt
   else # old and new ZCF both pos or both neg
     mpr=minPosRoot(ZCFun, Val(O)) 
     if mpr<1e-14 # prevent very close events
@@ -298,4 +529,4 @@ function computeNextEventTime(::Val{O},j::Int,ZCFun::Taylor0,oldsignValue::MMatr
     oldsignValue[j,1]=sign(ZCFun[0])#update the values
     oldsignValue[j,2]=ZCFun[0]
   end
-end
+end =#

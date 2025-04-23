@@ -21,6 +21,7 @@
     relQ ::Float64  
     maxErr ::Float64  
     maxiters ::Int
+    verbose::Bool
     savedTimes :: Vector{Vector{Float64}}
     savedVars:: Vector{Vector{Float64}}
 end

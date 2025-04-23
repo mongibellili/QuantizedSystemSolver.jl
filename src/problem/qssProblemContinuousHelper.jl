@@ -15,7 +15,7 @@ newEx=QuantizedSystemSolver.changeExprToFirstValue(ex)
 """
 function changeExprToFirstValue(ex::Expr)
   newEx=postwalk(ex) do a  
-      if a isa Expr && a.head == :ref && a.args[1]==:q 
+      if a isa Expr && a.head == :ref && a.args[1]==:q  
           outerRef=Expr(:ref)
           push!(outerRef.args,a)
           push!(outerRef.args,:(0))
@@ -100,8 +100,36 @@ function restoreRef(coefExpr,symDict)
   end#end postwalk
   newEx
 end
+
+
+function convert_ints_except_indices(ex,  ::Val{false}) #convert all integers to float64 except indices
+  if ex isa Expr
+      if ex.head == :ref
+          # Process the :ref expression, marking that we are inside a reference
+          return Expr(:ref, ex.args[1], map(arg -> convert_ints_except_indices(arg, Val(true)), ex.args[2:end])...)
+      else
+          # Recursively process other expressions, but do NOT mark as inside :ref
+          return Expr(ex.head, map(arg -> convert_ints_except_indices(arg, Val(false)), ex.args)...)
+      end
+  elseif ex isa Int
+      # Convert to Float64 only if we are NOT inside a reference
+      return  Float64(ex)
+  else
+      return ex
+  end
+end
+function convert_ints_except_indices(ex,  ::Val{true})   #change any float put by user inside ref to int
+  newEx=postwalk(ex) do element
+      if element isa Float64 
+        return Int(element)
+      end
+      return element
+    end#end postwalk
+  return newEx
+end
+
 """
-    changeVarNames_params(ex::Expr,stateVarName::Symbol,discrParamName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}})
+    changeVarNames_params(ex::Expr,stateVarName::Symbol,discrParamName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}},helperFunSymSet::Set{Symbol})
 
 As the name suggests, this changes the continuous variables names to :q and the discrete variable name to :p and any mute variables to :i. It also plugs the parameters values from a parameter dictionary into the differential equations. The function changeVarNames_params has three methods. One for RHS of equations, one for if-statements when RHS is an expression, and one for if-statements when RHS is a symbol. This is method one. It has an additional symDict::Dict{Symbol,Expr} to collect the translation of symbols of continous and discrete variables (q[i] <-> qi). 
 
@@ -125,41 +153,43 @@ using QuantizedSystemSolver
 (:(du[i] = q[i] * q[i - 1] * 1.5), :u, :k, Dict{Symbol, Union{Float64, Int64, Expr, Symbol}}(:coef1 => 2.0, :coef2 => 1.5))
 ```
 """
-function changeVarNames_params(ex::Expr,stateVarName::Symbol,discrParamName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}})
+function changeVarNames_params(ex::Expr,stateVarName::Symbol,discrParamName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}},helperFunSymSet::Set{Symbol})
   newEx=postwalk(ex) do element#postwalk to change var names and parameters
       if element isa Symbol   
-        element=changeVarNames_params(element,stateVarName,discrParamName,muteVar,param)
-#=           if haskey(param, element)#symbol is a parameter
-            if param[element] isa Symbol
-              element=param[element]
-            else
-              element=copy(param[element]) # copy needed in the case symbol id=expression substitued in equations...do not want all eqs reference same expression...ie if 1 eq changes during parsing, other eqs change
-            end
-          elseif element==stateVarName #symbol is a var
-              element=:q 
-          elseif element==:discrete || element==discrParamName#symbol is a discr var p is added to match SciML interface
-              element=:p
-          elseif element==muteVar #symbol is a mute var
-              element=:i
-          end =#
-     #=  elseif element isa Expr && element.head == :ref #&& element.args[1]!=:p# 
-            symarg=symbolFromRef(element.args[1],element.args[2])  #q[i] -> qi
-            symDict[symarg]=element #store this translation  q[i] <-> qi for later use =#
-     #=  elseif element isa Expr && element.head == :ref && element.args[1]==:p#   
-        symarg=symbolFromRefdiscrete(element.args[2])  #p[i] -> pi
-        symDict[symarg]=element #store this translation  p[i] <-> pi    =#
+        element=changeVarNames_params(element,stateVarName,discrParamName,muteVar,param,helperFunSymSet)
+      elseif element isa Expr && element.head == :call && element.args[1] isa Symbol 
+        sym=element.args[1]
+        if !(sym in (:+, :-, :*, :/, :^, :%, :&, :|, :!, :(=),:(==), :!=, :<, :>, :<=, :>=)) && !(isdefined(Base, sym) && getfield(Base, sym) isa Function)
+          push!(helperFunSymSet, sym)# collect the helper functions used in the rhs of the equations
+        end
+      end
+      return element
+    end#end postwalk
+   # @show newEx
+    newEx = convert_ints_except_indices(newEx,Val(false))#convert all integers to float64 except indices
+   # @show newEx
+  newEx
+end
+
+
+function useNumber_inFuncalls(ex::Expr)
+  newEx=postwalk(ex) do element#postwalk to change var names and parameters
+      if element isa Expr && element.head == :call && element.args[1] isa Symbol 
+        sym=element.args[1]
+        if !(sym in (:+, :-, :*, :/, :^, :%, :&, :|, :!, :(=),:(==), :!=, :<, :>, :<=, :>=)) && !(isdefined(Base, sym) && getfield(Base, sym) isa Function)
+          element=changeExprToFirstValue(element)
+        end
       end
       return element
     end#end postwalk
   newEx
 end
-
 #= """
-    changeVarNames_params(ex::Expr,stateVarName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}})
+    changeVarNames_params(ex::Expr,stateVarName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}},helperFunSymSet::Set{Symbol})
 
 This is method two for if-statements when RHS is an expression. Again, it changes the continuous variables name to :q and the discrete variable name to :p and any mute variables to :i. It also plugs the parameters values from a parameter dictionary
 """
-function changeVarNames_params(ex::Expr,stateVarName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}})
+function changeVarNames_params(ex::Expr,stateVarName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}},helperFunSymSet::Set{Symbol})
   newEx=postwalk(ex) do element#postwalk to change var names and parameters
       if element isa Symbol   
           if haskey(param, element)#symbol is a parameter
@@ -177,14 +207,18 @@ function changeVarNames_params(ex::Expr,stateVarName::Symbol,muteVar::Symbol,par
   newEx
 end =#
 """
-    changeVarNames_params(element::Symbol,stateVarName::Symbol,discrParamName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}})
+    changeVarNames_params(element::Symbol,stateVarName::Symbol,discrParamName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}},helperFunSymSet::Set{Symbol})
 
 This is method three of the function changeVarNames_params. It is for if-statements when RHS is a symbol. Again, it changes the symbol to :q if it is a continuous variable, to :p if it is a discrete variable, to :i if it is a mute variable, and to its corresponding value if it is a parameter. It is called by the [`prepareInfo`](@ref) function. 
 
 """
-function changeVarNames_params(element::Symbol,stateVarName::Symbol,discrParamName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}})
+function changeVarNames_params(element::Symbol,stateVarName::Symbol,discrParamName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}},helperFunSymSet::Set{Symbol})
           if haskey(param, element)#symbol is a parameter
+            if param[element] isa Symbol
+              element=param[element]#copy(::Symbol) does not exist
+            else
               element=copy(param[element])
+            end
           elseif element==stateVarName #symbol is a var
               element=:q 
           elseif element==:discrete || element==discrParamName#symbol is a discr var
@@ -194,7 +228,9 @@ function changeVarNames_params(element::Symbol,stateVarName::Symbol,discrParamNa
           end
       return element
 end
-
+function changeVarNames_params(element::Number,stateVarName::Symbol,discrParamName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}},helperFunSymSet::Set{Symbol})
+   return element
+end
 
 """
     extractJacDepNormal(varNum::Int,rhs::Union{Int,Expr},jac :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}}, exactJacExpr :: Dict{Expr,Union{Float64,Int,Symbol,Expr}},symDict::Dict{Symbol,Expr})
@@ -227,6 +263,7 @@ function extractJacDepNormal(varNum::Int,rhs::Union{Int,Expr},jac :: Dict{Union{
               symarg=symbolFromRef(a.args[1],a.args[2]) #after getting the index i in previous line, we can change the expression
               symDict[symarg]=a
               a=symarg
+      #elseif a isa Expr && a.head == :function # allow external functions in rhs: remove () for parsing, store in symDict , extract depe from args
       end
       return a 
   end
@@ -422,7 +459,7 @@ exactJac
   end)
 ```
 """
-function createExactJacFun(otherCode::Expr,Exactjac:: Dict{Expr,Union{Float64,Int,Symbol,Expr}},funName::Symbol,f::F) where{F} 
+function createExactJacFun(otherCode::Expr,Exactjac:: Dict{Expr,Union{Float64,Int,Symbol,Expr}},funName::Symbol,f) #where{F} 
   ss="if i==0 return nothing\n"
   for dictElement in Exactjac
       if dictElement[1].args[1] isa Int
@@ -444,9 +481,28 @@ function createExactJacFun(otherCode::Expr,Exactjac:: Dict{Expr,Union{Float64,In
   def1=Dict{Symbol,Any}() 
   def1[:head] = :function
   def1[:name] = Symbol(:exactJac,funName)  
-  def1[:args] = [:(q::Vector{Taylor0}),:(p::Vector{Float64}),:(cache::MVector{1,Float64}),:(i::Int),:(j::Int),:(t::Float64),:(f_::F)]
+  def1[:args] = [:(q::Vector{Taylor0}),:(p::Vector{Float64}),:(cache::AbstractVector{Float64}),:(i::Int),:(j::Int),:(t::Float64),:(f_)]
   def1[:body] = otherCode
   functioncode1=combinedef(def1)
+
+#=   functioncode1 = Expr(:function,
+  Expr(:where,
+      Expr(:call, Symbol(:exactJac, funName),
+          :(q::Vector{Taylor0}),
+          :(p::Vector{Float64}),
+          :(cache::AbstractVector{Float64}),
+          :(i::Int),
+          :(j::Int),
+          :(t::Float64),
+          :(f_::F)
+      ),
+      :F
+  ),
+  otherCode
+) =#
+
+
+
 end
  
 """
@@ -481,7 +537,8 @@ diffEqfun
 ```
 
 """
-function createContEqFun(otherCode::Expr,equs::Dict{Union{Int,Expr},Union{Int,Symbol,Expr}},fname::Symbol,f::F) where{F}  
+function createContEqFun(otherCode::Expr,equs::Dict{Union{Int,Expr},Union{Int,Symbol,Expr}},fname::Symbol,f) #where{F}  
+
   s="if i==0 return nothing\n"  # :i is the mute var
   for elmt in equs
       Base.remove_linenums!(elmt[1])
@@ -501,14 +558,28 @@ function createContEqFun(otherCode::Expr,equs::Dict{Union{Int,Expr},Union{Int,Sy
   push!(myex2.args,funcEx) =#
   otherCodeCopy=copy(otherCode)# to avoid changing the original
   push!(otherCodeCopy.args,myex1)
-  
   Base.remove_linenums!(otherCodeCopy)
   def=Dict{Symbol,Any}()
   def[:head] = :function
   def[:name] = fname   
-  def[:args] = [:(i::Int),:(q::Vector{Taylor0}),:(t::Taylor0),:(p::Vector{Float64}),:(cache::Vector{Taylor0}),:(f_::F)]
+  def[:args] = [:(i::Int),:(q::Vector{Taylor0}),:(p::Vector{Float64}),:(t::Taylor0),:(cache::Vector{Taylor0}),:(f_)]
   def[:body] = otherCodeCopy#push!(myex1.args,funcEx.args[1])  
   functioncode=combinedef(def)
+#=   functioncode = Expr(:function,
+    Expr(:where,
+        Expr(:call, fname,
+            :(i::Int),
+            :(q::Vector{Taylor0}),
+            :(p::Vector{Float64}),
+            :(t::Taylor0),
+            :(cache::Vector{Taylor0}),
+            :(f_::F)
+        ),
+        :F
+    ),
+    otherCodeCopy
+) =#
+
 end
 
 

@@ -81,6 +81,9 @@ end
     return nothing
 end
 function /(a::Taylor0, b::T) where {T<:Number}
+    if b == 0
+        throw(ArgumentError("Division by zero: in $(a) / $(b) under arithmetic.jl"))
+    end
     @inbounds aux = a.coeffs[1] / b
     v = Array{typeof(aux)}(undef, length(a.coeffs))
     @__dot__ v = a.coeffs / b

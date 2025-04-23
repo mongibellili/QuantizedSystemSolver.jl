@@ -1,5 +1,4 @@
 module QuantizedSystemSolver
-  const global VERBOSE=false   # later move to solve to allow user to use it.
   using RuntimeGeneratedFunctions
   using StaticArrays
   using SymEngine
@@ -7,8 +6,10 @@ module QuantizedSystemSolver
   using MacroTools: postwalk,prewalk, @capture
   using CodeTracking
   using Plots: savefig
+  using RecipesBase
   using Dates: now,year,month,day,hour,minute,second #fortimestamp
   RuntimeGeneratedFunctions.init(@__MODULE__)
+  
   import Plots: plot!,plot
           ##### for taylorseries subcomponent   #######
   import Base: ==, +, -, *, /, ^             
@@ -16,15 +17,15 @@ module QuantizedSystemSolver
      length, getindex, setindex!
   import Base:  sqrt, exp, log, sin, cos, sincos, tan,
     asin, acos, atan, sinh, cosh, tanh, atanh, asinh, acosh,
-    zero, one, zeros, ones, isinf, isnan, iszero,
-    convert,  show,abs
+    zero, one, zeros, ones, isinf, isnan, iszero,sign,
+    convert,  show,abs,mod,rem
                 ##### list of public (API) 
-  export ODEProblem,@NLodeProblem,NLodeProblem,solve ,NLODEProblem,Detection# 
+  export ODEProblemTest,ODEProblem,@NLodeProblem,NLodeProblem,solve ,NLODEProblem,Detection# 
   export qss1,qss2,qss3,liqss1,liqss2,liqss3,saveat,nmliqss1,nmliqss2,nmliqss3
   export save_Sol,plot_Sol,getPlot,getPlot!,save_SolSum,solInterpolated,plot_SolSum,plot
   export getErrorByRefs,getAverageErrorByRefs,getError,getAverageError
   # public functions and structs used in documentation
-  export Taylor0,mulT,mulTT,createT,addsub,negateT,subsub,subadd,subT,addT,muladdT,mulsub,divT,powerT,testTaylor # for CI testing
+  export Taylor0,mulT,mulTT,createT,addsub,negateT,subsub,subadd,subT,addT,muladdT,mulsub,divT,powerT,testTaylor,Derivative # for CI testing
   export QSSAlgorithm,Sol,EventDependencyStruct,Stats,CommonQSS_Data,LiQSS_Data   
   #####  Taylor series  #########
   include("taylor/constructors.jl") 
@@ -73,7 +74,6 @@ module QuantizedSystemSolver
 
                ##### main entrance/ Interface #######
   include("interface/main.jl")
-  include("interface/macroInterface.jl")
   include("interface/solve.jl")
 end # module
 

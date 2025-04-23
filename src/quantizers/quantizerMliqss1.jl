@@ -34,6 +34,22 @@ function nmisCycle_and_simulUpdate(aij::Float64,aji::Float64,trackSimul,::Val{1}
   aii=cacheA[1]
   cacheA[1]=0.0;exactA(q,d,cacheA,j,j, simt,f)
   ajj=cacheA[1]
+  if isnan(aii)
+    @warn("a is NaN: The Jacobian is not defined at this instant ",simt,". This may be due to  an undefined operation. Consider computing the Jacobian coefficient manually.")
+    a = 0.0
+end
+if isnan(ajj)
+  @warn("a is NaN: The Jacobian is not defined at this instant ",simt,". This may be due to  an undefined operation. Consider computing the Jacobian coefficient manually.")
+  a = 0.0
+end
+if isnan(aij)
+  @warn("a is NaN: The Jacobian is not defined at this instant ",simt,". This may be due to  an undefined operation. Consider computing the Jacobian coefficient manually.")
+  a = 0.0
+end
+if isnan(aji)
+  @warn("a is NaN: The Jacobian is not defined at this instant ",simt,". This may be due to  an undefined operation. Consider computing the Jacobian coefficient manually.")
+  a = 0.0
+end
  xi = x[index][0]
   xj = x[j][0]
   ẋi = x[index][1]
@@ -63,12 +79,14 @@ function nmisCycle_and_simulUpdate(aij::Float64,aji::Float64,trackSimul,::Val{1}
       if (abs(qi - xi) > 2.0*quani || abs(qj - xj) > 2.0*quanj) 
         h1 = (abs(quani / ẋi));h2 = (abs(quanj / ẋj));
         h=min(h1,h2)
-        Δ=(1-h*aii)*(1-h*ajj)-h*h*aij*aji
-        if Δ==0
-          Δ=1e-12
-        end
-        qi = ((1-h*ajj)*(xi+h*uij)+h*aij*(xj+h*uji))/Δ
-        qj = ((1-h*aii)*(xj+h*uji)+h*aji*(xi+h*uij))/Δ
+        if h!=Inf
+            Δ=(1-h*aii)*(1-h*ajj)-h*h*aij*aji
+            if Δ==0
+              Δ=1e-12
+            end
+            qi = ((1-h*ajj)*(xi+h*uij)+h*aij*(xj+h*uji))/Δ
+            qj = ((1-h*aii)*(xj+h*uji)+h*aji*(xi+h*uij))/Δ
+          end
       end
       maxIter=2
       while (abs(qi - xi) >2.0* quani || abs(qj - xj) >2.0*quanj) && (maxIter>0)
@@ -79,13 +97,14 @@ function nmisCycle_and_simulUpdate(aij::Float64,aji::Float64,trackSimul,::Val{1}
         h1 = h * sqrt(quani / abs(qi - xi));
         h2 = h * sqrt(quanj / abs(qj - xj));
         h=min(h1,h2)
-        Δ=(1-h*aii)*(1-h*ajj)-h*h*aij*aji
-        if Δ==0
-          Δ=1e-12
+        if h!=Inf
+              Δ=(1-h*aii)*(1-h*ajj)-h*h*aij*aji
+              if Δ==0
+                Δ=1e-12
+              end
+              qi = ((1-h*ajj)*(xi+h*uij)+h*aij*(xj+h*uji))/Δ
+              qj = ((1-h*aii)*(xj+h*uji)+h*aji*(xi+h*uij))/Δ
         end
-        qi = ((1-h*ajj)*(xi+h*uij)+h*aij*(xj+h*uji))/Δ
-        qj = ((1-h*aii)*(xj+h*uji)+h*aji*(xi+h*uij))/Δ
-       
       end 
       #trackSimul[1]+=1
       q[index][0]=qi# store back helper vars

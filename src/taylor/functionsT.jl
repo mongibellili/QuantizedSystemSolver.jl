@@ -23,7 +23,7 @@ function exp(a::Taylor0, c::Taylor0)
     order = a.order
     #aux = exp(constant_term(a))
     for k in eachindex(a)
-        exp!(c, a, k)
+        exp!(c, a, k) 
     end
     return c
 end
@@ -207,6 +207,11 @@ function atan(a::Taylor0, c::Taylor0, r::Taylor0)
     return c
 end
 
+function atan2(a::Taylor0, c::Taylor0, r::Taylor0)
+    r[0]=atan2(a[0],c[0])
+    return r
+end
+
 """
     asin!(c::Taylor0, a::Taylor0, r::Taylor0, cache3::Taylor0, k::Int)
 
@@ -242,7 +247,11 @@ TaylorSeries.jl but with an added cache to avoid allocation.
     @__dot__ cache3.coeffs = (-)(cache3.coeffs)
     cache3[0] = 1 + cache3[0]  #1-square(a,cache3)=1-a^2
     sqrt!(r, cache3, k)
-    @inbounds c[k] = (a[k] - c[k] / k) / constant_term(r)
+    r0=constant_term(r)
+    if r0==0.0
+        r0=1e-9
+    end
+    @inbounds c[k] = (a[k] - c[k] / k) / r0
     return nothing
 end
 """
@@ -280,7 +289,11 @@ TaylorSeries.jl but with an added cache to avoid one allocation.
     @__dot__ cache3.coeffs = (-)(cache3.coeffs)
     cache3[0] = 1 + cache3[0]  #1-square(a,cache3)=1-a^2
     sqrt!(r, cache3, k)
-    @inbounds c[k] = -(a[k] + c[k] / k) / constant_term(r)
+    r0=constant_term(r)
+    if r0==0.0
+        r0=1e-9
+    end
+    @inbounds c[k] = -(a[k] + c[k] / k) / r0
     return nothing
 end
 
@@ -313,4 +326,11 @@ end
 function abs(a::T, cache1::Taylor0) where {T<:Number}
     cache1[0] = abs(a)
     return cache1
+end
+
+function mod(a::Taylor0, n::Float64)
+    return mod(constant_term(a),n)  
+end
+function rem(a::Taylor0, n::Float64)
+    return rem(constant_term(a),n)  
 end

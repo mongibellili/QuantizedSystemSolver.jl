@@ -14,15 +14,24 @@ This function continues building a continuous problem. it receives an expression
 - `tspan::Tuple{Float64, Float64}`: stores the initial time and final time of the simulation.  
 - `prbName::Symbol`: The problem name as chosen by the user to be carried to the solution for displaying purposes.  
 """
-function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{0},initConditions::Vector{Float64},du::Symbol,tspan::Tuple{Float64, Float64},discrVars::Union{Vector{EM}, Tuple{Vararg{EM}}},prbName::Symbol) where {T,D,EM} 
+function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{0},initConditions::Vector{Float64},discrVars::Union{Vector{EM}, Tuple{Vararg{EM}}},preProcessData::PreProcessData) where {T,D,EM} 
+   #@show odeExprs
+   du=preProcessData.du
+   tspan= preProcessData.tspan
+   fname= preProcessData.prbName
+   mod= preProcessData.mod
+   is_top_level= preProcessData.is_top_level
+   numHelperFunCalls=preProcessData.numHelperFunCalls
     symDict=Dict{Symbol,Expr}()
     equs=Dict{Union{Int,Expr},Union{Int,Symbol,Expr}}() #du[int] or du[i]==du[a<i<b]==du[(a:b)]
     jac = Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}}()# datastrucutre 'Set' used because we do not want to insert an existing varNum
     exacteJacExpr = Dict{Expr,Union{Float64,Int,Symbol,Expr}}()
     # NO need to constrcut SD...SDVect will be extracted from Jac
     num_cache_equs=1#initial cachesize::will hold the number of caches (vectors) of the longest equation
-    functionEx=quote end #function to be inserted inside the main function
-    otherCode=quote end #other code to be inserted inside the main function
+#=     functionEx=quote end #function to be inserted inside the main function
+    otherCode=quote end #other code to be inserted inside the main function =#
+    functionEx=Expr(:block) #function to be inserted inside the main function
+    otherCode=Expr(:block) #other code to be inserted inside the main function
     for argI in odeExprs.args
         if argI isa Expr &&  argI.head == :(=) && (argI.args[1]== :discrete || argI.args[1]==:p)# old approach use the keyword discrete to define discrete variables
             discrVars = Vector{Float64}(argI.args[2].args)
@@ -54,6 +63,11 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{0},initConditio
             end 
         elseif argI isa Expr && argI.head==:function
             push!(functionEx.args,argI)
+           # push!(otherCode.args,argI)
+          #=   @show argI
+            f = (closure_gen(@__MODULE__))(argI)
+            push!(otherCode.args,f) =#
+            
         elseif @capture(argI, for counter_ in b_:niter_ loopbody__ end) #case where diff equation is an expr in for loop
            #the 3 commented lines below are for allowing the user to enter many du in a loop
             #= for lpbody in loopbody[1].args
@@ -68,15 +82,13 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{0},initConditio
                equs[:(($b,$niter))]=specRHS    
         elseif argI.args[1] isa Symbol && argI.args[2] isa Number  # already changed in main and plugged in diff eqs
         elseif  argI.args[1] isa Symbol && argI.args[2] isa Expr && (argI.args[2].head==:call || argI.args[2].head==:ref) #already changed in main and plugged in diff eqs
+        elseif argI.args[2] isa Symbol && argI.args[1] isa Expr && argI.args[1].head==:tuple #already changed in main and plugged in diff eqs
         else# keep any other code written by user
             push!(otherCode.args,argI)
         end #end for x in   
     end #end for args #########################################################################################################
 
-    fname= prbName # problem name received as outside function name as written by user
-    if odeExprs.args[1] isa Expr && odeExprs.args[1].args[2] isa Expr && odeExprs.args[1].args[2].head == :tuple#user has to enter problem info in a tuple (old maco)
-        fname= Symbol(odeExprs.args[1].args[2].args[1])
-    end
+
    
     jacVect=createJacVect(jac,Val(T)) #jacobian dependency
     SDVect=createSDVect(jac,Val(T))  # state derivative dependency
@@ -85,29 +97,37 @@ function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{0},initConditio
         f = eval(:((i, q,t,d,cache) -> $diffEqfunction))
         return Base.invokelatest(f,i, q,t,d,cache)
     end  =#
-    #diffEqfunctionF=@RuntimeGeneratedFunction(@__MODULE__,diffEqfunction,opaque_closures=false)
-    
-    if length(functionEx.args)>1
-        #closurefunc=()->nothing 
-        closurefunc=@RuntimeGeneratedFunction(functionEx.args[2]) 
-        diffEqfunction=createContEqFun(otherCode,equs,fname,closurefunc)# diff equations before this are stored in a dict:: now we have a giant function that holds all diff equations
-        exacteJacfunction=createExactJacFun(otherCode,exacteJacExpr,fname,closurefunc)
-    else
+    #diffEqfunctionF=RuntimeGeneratedFunction(@__MODULE__,diffEqfunction,opaque_closures=false)
+    if length(functionEx.args)==0
         closurefunc=0
         diffEqfunction=createContEqFun(otherCode,equs,fname,closurefunc)# diff equations before this are stored in a dict:: now we have a giant function that holds all diff equations
-        exacteJacfunction=createExactJacFun(otherCode,exacteJacExpr,fname,closurefunc)
+        exactJacfunction=createExactJacFun(otherCode,exacteJacExpr,fname,closurefunc) 
+    elseif length(functionEx.args)==1
+        #@warn("Defining a helper function inside the main model may hurt performance. Consider moving it to the top level.")
+        closurefunc=@RuntimeGeneratedFunction(functionEx.args[1]) 
+        diffEqfunction=createContEqFun(otherCode,equs,fname,closurefunc)# diff equations before this are stored in a dict:: now we have a giant function that holds all diff equations
+        exactJacfunction=createExactJacFun(otherCode,exacteJacExpr,fname,closurefunc)
+    else
+        error("Error: Currently only one helper function is allowed inside the model function. Consider moving them to the top level.")
     end
-    exactJacfunctionF=@RuntimeGeneratedFunction(exacteJacfunction)
-    diffEqfunctionF=@RuntimeGeneratedFunction(diffEqfunction) # @RuntimeGeneratedFunction changes a fun expression to actual fun without running into world age problems
+  
+    if numHelperFunCalls>length(functionEx.args)# the case when the user has defined a helper function inside the model function and one helperF outside and only called the outside helperF is considered a user mistake (either user made a typo or forgot to remove).
+            if is_top_level                    
+                RuntimeGeneratedFunctions.init(Main)
+                exactJacfunctionF=RuntimeGeneratedFunction(mod, mod,exactJacfunction)
+                diffEqfunctionF=RuntimeGeneratedFunction(mod, mod,diffEqfunction)   
+            else
+              @warn("Simulation is not running on same level with helper functions. This may hurt performance. Consider placing the solve function on top level, or placing the helper function inside the model.")
+             exactJacfunctionF1 = Base.eval(mod, exactJacfunction)
+             exactJacfunctionF = (args...) -> Base.invokelatest(exactJacfunctionF1, args...)
+             diffEqfunctionF1 = Base.eval(mod, diffEqfunction)
+             diffEqfunctionF = (args...) -> Base.invokelatest(diffEqfunctionF1, args...)
+            end
+    else
+        exactJacfunctionF=@RuntimeGeneratedFunction(exactJacfunction)
+        diffEqfunctionF=@RuntimeGeneratedFunction(diffEqfunction) 
+    end
+
     prob=NLODEContProblemSpan(fname,Val(1),Val(T),Val(D),Val(0),Val(num_cache_equs),initConditions,collect(discrVars),diffEqfunctionF,jacVect,SDVect,exactJacfunctionF,tspan,[closurefunc])# prtype type 1...prob not saved and struct contains vects
 end
  
-
-#old interface without tspan
-function NLodeProblemFunc(odeExprs::Expr,::Val{T},::Val{D},::Val{0},initCond::Vector{Float64},du::Symbol)where {T,D}
-    discrVars=Vector{Float64}()
-    tspan = (0.0,1.0)
-    prbName=:_
-    probspan=NLodeProblemFunc(odeExprs,Val(T),Val(D),Val(0),initCond,du,tspan,discrVars,prbName)  
-    myodeProblem =NLODEContProblem(probspan.prname,Val(1),Val(T),Val(D),Val(0),probspan.cacheSize,probspan.initConditions,probspan.discreteVars,probspan.eqs,probspan.jac,probspan.SD,probspan.exactJac,probspan.closureFuncs)
-end

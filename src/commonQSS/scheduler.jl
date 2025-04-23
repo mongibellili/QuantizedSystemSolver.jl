@@ -53,7 +53,7 @@ function updateScheduler(::Val{T},nextStateTime::Vector{Float64},nextEventTime :
     end
     if returnedVar[1]==0
         returnedVar=(1,Inf,:ST_STATE)
-       # println("null step made state step")
+        println("null step made state step")
     end
     return returnedVar 
 end

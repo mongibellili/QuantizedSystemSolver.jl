@@ -9,12 +9,23 @@
 """
 struct EventDependencyStruct
   id::Int
-  evCont::Vector{Int} #index tracking used for HD & HZ. Also it is used to update q,quantum,recomputeNext when x is modified in an event
-  evDisc::Vector{Int} #index tracking used for HD & HZ.
-  evContRHS::Vector{Int} #index tracking used to update other Qs before executing the event
+  evCont::Vector{Int} #LHS: index tracking used for HD & HZ. Also it is used to update q,quantum,recomputeNext when x is modified in an event
+  evDisc::Vector{Int} #LHS: index tracking used for HD & HZ.
+  evContRHS::Vector{Int} #Here we look at the RHS: index tracking used to update other Qs before executing the event
 end
 
-
+function changeEventExprToFirstValue(ex::Expr)
+  newEx=postwalk(ex) do a  
+      if (a==:t)|| (a isa Expr && a.head == :ref && a.args[1]==:q) 
+          outerRef=Expr(:ref)
+          push!(outerRef.args,a)
+          push!(outerRef.args,:(0))
+          a=outerRef
+      end
+      return a
+  end
+  newEx
+end
 
 #= """
     symbolFromRefdiscrete(refEx)
@@ -80,7 +91,7 @@ function extractJacDepNormalDiscrete(varNum::Int,rhs::Union{Symbol,Int,Expr},jac
         symarg=symbolFromRef(a.args[1],a.args[2]) #after getting the index i in previous line, we can change the expression
         symDict[symarg]=a
         a=symarg
-      end
+      end 
       return a 
   end
   # extract the jac (continuous part)
@@ -93,6 +104,7 @@ function extractJacDepNormalDiscrete(varNum::Int,rhs::Union{Symbol,Int,Expr},jac
     exactJacExpr[:(($varNum,$i))]=jacEntry # entry (varNum,i) is jacEntry
   end
   if length(jacSet)>0 jac[varNum]=jacSet end
+    useNumber_inFuncalls(rhs)
 end
 
 # like above except (b,niter) instead of varNum
@@ -211,21 +223,22 @@ Handles events in the quantized system solver.
 
 """
 function handleEvents(argI::Expr,eventequs::Vector{Expr},length_zcequs::Int64,evsArr::Vector{EventDependencyStruct})
-##################################################################################################################
-            #                                                      events     
-            ##################################################################################################################                  
+                      
             # each 'if-statmets' has 2 events (arg[2]=posEv and arg[3]=NegEv) each pos or neg event has a function...later i can try one event for zc
               if length(argI.args)==2  #if user only wrote the positive evnt, here I added the negative event wich does nothing
-                nothingexpr = quote nothing end # neg dummy event 
+                #nothingexpr = quote nothing end # neg dummy event 
+                nothingexpr = Expr(:block,nothing) # does not require remove_linenums
                 push!(argI.args, nothingexpr)
-                Base.remove_linenums!(argI.args[3])
-            end
+               # Base.remove_linenums!(argI.args[3])
+
+                nothingexpr = Expr(:block,nothing)
+            end 
             #pos event
-            newPosEventExprToFunc=changeExprToFirstValue(argI.args[2])  #change u[1] to u[1][0]  # pos ev can't be a symbol ...later maybe add check anyway
+            newPosEventExprToFunc=changeEventExprToFirstValue(argI.args[2])  #change u[1] to u[1][0]  # pos ev can't be a symbol ...later maybe add check anyway
             push!(eventequs,newPosEventExprToFunc) 
             #neg eve
             if argI.args[3].args[1] isa Expr # argI.args[3] isa expr and is either an equation or :block symbol end ...so lets check .args[1]
-                newNegEventExprToFunc=changeExprToFirstValue(argI.args[3])
+                newNegEventExprToFunc=changeEventExprToFirstValue(argI.args[3])
                 push!(eventequs,newNegEventExprToFunc) 
             else
                 push!(eventequs,argI.args[3]) #symbol nothing
@@ -238,19 +251,24 @@ function handleEvents(argI::Expr,eventequs::Vector{Expr},length_zcequs::Int64,ev
               #------------------pos Event--------------------#
             posEv_disArrLHS= Vector{Int}()  
             posEv_conArrLHS= Vector{Int}() 
-            posEv_conArrRHS=Vector{Int}()    #to be used inside intgrator to updateOtherQs (intgrateState) before executing the event there is no discArrRHS because p is not changing overtime to be updated      
+            posEv_conArrRHS=Set{Int}() 
+            #posEv_conArrRHS=Set{Int}()    #to be used inside intgrator to updateOtherQs (intgrateState) before executing the event there is no discArrRHS because p is not changing overtime to be updated      
             for j = 1:length(posEvExp.args)  # j coressponds the number of statements under one posEvent
-                if (posEvExp.args[j]  isa Expr &&  posEvExp.args[j].head == :(=)) 
+                if (posEvExp.args[j]  isa Expr &&  posEvExp.args[j].head in [:(=),:+=, :-=, :*=, :/=]) 
                         poslhs=posEvExp.args[j].args[1];posrhs=posEvExp.args[j].args[2]
-                    if (poslhs  isa Expr &&  poslhs.head == :ref && (poslhs.args[1]==:q || poslhs.args[1]==:p))    
+                    if (poslhs  isa Expr &&  poslhs.head == :ref && (poslhs.args[1]==:q || poslhs.args[1]==:p))  
+                     # @show poslhs    
                        if poslhs.args[1]==:q
                             push!(posEv_conArrLHS,poslhs.args[2])
+                            if posEvExp.args[j].head in [:+=, :-=, :*=, :/=] # lhs+=rhs is lhs=lhs+rhs so lhs need to be accounted for
+                              push!(posEv_conArrRHS,  (poslhs.args[2])) 
+                            end
                         else # lhs is a disc var 
                             push!(posEv_disArrLHS,poslhs.args[2])
                         end
                         postwalk(posrhs) do a   #
                             if a isa Expr && a.head == :ref && a.args[1]==:q# 
-                                push!(posEv_conArrRHS,  (a.args[2]))  #                    
+                                push!(posEv_conArrRHS,  (a.args[2]))  #       ....             
                             end
                             return a 
                         end
@@ -260,13 +278,18 @@ function handleEvents(argI::Expr,eventequs::Vector{Expr},length_zcequs::Int64,ev
             #------------------neg Event--------------------#
             negEv_disArrLHS= Vector{Int}()#
             negEv_conArrLHS= Vector{Int}()# 
-            negEv_conArrRHS=Vector{Int}()#to be used inside intgrator to updateOtherQs (intgrateState) before executing the event there is no discArrRHS because p is not changing overtime to be updated      
+            negEv_conArrRHS=Set{Int}()#to be used inside intgrator to updateOtherQs (intgrateState) before executing the event there is no discArrRHS because p is not changing overtime to be updated      
             if negEvExp.args[1] != :nothing
                 for j = 1:length(negEvExp.args)  # j coressponds the number of statements under one negEvent
-                    neglhs=negEvExp.args[j].args[1];negrhs=negEvExp.args[j].args[1]
-                    if (neglhs  isa Expr &&  neglhs.head == :ref && (neglhs.args[1]==:q || neglhs.args[1]==:p))    
+                  if (negEvExp.args[j]  isa Expr &&  negEvExp.args[j].head in [:(=),:+=, :-=, :*=, :/=])  
+                    neglhs=negEvExp.args[j].args[1];negrhs=negEvExp.args[j].args[2]                   
+                    if (neglhs  isa Expr &&  neglhs.head == :ref && (neglhs.args[1]==:q || neglhs.args[1]==:p))  
+                      
                         if neglhs.args[1]==:q
                             push!(negEv_conArrLHS,neglhs.args[2])
+                            if negEvExp.args[j].head in [:+=, :-=, :*=, :/=] # lhs+=rhs is lhs=lhs+rhs so lhs need to be accounted for
+                              push!(negEv_conArrRHS,  (neglhs.args[2])) 
+                            end
                         else # lhs is a disc var 
                             push!(negEv_disArrLHS,neglhs.args[2])
                         end
@@ -275,13 +298,14 @@ function handleEvents(argI::Expr,eventequs::Vector{Expr},length_zcequs::Int64,ev
                                 push!(negEv_conArrRHS,  (a.args[2]))  #                    
                             end
                             return a 
-                        end
-                    end
-                end
+                        end#end postwalk
+                    end#end if
+                  end
+                end#end for
             end 
-            structposEvent = EventDependencyStruct(indexPosEv, posEv_conArrLHS, posEv_disArrLHS,posEv_conArrRHS) # posEv_conArr is vect 
+            structposEvent = EventDependencyStruct(indexPosEv, posEv_conArrLHS, posEv_disArrLHS,collect(posEv_conArrRHS)) # posEv_conArr is vect 
             push!(evsArr, structposEvent)
-            structnegEvent = EventDependencyStruct(indexNegEv, negEv_conArrLHS, negEv_disArrLHS,negEv_conArrRHS)
+            structnegEvent = EventDependencyStruct(indexNegEv, negEv_conArrLHS, negEv_disArrLHS,collect(negEv_conArrRHS))
             push!(evsArr, structnegEvent)
 
 end
@@ -497,7 +521,7 @@ function unionDependency(HZD1::Vector{Vector{Int}},HZD2::Vector{Vector{Int}})
 end 
 
 
-function createDiscEqFun(otherCode::Expr,equs::Dict{Union{Int,Expr},Union{Int,Symbol,Expr}},zcequs::Vector{Expr},eventequs::Vector{Expr},fname::Symbol,f::F) where{F}
+function createDiscEqFun(otherCode::Expr,equs::Dict{Union{Int,Expr},Union{Int,Symbol,Expr}},zcequs::Vector{Expr},eventequs::Vector{Expr},fname::Symbol,f)# where{F}
   #allEpxpr=Expr(:block)
   ##############diffEqua###############
   s="if i==0 return nothing\n"  # :i is the mute var
@@ -541,7 +565,7 @@ function createDiscEqFun(otherCode::Expr,equs::Dict{Union{Int,Expr},Union{Int,Sy
   def=Dict{Symbol,Any}()
   def[:head] = :function
   def[:name] = fname  
-  def[:args] = [:(i::Int),:(zc::Int),:(ev::Int),:(q::Vector{Taylor0}),:(p::Vector{Float64}), :(t::Taylor0),:(cache::Vector{Taylor0}),:(f_::F)]
+  def[:args] = [:(i::Int),:(zc::Int),:(ev::Int),:(q::Vector{Taylor0}),:(p::Vector{Float64}), :(t::Taylor0),:(cache::Vector{Taylor0}),:(f_)]
   def[:body] = otherCodeCopy 
   functioncode=combinedef(def)
  # @show functioncode

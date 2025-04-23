@@ -1,3 +1,18 @@
+
+
+struct PreProcessData 
+  du::Symbol
+  tspan::Tuple{Float64, Float64}
+  prbName::Symbol
+  mod::Module
+  is_top_level::Bool
+  numHelperFunCalls::Int
+end
+
+
+
+
+
 """
     NLODEContProblem{F,PRTYPE,T,D,Z,CS}
 A struct that holds the continuous problem. It has the following fields:  

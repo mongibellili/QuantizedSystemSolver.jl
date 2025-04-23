@@ -9,6 +9,22 @@ function nmisCycle_and_simulUpdate(aij::Float64,aji::Float64,trackSimul,::Val{2}
   aii=cacheA[1]
   cacheA[1]=0.0; exactA(q,d,cacheA,j,j, simt,f)
   ajj=cacheA[1] 
+  if isnan(aii)
+    @warn("a is NaN: The Jacobian is not defined at this instant ",simt,". This may be due to  an undefined operation. Consider computing the Jacobian coefficient manually.")
+    a = 0.0
+end
+if isnan(ajj)
+  @warn("a is NaN: The Jacobian is not defined at this instant ",simt,". This may be due to  an undefined operation. Consider computing the Jacobian coefficient manually.")
+  a = 0.0
+end
+if isnan(aij)
+  @warn("a is NaN: The Jacobian is not defined at this instant ",simt,". This may be due to  an undefined operation. Consider computing the Jacobian coefficient manually.")
+  a = 0.0
+end
+if isnan(aji)
+  @warn("a is NaN: The Jacobian is not defined at this instant ",simt,". This may be due to  an undefined operation. Consider computing the Jacobian coefficient manually.")
+  a = 0.0
+end
   uii=dxaux[index][1]-aii*qaux[index][1]
   ui2=dxaux[index][2]-aii*qaux[index][2]
   xi=x[index][0];xj=x[j][0];qi=q[index][0];qj=q[j][0];qi1=q[index][1];qj1=q[j][1];xi1=x[index][1];xi2=2*x[index][2];xj1=x[j][1];xj2=2*x[j][2]
@@ -83,6 +99,7 @@ function nmisCycle_and_simulUpdate(aij::Float64,aji::Float64,trackSimul,::Val{2}
         coefH6j=aii*aiijj_*(aii*uji2-uji*aiijj_-aji*uij2)-aji*aiijj_*(ajj*uij2-uij*aiijj_-aij*uji2)
         h = ft-simt
         Δ1=1.0-h*(aiijj)-h*h*(aiijj_)
+        
         if abs(Δ1)!=0.0 
           h_2=h*h;h_3=h_2*h;h_4=h_3*h;h_5=h_4*h;h_6=h_5*h
           Δ22=4.0+h*coefΔh1+h_2*(coefΔh2)+h_3*(coefΔh3)+h_4*(coefΔh4)+h_5*coefΔh5+h_6*coefΔh6
@@ -91,37 +108,63 @@ function nmisCycle_and_simulUpdate(aij::Float64,aji::Float64,trackSimul,::Val{2}
             qj=(4.0*xj+h*coefH1j+h_2*coefH2j+h_3*coefH3j+h_4*coefH4j+h_5*coefH5j+h_6*coefH6j)/Δ22
           end
         end
+
         if (abs(qi - xi) > 2.0*quani || abs(qj - xj) > 2.0*quanj) 
-          h1 = sqrt(abs(2*quani/xi2));h2 = sqrt(abs(2*quanj/xj2));   #later add derderX =1e-12 when x2==0?
-          h=min(h1,h2)
-          Δ1=1.0-h*(aiijj)-h*h*(aiijj_)
-          if abs(Δ1)!=0.0 
-            h_2=h*h;h_3=h_2*h;h_4=h_3*h;h_5=h_4*h;h_6=h_5*h
-            Δ22=4.0+h*coefΔh1+h_2*(coefΔh2)+h_3*(coefΔh3)+h_4*(coefΔh4)+h_5*coefΔh5+h_6*coefΔh6
-            if abs(Δ22)!=0.0
-              qi=(4.0*xi+h*coefH1+h_2*coefH2+h_3*coefH3+h_4*coefH4+h_5*coefH5+h_6*coefH6)/Δ22
-              qj=(4.0*xj+h*coefH1j+h_2*coefH2j+h_3*coefH3j+h_4*coefH4j+h_5*coefH5j+h_6*coefH6j)/Δ22
+          h1 = sqrt(abs(2*quani/xi2));
+          h2 = sqrt(abs(2*quanj/xj2));   #later add derderX =1e-12 when x2==0?
+
+           #=  if xi2!=0.0
+              h1 = sqrt(abs(2*quani/xi2));
+            elseif xi1!=0.0
+              h1 = sqrt(abs(2*quani/xi1));   #later add derderX =1e-12 when x2==0?
+            else
+              h1 = Inf
             end
+            if xj2!=0.0
+              h2 = sqrt(abs(2*quanj/xj2));   #later add derderX =1e-12 when x2==0?
+            elseif xj1!=0.0
+              h2 = sqrt(abs(2*quanj/xj1));   #later add derderX =1e-12 when x2==0?
+            else
+              h2 = Inf
+            end =#
+
+
+
+          h=min(h1,h2)
+          if h!=Inf
+              Δ1=1.0-h*(aiijj)-h*h*(aiijj_)
+              if abs(Δ1)!=0.0 
+                h_2=h*h;h_3=h_2*h;h_4=h_3*h;h_5=h_4*h;h_6=h_5*h
+                Δ22=4.0+h*coefΔh1+h_2*(coefΔh2)+h_3*(coefΔh3)+h_4*(coefΔh4)+h_5*coefΔh5+h_6*coefΔh6
+                if abs(Δ22)!=0.0
+                  qi=(4.0*xi+h*coefH1+h_2*coefH2+h_3*coefH3+h_4*coefH4+h_5*coefH5+h_6*coefH6)/Δ22
+                  qj=(4.0*xj+h*coefH1j+h_2*coefH2j+h_3*coefH3j+h_4*coefH4j+h_5*coefH5j+h_6*coefH6j)/Δ22
+                end
+              end
           end
+
         end
+
         maxIter=2
         while (abs(qi - xi) > 2.0*quani || abs(qj - xj) > 2.0*quanj) && (maxIter>0)
           maxIter-=1
-          if maxIter==0  #ie simul step failed
-           # println("simulstep ord2 failed maxiter")
-            return false
+          if maxIter>1  #ie simul step failed
+            return false 
           end
           h1 = h * sqrt(quani / abs(qi - xi));
           h2 = h * sqrt(quanj / abs(qj - xj));
           h=min(h1,h2)
-          Δ1=1.0-h*(aiijj)-h*h*(aiijj_)
-          if abs(Δ1)!=0.0 
-            h_2=h*h;h_3=h_2*h;h_4=h_3*h;h_5=h_4*h;h_6=h_5*h
-            Δ22=4.0+h*coefΔh1+h_2*(coefΔh2)+h_3*(coefΔh3)+h_4*(coefΔh4)+h_5*coefΔh5+h_6*coefΔh6
-            if abs(Δ22)!=0.0
-              qi=(4.0*xi+h*coefH1+h_2*coefH2+h_3*coefH3+h_4*coefH4+h_5*coefH5+h_6*coefH6)/Δ22
-              qj=(4.0*xj+h*coefH1j+h_2*coefH2j+h_3*coefH3j+h_4*coefH4j+h_5*coefH5j+h_6*coefH6j)/Δ22
-            end
+          if h!=Inf
+   
+              Δ1=1.0-h*(aiijj)-h*h*(aiijj_)
+              if abs(Δ1)!=0.0 
+                h_2=h*h;h_3=h_2*h;h_4=h_3*h;h_5=h_4*h;h_6=h_5*h
+                Δ22=4.0+h*coefΔh1+h_2*(coefΔh2)+h_3*(coefΔh3)+h_4*(coefΔh4)+h_5*coefΔh5+h_6*coefΔh6
+                if abs(Δ22)!=0.0
+                  qi=(4.0*xi+h*coefH1+h_2*coefH2+h_3*coefH3+h_4*coefH4+h_5*coefH5+h_6*coefH6)/Δ22
+                  qj=(4.0*xj+h*coefH1j+h_2*coefH2j+h_3*coefH3j+h_4*coefH4j+h_5*coefH5j+h_6*coefH6j)/Δ22
+                end
+              end
           end
         end
  
@@ -133,6 +176,7 @@ function nmisCycle_and_simulUpdate(aij::Float64,aji::Float64,trackSimul,::Val{2}
           println("iter ord2 simul Δ1 ==0")
           return false
         end
+        
         q[index][0]=qi# store back helper vars
         q[j][0]=qj     
         q1parti=aii*qi+aij*qj+uij+h*uij2

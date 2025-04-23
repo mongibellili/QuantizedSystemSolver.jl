@@ -181,14 +181,22 @@ end
         @inbounds c[0] = log(constant_term(a))
         return nothing
     elseif k == 1
-        @inbounds c[1] = a[1] / constant_term(a)
+        a0 = constant_term(a)
+        if a0==0.0
+            a0 = 1e-9
+        end
+        @inbounds c[1] = a[1] / a0
         return nothing
     end
     @inbounds c[k] = (k - 1) * a[1] * c[k-1]
     @inbounds for i = 2:k-1
         c[k] += (k - i) * a[i] * c[k-i]
     end
-    @inbounds c[k] = (a[k] - c[k] / k) / constant_term(a)
+    a0 = constant_term(a)
+    if a0==0.0
+        a0 = 1e-9
+    end
+    @inbounds c[k] = (a[k] - c[k] / k) / a0
     return nothing
 end
 
@@ -239,7 +247,11 @@ end
         c[k] += (k - i) * r[i] * c[k-i]
     end
     sqrt!(r, 1 - a^2, k)
-    @inbounds c[k] = (a[k] - c[k] / k) / constant_term(r)
+    r0=constant_term(r)
+    if r0==0.0
+        r0=1e-9
+    end
+    @inbounds c[k] = (a[k] - c[k] / k) / r0
     return nothing
 end
 
@@ -255,9 +267,14 @@ end
         c[k] += (k - i) * r[i] * c[k-i]
     end
     sqrt!(r, 1 - a^2, k)
-    @inbounds c[k] = -(a[k] + c[k] / k) / constant_term(r)
+    r0=constant_term(r)
+    if r0==0.0
+        r0=1e-9
+    end
+    @inbounds c[k] = (a[k] + c[k] / k) / r0
     return nothing
 end
+   
 
 @inline function atan!(c::Taylor0, a::Taylor0, r::Taylor0, k::Int)
     if k == 0
@@ -271,9 +288,14 @@ end
         c[k] += (k - i) * r[i] * c[k-i]
     end
     @inbounds sqr!(r, a, k)
-    @inbounds c[k] = (a[k] - c[k] / k) / constant_term(r)
+    r0=constant_term(r)
+    if r0==0.0
+        r0=1e-9
+    end
+    @inbounds c[k] = (a[k] + c[k] / k) / r0
     return nothing
 end
+ 
 
 @inline function sinhcosh!(s::Taylor0, c::Taylor0, a::Taylor0, k::Int)
     if k == 0
@@ -322,7 +344,11 @@ end
         c[k] += (k - i) * r[i] * c[k-i]
     end
     sqrt!(r, a^2 + 1, k)   # a^...allocates will need a third cache
-    @inbounds c[k] = (a[k] - c[k] / k) / constant_term(r)
+    r0=constant_term(r)
+    if r0==0.0
+        r0=1e-9
+    end
+    @inbounds c[k] = (a[k] - c[k] / k) / r0
     return nothing
 end
 
@@ -338,7 +364,11 @@ end
         c[k] += (k - i) * r[i] * c[k-i]
     end
     sqrt!(r, a^2 - 1, k)
-    @inbounds c[k] = (a[k] - c[k] / k) / constant_term(r)
+    r0=constant_term(r)
+    if r0==0.0
+        r0=1e-9
+    end
+    @inbounds c[k] = (a[k] - c[k] / k) / r0
     return nothing
 end
 
@@ -354,7 +384,11 @@ end
         c[k] += (k - i) * r[i] * c[k-i]
     end
     @inbounds sqr!(r, a, k)
-    @inbounds c[k] = (a[k] + c[k] / k) / constant_term(r)
+    r0=constant_term(r)
+    if r0==0.0
+        r0=1e-9
+    end
+    @inbounds c[k] = (a[k] + c[k] / k) / r0
     return nothing
 end
 function abs(a::Taylor0)
@@ -362,7 +396,7 @@ function abs(a::Taylor0)
         return a
     elseif constant_term(a) < 0
         return -a
-    else
+    else 
         throw(DomainError(a,
             """The 0th order Taylor0 coefficient must be non-zero
             (abs(x) is not differentiable at x=0)."""))

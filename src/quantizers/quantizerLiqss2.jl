@@ -42,6 +42,10 @@ function updateQ(::Val{2}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, qua
     ddx = x2
     quan = quantum[i]
     h = 0.0
+    if isnan(a)
+        @warn("a is NaN: The Jacobian is not defined at this instant ",simt,". This may be due to  an undefined operation. Consider computing the Jacobian coefficient manually.")
+        a = 0.0
+    end
     if a != 0.0
         if a * a * x + a * u1 + u2 <= 0.0
             if -(a * a * x + a * u1 + u2) / (a * a) < quan # asymptote<delta...no sol ...no need to check
@@ -124,6 +128,10 @@ function updateQInit(::Val{2}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0},
     ddx = x2
     quan = quantum[i]
     h = 0.0
+    if isnan(a)
+        @warn("a is NaN: The Jacobian is not defined at this instant ",simt,". This may be due to  an undefined operation. Consider computing the Jacobian coefficient manually.")
+        a = 0.0
+    end
     if a != 0.0
         if a * a * x + a * u1 + u2 <= 0.0
             if -(a * a * x + a * u1 + u2) / (a * a) < quan # asymptote<delta...no sol ...no need to check
