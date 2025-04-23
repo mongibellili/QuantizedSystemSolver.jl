@@ -34,8 +34,7 @@ sol=solve(odeprob,nmliqss1())
 sol=solve(odeprob,nmliqss2())
 @test 0.5<sol(0.7,idxs=1)<0.7
 @test -2.4<sol(0.7,idxs=2)<-2.2
-plot_Sol(sol)
-plot_Sol(sol,1)
+
 function sysb53(du,u,p,t)
   du[1] = -20.0*u[1]-80.0*u[2]+1600.0
   du[2] =1.24*u[1]-0.01*u[2]+0.2
