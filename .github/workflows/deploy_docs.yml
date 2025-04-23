@@ -2,8 +2,9 @@ name: Documentation
 
 on:
   push:
-    branches:
-      - main  # temp branch switch
+    paths:
+      - docs/**
+      - .github/workflows/deploy_docs.yml
 
 jobs:
   build:
