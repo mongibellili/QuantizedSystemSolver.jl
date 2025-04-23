@@ -101,7 +101,7 @@ end
      ylabel := "Value"
      legend := :topright
      seriestype := :line
- 
+
      if idxs === nothing
          # Plot all variables (each with its own time)
          for i in eachindex(sol.savedVars)
@@ -165,7 +165,7 @@ end
  
  
 
-"""
+#= """
     plot_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool,marker=:circle::Symbol,title="") where{T,O}
 
 generates a plot of the solution of the system (returned as a plot object).
@@ -190,7 +190,7 @@ function plot_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::
     end
   end
   plot(sol,idxs=idxs,note=note,xlims=xlims,ylims=ylims,legend=legend,marker=marker,title=title)
-end
+end =#
 
 
 
@@ -252,12 +252,14 @@ Saves the plot of the system solution for the variables xvars.
   - legend = true
 
 """ =#
-function save_Sol(sol::Sol{T,O},xvars::Int...;note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}
-  p1= plot_Sol(sol,xvars...;note=note,xlims=xlims,ylims=ylims,legend=legend)
+#= function save_Sol(sol::Sol{T,O};idxs=nothing,title=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}
+  p= plot(sol,idxs=idxs,xlims=xlims,ylims=ylims,legend=legend,title=title)
+  display(p)
+  sleep(0.1)
   mydate=now()
   timestamp=(string(year(mydate),"_",month(mydate),"_",day(mydate),"_",hour(mydate),"_",minute(mydate),"_",second(mydate)))
-  savefig(p1, "plot_$(sol.sysName)_$(sol.algName)_$(xvars)_$(sol.absQ)_$(note)_ft_$(sol.ft)_$(timestamp).png")
-end
+  savefig(p, "plot_$(sol.sysName)_$(sol.algName)__$(sol.absQ)__ft_$(sol.ft)_$(timestamp).png")
+end =#
 #= """
     save_SolSum(sol::Sol{T,O},xvars::Int...;interp=0.0001,note=" "::String,xlims=(0.0,0.0)::Tuple{Float64, Float64},ylims=(0.0,0.0)::Tuple{Float64, Float64},legend=:true::Bool) where{T,O}
 
