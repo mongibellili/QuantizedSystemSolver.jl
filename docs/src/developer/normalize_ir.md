@@ -16,7 +16,7 @@ end
 ### Solution
 
 
-case1)
+case1) && ; without else
 ```Julia
 if A>0 && B>0
    X
@@ -35,7 +35,7 @@ if B>0
    end
 end  
 ```
-case2)
+case2) && ; with else
 ```Julia
 if A>0 && B>0
    X
@@ -60,7 +60,7 @@ else
    Y
 end  
 ```
-case3)
+case3) || ; without else
 ```Julia
 if A>0 || B>0
    X
@@ -75,7 +75,7 @@ if B>0
       X
 end 
 ```
-case4)
+case4) || ; with else
 ```Julia
 if A>0 || B>0
    X
@@ -100,7 +100,7 @@ else
     end
 end  
 ```
-case5) multi
+case5) multiple || && ;with or without else
 ```Julia
 if A>0 || B>0 && C>0 #.....
       #(with or without else : the logic is the same)
