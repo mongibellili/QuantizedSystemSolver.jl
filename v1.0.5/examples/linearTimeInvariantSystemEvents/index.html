@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Linear Time Invariant with events · Quantized System Solver</title><meta name="title" content="Linear Time Invariant with events · Quantized System Solver"/><meta property="og:title" content="Linear Time Invariant with events · Quantized System Solver"/><meta property="twitter:title" content="Linear Time Invariant with events · Quantized System Solver"/><meta name="description" content="Documentation for Quantized System Solver."/><meta property="og:description" content="Documentation for Quantized System Solver."/><meta property="twitter:description" content="Documentation for Quantized System Solver."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.png" alt="Quantized System Solver logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Quantized System Solver</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Getting started</span><ul><li><a class="tocitem" href="../../guide/userTutorial/">Tutorial</a></li><li><a class="tocitem" href="../../guide/userAPI/">User API</a></li></ul></li><li><span class="tocitem">Background</span><ul><li><a class="tocitem" href="../../background/introductoryResources/">Introduction to Quantized System Methods</a></li><li><a class="tocitem" href="../../background/qss/">Quantized State System Methods</a></li><li><a class="tocitem" href="../../background/liqss/">Linearly Implicit Quantized State System Methods</a></li><li><a class="tocitem" href="../../background/mliqss/">Modified Linearly Implicit Quantized State System Methods</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../linearTimeInvariantSystem/">Linear Time Invariant</a></li><li class="is-active"><a class="tocitem" href>Linear Time Invariant with events</a></li><li><a class="tocitem" href="../vanderpol/">Van der Pol</a></li><li><a class="tocitem" href="../tysonModel/">The Tyson Model</a></li><li><a class="tocitem" href="../adr/">ADR problem</a></li><li><a class="tocitem" href="../dosing/">Conditional Dosing in Pharmacometrics</a></li></ul></li><li><span class="tocitem">Developer resources</span><ul><li><a class="tocitem" href="../../developer/devIntro/">Developer Guide</a></li><li><input class="collapse-toggle" id="menuitem-5-2" type="checkbox"/><label class="tocitem" for="menuitem-5-2"><span class="docs-label">IR model</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../developer/normalize_ir/">Normalize_IR</a></li><li><a class="tocitem" href="../../developer/intermediateRepresentation/">IR</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-5-3" type="checkbox"/><label class="tocitem" for="menuitem-5-3"><span class="docs-label">problem construction</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../developer/problem/">Problem</a></li><li><a class="tocitem" href="../../developer/problemFunction/">Problem Function</a></li><li><a class="tocitem" href="../../developer/problem_references/">Problem Internals</a></li></ul></li><li><a class="tocitem" href="../../developer/algorithm/">QSS Algorithms</a></li><li><a class="tocitem" href="../../developer/solve/">Solve</a></li><li><a class="tocitem" href="../../developer/integrator/">Integrators</a></li><li><a class="tocitem" href="../../developer/quantizer/">Quantizer</a></li><li><a class="tocitem" href="../../developer/solution/">Solution</a></li><li><a class="tocitem" href="../../developer/taylor/">Taylor Variables</a></li><li><a class="tocitem" href="../../developer/utils/">Utils references</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Linear Time Invariant with events</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Linear Time Invariant with events</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/mongibellili/QuantizedSystemSolver.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/mongibellili/QuantizedSystemSolver.jl/blob/main/docs/src/examples/linearTimeInvariantSystemEvents.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Linear-Time-Invariant-with-events"><a class="docs-heading-anchor" href="#Linear-Time-Invariant-with-events">Linear Time Invariant with events</a><a id="Linear-Time-Invariant-with-events-1"></a><a class="docs-heading-anchor-permalink" href="#Linear-Time-Invariant-with-events" title="Permalink"></a></h1><p>The same previous LTI example is extended to contain events (discontinuities). At times 2.5 and 5.0 the differential equations are changed. This is modeled through discrete variables passed in the p vector. The events are defined through <span>$if-statements$</span>.</p><pre><code class="language-julia hljs">using QuantizedSystemSolver
+function funcName(du,u,p,t)
+    du[1] = p[1]*u[1]+p[2]*u[2]+p[3]
+    du[2] = p[4]*u[1]+p[5]*u[2]+p[6]
+    if t&gt;2.5
+        p[1]=-22.0
+        p[3]=1000.0
+    end
+    if t&gt;5.0
+        p[2]=-20.0
+        p[5]=-10.0
+        p[6]=-0.5
+    end
+end
+tspan = (0.0,7.0)
+u0= [-1.0, -2.0]
+p=[-20.0,-80.0,1600.0,1.24,0.01,0.2]
+prob = ODEProblem(funcName,u0,tspan,p)
+#Solve the problem
+sol = solve(prob,nmliqss2(),abstol = 1e-4, reltol = 1e-2)
+p1 = plot(sol);</code></pre><p>The analytic solution is given by the following equations:</p><pre><code class="language-julia hljs">using Plots
+function A1() 
+    x1(t)=105.83453057676363*-8.83362618880318*exp(-10.943696474115944*t)-127.91533865757171*-7.303470585390368*exp(-9.046303525884058*t)-0.32323232323231316
+    x2(t)=105.83453057676363*exp(-10.943696474115944*t)-127.91533865757171*exp(-9.046303525884058*t)+20.08080808080808
+    return (x1,x2) 
+end   
+function B1() 
+    x1(t)=-5.300798816237515e17*-12.649850456341543*exp(-15.675814565863513*t)+9.014692147675046e7*-5.10014954365846*exp(-6.314185434136489*t)-0.26267932915740405
+    x2(t)=-5.300798816237515e17*exp(-15.675814565863513*t)+9.014692147675046e7*exp(-6.314185434136489*t)+12.572236815518284
+    return (x1,x2) 
+end 
+function C1() 
+    x1(t)=4.746452513218909e42*-7.537612988819599*exp(-19.346640106136302*t)+8.75190264440514e27*-2.139806366019111*exp(-12.653359893863698*t)+40.890522875817
+    x2(t)=4.746452513218909e42*exp(-19.346640106136302*t)+8.75190264440514e27*exp(-12.653359893863698*t)+5.020424836601308
+    return (x1,x2) 
+end 
+function x1(t)
+    if t&lt;2.5
+        return A1()[1](t)
+    elseif t&lt;5.0
+        return B1()[1](t)
+    else
+        return C1()[1](t)
+    end
+end
+function x2(t)
+    if t&lt;2.5
+        return A1()[2](t)
+    elseif t&lt;5.0
+        return B1()[2](t)
+    else
+        return C1()[2](t)
+    end
+end
+p1=plot!(x1,0,10,label=&quot;x1&quot;)
+p1=plot!(x2,0,10,label=&quot;x2&quot;)</code></pre><p>Then use DifferentialEquations instead of QuantizedSystemSolver, and use callbacks instead of <span>$if-statements$</span>.</p><pre><code class="language-julia hljs">using DifferentialEquations
+function funcName(du,u,p,t)
+    du[1] = p[1]*u[1]+p[2]*u[2]+p[3]
+    du[2] = p[4]*u[1]+p[5]*u[2]+p[6]
+end
+tspan = (0.0,10.0)
+u0= [-1.0, -2.0]
+p=[-20.0,-80.0,1600.0,1.24,0.01,0.2]
+prob = ODEProblem(funcName,u0,tspan,p)
+function condition1( u, t, integrator) 
+    (t-2.5)
+end
+function condition2( u, t, integrator) 
+    (t-5.0)
+end
+function affect1!(integrator)
+    p[1]=-22.0
+    p[3]=1000.0
+end
+function affect2!(integrator)
+    p[2]=-20.0
+    p[5]=-10.0
+    p[6]=-0.5
+end
+cb1 = ContinuousCallback(condition1, affect1!,nothing;  )
+cb2 = ContinuousCallback(condition2, affect2!,nothing; )
+cbs = CallbackSet(cb1, cb2)
+solRosenbrock23 = solve(prob,Rosenbrock23(),callback = cbs,abstol = 1e-4, reltol = 1e-2) 
+p1=plot!(solRosenbrock23,title=&quot;Rosenbrock23&quot;)</code></pre><p>The plots are displayed below:</p><p><strong>LTI with events using QuantizedSystemSolver.jl</strong></p><p><img src="../../assets/img/plot_sol_nmliqss2_LTI.png" alt="LTI_events plot with nmliqss2"/></p><p><strong>LTI with events using DifferentialEquation.jl</strong></p><p><img src="../../assets/img/plot_solsolRosenbrock23lti.png" alt="LTI_events plot with Rosenbrock23"/></p><p><strong>LTI with events using the analytic solution</strong></p><p><img src="../../assets/img/plot_analysolltibc.png" alt="LTI_events Analytic plot"/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../linearTimeInvariantSystem/">« Linear Time Invariant</a><a class="docs-footer-nextpage" href="../vanderpol/">Van der Pol »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.0 on <span class="colophon-date" title="Saturday 12 July 2025 19:00">Saturday 12 July 2025</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
