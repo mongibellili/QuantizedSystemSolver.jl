@@ -12,7 +12,7 @@ In solving the following system of $n$ ODEs in Eq.(1), classic methods look for 
 \end{equation}
 ```
 
-where $X=[x_1,x_2...,x_n]^T$ is the state vector, $f:\mathbb{R}^n \rightarrow \mathbb{R}^n$ is the derivative function, and $t$ is the independent variable.
+where $X=[x_1,x_2...,x_n]^T$ is the state vector, $f:\mathbb{R}^n \times \mathbb{R}^+  \rightarrow \mathbb{R}^n$ is the derivative function, and $t$ is the independent variable.
 In classic methods, the difference between $t_k$ (the current time) and $t_{k+1}$ (the next time) is called the step size. 
 In QSS, besides the step size, the difference between $x_i(t_k)$ (the current value) and $x_i(t_{k+1})$ (the next value) is called the quantum $\Delta_i$.
 Depending on the type of the QSS method (explicit or implicit), a new variable $q_i$ is set to equal $x_i(t_k)$  or $x_i(t_{k+1})$ respectively. 

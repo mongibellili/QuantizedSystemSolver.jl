@@ -20,13 +20,33 @@ savefig(p1, "dosing---")
 ```
 
 
-The same problem is handled using QuantizedSystemSolver. First, the differential equation is defined. Then we have two conditions t == 4 && u[1] < 4 that can be replaced by using another discrete variable p (flag) that is changed when t==4. This change triggers the check of  u[1] < 4.
+The same problem is handled using QuantizedSystemSolver. First, the differential equation is defined. Then we have two conditions t == 4 && u[1] < 4 .
+
+```julia
+using Plots
+function dosing(du,u,p,t) 
+  du[1] =-u[1]
+  if t==4.0 && u[1]<4.0
+      u[1]=u[1]+10.0
+  end
+end 
+u0 = [10.0]
+tspan=(0.0,10.0)
+odeprob = ODEProblem(dosing,u0,tspan)
+sol=solve(odeprob,liqss2(),abstol=1e-3,reltol=1e-2)
+p1=plot(sol);
+savefig(p1, "dosing---")
+```
+
+![dosingPharma](../assets/img/dosingPharma.png)
+
+The 2 conditions can be replaced by using another discrete variable p (flag) that is changed when t==4. This change triggers the check of  u[1] < 4.
 
 ```julia
 using QuantizedSystemSolver
 function dosing(du,u,p,t) 
   du[1] =-u[1]
-  if t-4.0>0.0
+  if t>4.0
       p[1]=0.0
   end
   if p[1]+(4.0-u[1])>0.0
@@ -34,16 +54,8 @@ function dosing(du,u,p,t)
       p[1]=-1e5
   end
 end 
-u0 = [10.0]
-p=[-1e5]
-tspan=(0.0,10.0)
-odeprob = ODEProblem(dosing,u0,tspan,p)
-sol=solve(odeprob,liqss2(),abstol=1e-3,reltol=1e-2)
-p1=plot(sol);
-savefig(p1, "dosing---")
 ```
 
-![dosingPharma](../assets/img/dosingPharma.png)
 
 
 ## Benchmarks

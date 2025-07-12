@@ -6,7 +6,7 @@ The API was designed to match the differentialEquations.jl interace. The only di
 ```julia
 function func(du,u,p,t) 
   #parameters
-  #helper expressions
+  #helper expressions or functions
   #differential equations
   #if-statments for events 
 end
@@ -19,13 +19,11 @@ u = [u1_0,u2_0...]
 p = [p1_0,p2_0...]
 odeprob=ODEProblem(func,u,tspan,p)
 ```
-
-The output of the previous function, which is a QSS problem, is passed to a solver function with other configuration arguments
-such as the algorithm type and the tolerance. The solve
-function dispatches on the given algorithm and start the numerical
-integration.
+This function accepts also the chosen jacobian representation mode (jac_mode= :approximate or jac_mode= :symbolic (default mode). The latter is more accurate but it is currently not recommended when helper functions are used along the model function).
+The output of the previous function, which is a QSS problem, is passed to a solver function with other configuration arguments (tolerance, cycle detection mechanism, verbose....). The solve
+function dispatches on the given algorithm and start the numerical integration. See existing cyclde detection mechanisms in the [Cycle Detection](@ref) section.
 ```julia
-sol= solve(odeprob,algorithm,abstol=...,reltol=...)    
+sol= solve(odeprob,algorithm,abstol=...,reltol=...,detection=Detection(N))    
 ```
 A the end, a solution object is produced that can be queried, plotted, and error-analyzed.
 
@@ -65,8 +63,8 @@ Second, we look for the events, which are defined by the switching of the $RS$ a
 
 We get the problem discribed inside the function buck. First, we define any constant parameters, then we rename the continuous variables (u[1] and u[2]) and the discrete variables (p[1],p[2],p[3],p[4]) for convenience. $i_d$ can be plugged in the inductor differential equation or can be defined before it. Next, we put the differential euations and events using ``if-statements``.
 
-To match The interface of differentialEquations.jl, the buck function is passed along the initial conditions and the tspan to the ODEProblem function. the result is an ODE problem that is sent to the solve function.
-
+To match The interface of differentialEquations.jl, the buck function is passed along the initial conditions and the tspan to the ODEProblem function. 
+the result is an ODE problem that is sent to the solve function.
 The buck problem can be solved by the following user code:
 
 ```julia
@@ -75,16 +73,16 @@ function buck(du,u,p,t)
   #Constant parameters
   C = 1e-4; L = 1e-4; R = 10.0;V1 = 24.0; T = 1e-4; DC = 0.5; ROn = 1e-5;ROff = 1e5;
   #Optional rename for convenience
-  RD=p[1];RS=p[2];nextT=p[3];lastT=p[4];il=u[1] ;uc=u[2]
+  RD,RS,nextT,lastT=p;il,uc=u
   #Equations
   id=(il*RS-V1)/(RD+RS) # diode's current
   du[1] =(-id*RD-uc)/L
   du[2]=(il-uc/R)/C
   #Events
-  if t-nextT>0.0
+  if t>nextT
     lastT=nextT;nextT=nextT+T;RS=ROn
   end
-  if t-lastT-DC*T>0.0
+  if t>lastT-DC*T
     RS=ROff
   end
   if id>0
@@ -100,7 +98,7 @@ prob = ODEProblem(buck,u0,tspan,p)
 ```
 
 ### Solve
-The solve function takes the previous problem (prob) with a chosen algorithm (qss1,qss2,liqss1,liqss2,nmliqss1,nmliqss2) and some simulation settings, and it outputs a solution (sol).
+The solve function takes the previous problem (prob) with a chosen algorithm (qss1,qss2,liqss1,liqss2,nmliqss1,nmliqss2) and some simulation settings, and it outputs a solution (sol). 
 
 ```julia
 sol= solve(prob,nmliqss2(),abstol=1e-3,reltol=1e-2)

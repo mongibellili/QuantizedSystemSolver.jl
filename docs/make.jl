@@ -31,7 +31,15 @@ using Documenter
         ],
         "Developer resources" => [
             "developer/devIntro.md",
-            "developer/problem.md",
+            "IR model" => [
+            "developer/normalize_ir.md",
+            "developer/intermediateRepresentation.md"],
+            "problem construction" => [
+                "developer/problem.md",
+                "developer/problemFunction.md",
+                "developer/problem_references.md",
+            ],
+            
             "developer/algorithm.md",
             "developer/solve.md",
             "developer/integrator.md",

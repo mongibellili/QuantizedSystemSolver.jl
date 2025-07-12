@@ -41,12 +41,16 @@ See [the Julia CONTRIBUTING.md](https://github.com/JuliaLang/julia/blob/master/C
 While the package is optimized to be fast, extensibility is not compromised. It is divided into 3 entities that can be extended separately: Problem, Algorithm, and Solution. The package uses other packages such as MacroTools.jl for user-code parsing, SymEngine.jl for Jacobian computation, and a modified TaylorSeries.jl that uses caching to obtain free Taylor variables. 
 The other components of the solver include the NLodeProblem function, the solve function, the scheduler, and the quantizer. The following sections provide an in-depth explanation of the key components and their interactions within the solver framework.
 
-![The QSS Solver Structure.](../assets/img/diagram.png)
+![The QSS Solver Structure.](../assets/img/class_diag_final.png)
 
+
+### Create Problem IR
+
+![The IR creation Structure.](../assets/img/ModelIR.png)
 
 ### Create Problem structure
 
-![The problem creation Structure.](../assets/img/Probdiagram.png)
+![The problem creation Structure.](../assets/img/ProblemConstruction.png)
 
 ## Future work
 

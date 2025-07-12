@@ -7,11 +7,11 @@ using QuantizedSystemSolver
 function funcName(du,u,p,t)
     du[1] = p[1]*u[1]+p[2]*u[2]+p[3]
     du[2] = p[4]*u[1]+p[5]*u[2]+p[6]
-    if t-2.5>0.0
+    if t>2.5
         p[1]=-22.0
         p[3]=1000.0
     end
-    if t-5.0>0.0
+    if t>5.0
         p[2]=-20.0
         p[5]=-10.0
         p[6]=-0.5

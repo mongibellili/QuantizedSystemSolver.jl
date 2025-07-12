@@ -2,9 +2,9 @@
 
 ## The Quantizer functions
 
-The system handles different quantizer orders (Order 1 and Order 2...). It
-defines methods for state integration, derivative computation, event
-time computation, updating quantized values, and cycle detection
+The system handles different quantizer orders (Order 1 and Order 2...). The quantizer functions
+define state integration, derivative computation, event
+time computation, quantized values updates, and cycle detection
 updates.
 
 
@@ -90,19 +90,24 @@ infinity, indicating no event should occur. For cases where the old and
 new values have the same sign, it calculates the minimum positive root
 of the zero-crossing function, representing the time of the next event,
 ensuring that this time is not too close to zero to avoid spurious
-events. The function then updates the old sign values for future
+events. The function then updates the old sign values for future5
 comparisons.
+
+
+**updateQ:** This methods updates the quantized variables during single updates
+
+**isCycle_simulUpdate:** This methods checks the presence of cycles and conducts a simultaneous update. The method picks a detection mechanism among several mechanisms based on a user parameter passed along the pipeline (Val{M}).
 
 ## Quantizer references
 
 ```@docs
-QuantizedSystemSolver.integrateState(::Val{0}, x::Taylor0, elapsed::Float64)
+QuantizedSystemSolver.integrateState(::Val{0}, x::Taylor0,elapsed::Float64)
 ```
 ```@docs
-QuantizedSystemSolver.integrateState(::Val{1}, x::Taylor0, elapsed::Float64)
+QuantizedSystemSolver.integrateState(::Val{1}, x::Taylor0,elapsed::Float64)
 ```
 ```@docs
-QuantizedSystemSolver.integrateState(::Val{2}, x::Taylor0, elapsed::Float64)
+QuantizedSystemSolver.integrateState(::Val{2}, x::Taylor0,elapsed::Float64)
 ```
 
 
@@ -122,7 +127,7 @@ QuantizedSystemSolver.computeNextTime(::Val{2}, i::Int, simt::Float64, nextTime:
 ```
 
 ```@docs
-QuantizedSystemSolver.reComputeNextTime(::Val{1}, index::Int, simt::Float64, nextTime::Vector{Float64}, x::Vector{Taylor0}, q::Vector{Taylor0}, quantum::Vector{Float64})
+QuantizedSystemSolver.reComputeNextTime(::Val{1}, index::Int, simt::Float64, nextTime::Vector{Float64}, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64})
 ```
 
 ```@docs
@@ -130,11 +135,11 @@ QuantizedSystemSolver.reComputeNextTime(::Val{2}, index::Int, simt::Float64, nex
 ```
 
 ```@docs
-QuantizedSystemSolver.computeNextInputTime(::Val{1}, i::Int, simt::Float64, elapsed::Float64, tt::Taylor0, nextInputTime::Vector{Float64}, x::Vector{Taylor0}, quantum::Vector{Float64})
+QuantizedSystemSolver.computeNextInputTime(::Val{1}, i::Int, t::Taylor0,f::F,clF::FF,d::Vector{Float64}, taylorOpsCache::Vector{Taylor0} ,nextInputTime::Vector{Float64}, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64}) where {F,FF}
 ```
 
 ```@docs
-QuantizedSystemSolver.computeNextInputTime(::Val{2}, i::Int, simt::Float64, elapsed::Float64, tt::Taylor0, nextInputTime::Vector{Float64}, x::Vector{Taylor0}, quantum::Vector{Float64})
+QuantizedSystemSolver.computeNextInputTime(::Val{2}, i::Int, t::Taylor0,f::F,clF::FF,d::Vector{Float64}, taylorOpsCache::Vector{Taylor0} ,nextInputTime::Vector{Float64}, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64}) where {F,FF}
 ```
 
 
@@ -143,10 +148,10 @@ QuantizedSystemSolver.computeNextEventTime(::Val{O},j::Int,ZCFun::Taylor0,oldsig
 ```
 
 ```@docs
-QuantizedSystemSolver.updateQ(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{1,Float64}}, qaux::Vector{MVector{1,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64},f::F) where{F} 
+QuantizedSystemSolver.updateQ(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64},a::Float64, dxaux::Vector{MVector{1,Float64}}, qaux::Vector{MVector{1,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64})
 ```
 ```@docs
-QuantizedSystemSolver.updateQInit(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{1,Float64}}, qaux::Vector{MVector{1,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64},f::F) where{F} 
+QuantizedSystemSolver.updateQInit(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64},a::Float64,  dxaux::Vector{MVector{1,Float64}}, qaux::Vector{MVector{1,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64})
 ```
 ```@docs
 QuantizedSystemSolver.Liqss_reComputeNextTime(::Val{1}, i::Int, simt::Float64, nextStateTime::Vector{Float64}, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64})
@@ -154,16 +159,16 @@ QuantizedSystemSolver.Liqss_reComputeNextTime(::Val{1}, i::Int, simt::Float64, n
 
 
 ```@docs
-QuantizedSystemSolver.nmisCycle_and_simulUpdate(aij::Float64, aji::Float64, trackSimul, ::Val{1},::Val{M}, index::Int, j::Int, dirI::Float64, x::Vector{Taylor0}, q::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{1,Float64}}, qaux::Vector{MVector{1,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64,f::F) where {M,F}
+QuantizedSystemSolver.isCycle_simulUpdate(aii::Float64,ajj::Float64,aij::Float64,aji::Float64,trackSimul,::Val{1},::Val{M},i::Int,j::Int,dirI::Float64, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64},dxaux::Vector{MVector{1,Float64}},qaux::Vector{MVector{1,Float64}},tx::Vector{Float64},tq::Vector{Float64},simt::Float64,ft::Float64) where {M}
 ```
 
 
 
 ```@docs
-QuantizedSystemSolver.updateQ(::Val{2}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{2,Float64}}, qaux::Vector{MVector{2,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64},f::F) where{F} 
+QuantizedSystemSolver.updateQ(::Val{2}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64}, a::Float64, dxaux::Vector{MVector{2,Float64}}, qaux::Vector{MVector{2,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64})
 ```
 ```@docs
-QuantizedSystemSolver.updateQInit(::Val{2}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{2,Float64}}, qaux::Vector{MVector{2,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64},f::F) where{F} 
+QuantizedSystemSolver.updateQInit(::Val{2}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64}, a::Float64,dxaux::Vector{MVector{2,Float64}}, qaux::Vector{MVector{2,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64})
 ```
 
 ```@docs
@@ -171,8 +176,35 @@ QuantizedSystemSolver.Liqss_reComputeNextTime(::Val{2}, i::Int, simt::Float64, n
 ```
 
 ```@docs
-QuantizedSystemSolver.nmisCycle_and_simulUpdate(aij::Float64, aji::Float64, trackSimul, ::Val{2},::Val{M}, index::Int, j::Int, dirI::Float64, x::Vector{Taylor0}, q::Vector{Taylor0}, quantum::Vector{Float64}, exactA::Function, d::Vector{Float64}, cacheA::MVector{1,Float64}, dxaux::Vector{MVector{2,Float64}}, qaux::Vector{MVector{2,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64,f::F) where {M,F}
+QuantizedSystemSolver.isCycle_simulUpdate(aii::Float64,ajj::Float64,aij::Float64,aji::Float64,trackSimul,::Val{2},::Val{M},index::Int,j::Int,dirI::Float64, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64},dxaux::Vector{MVector{2,Float64}},qaux::Vector{MVector{2,Float64}},tx::Vector{Float64},tq::Vector{Float64},simt::Float64,ft::Float64) where {M}
 ``` 
+
+### Cycle Detection
+
+```@docs
+QuantizedSystemSolver.detect1(::Val{1}, ẋi, dxP, dxi, ẋj, dxj)
+``` 
+```@docs
+QuantizedSystemSolver.detect1(::Val{2}, ẋi, dxP, dxi, ẋj, dxj)
+```
+```@docs
+QuantizedSystemSolver.detect1(::Val{3}, ẋi, dxP, dxi, ẋj, dxj)
+```
+```@docs
+QuantizedSystemSolver.detect1(::Val{4}, ẋi, dxP, dxi, ẋj, dxj)
+```
+```@docs
+QuantizedSystemSolver.detect2(::Val{1},xi1,dxi,dxithrow,xi2,ddxi,ddxithrow,βidir,βidth,xj1,dxj,xj2,ddxj,dqjplus,recentjDir,dirI)
+```
+```@docs
+QuantizedSystemSolver.detect2(::Val{2},xi1,dxi,dxithrow,xi2,ddxi,ddxithrow,βidir,βidth,xj1,dxj,xj2,ddxj,dqjplus,recentjDir,dirI)
+```
+```@docs
+QuantizedSystemSolver.detect2(::Val{3},xi1,dxi,dxithrow,xi2,ddxi,ddxithrow,βidir,βidth,xj1,dxj,xj2,ddxj,dqjplus,recentjDir,dirI)
+```
+```@docs
+QuantizedSystemSolver.detect2(::Val{4},xi1,dxi,dxithrow,xi2,ddxi,ddxithrow,βidir,βidth,xj1,dxj,xj2,ddxj,dqjplus,recentjDir,dirI)
+```
 
 ## Index
 

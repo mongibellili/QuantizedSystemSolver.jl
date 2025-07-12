@@ -34,7 +34,7 @@ An implemented concrete solution type is:
 QuantizedSystemSolver.LightSol{T,O}
 ```
 ```@docs
-QuantizedSystemSolver.createSol(::Val{T}, ::Val{O}, savedTimes::Vector{Vector{Float64}}, savedVars::Vector{Vector{Float64}}, solver::String, nameof_F::String, absQ::Float64, stats::Stats, ft::Float64) where {T,O}
+QuantizedSystemSolver.createSol(::Val{T},::Val{O}, savedTimes:: Vector{Vector{Float64}},savedVars :: Vector{Vector{Float64}},solver::String,nameof_F::String,absQ::Float64,stats::Stats,ft::Float64) where {T,O}
 ```
 
 

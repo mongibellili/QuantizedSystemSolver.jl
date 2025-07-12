@@ -1,32 +1,10 @@
- # user does not provide solver. default mliqss2 is used
-function solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},tspan::Tuple{Float64, Float64};detection::Val{M}=Val(3),saveat=Inf::Float64,abstol=1e-4::Float64,reltol=1e-4::Float64,maxErr=1.0::Float64,maxiters=Int(1e7)::Int,verbose=false::Bool) where {F,PRTYPE,T,D,Z,CS,M}    
-   solve(prob,QSSAlgorithm(Val(:nmliqss),Val(2)),tspan;detection=detection,saveat=saveat,abstol=abstol,reltol=reltol,maxErr=maxErr,maxiters=maxiters,verbose=verbose)  
-end
 """
-    solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};detection::Val{M}=Val(3),saveat=Inf::Float64,abstol=1e-4::Float64,reltol=1e-3::Float64,maxErr=1.0::Float64,maxiters=Int(1e7)::Int) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,M}     
+    solve(prob::ODEProblemData{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType};detection::Val{M}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose=false::Bool) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,M}
 
-dispatches on a specific integrator based on the algorithm provided and send a nonlinear ODE problem to the integrator.
-
-With the exception of the argument prob and tspan, all other arguments are optional and have default values:\n
-  - The algorithm defaults to nmliqss2, and it is specified by the QSSAlgorithm type, which is a composite type that has a name and an order. It can be extended independently of the solver.
-  - The detection argument defaults to 1.
-  - The saveat argument defaults to Inf. It specifies the time step at which the integrator will save the solution (not implemented).
-  - The abstol argument defaults to 1e-4. It specifies the absolute tolerance of the integrator.
-  - The reltol argument defaults to 1e-3. It specifies the relative tolerance of the integrator.
-  - The maxErr argument defaults to Inf. It specifies the maximum error allowed by the integrator. This is used as an upper bound for the quantum when a variable goes large.
-  - The maxiters argument defaults to 1e7. It specifies the maximum number of steps allowed by the integrator. If the user wants to extend the limit on the maximum number of steps, this argument can be used. 
-After the simulation, the solution is returned as a Solution object.
-"""
-function solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};detection::Val{M}=Val(3),saveat=Inf::Float64,abstol=1e-4::Float64,reltol=1e-3::Float64,maxErr=1.0::Float64,maxiters=Int(1e7)::Int,verbose=false::Bool) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,M}    
-   custom_Solve(prob,al,Val(M),tspan[2],saveat,tspan[1],abstol,reltol,maxErr,maxiters,verbose)
-end
-"""
-    solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType};detection::Val{M}=Val(3),saveat=Inf::Float64,abstol=1e-4::Float64,reltol=1e-3::Float64,maxErr=1.0::Float64,maxiters=Int(1e7)::Int,verbose=false::Bool) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,M}
-
-dispatches on a specific integrator based on the algorithm provided and send a nonlinear ODE problem to the integrator.
+dispatches on a specific integrator based on the algorithm provided and sends a nonlinear ODE problem to the integrator. With the exception of the argument prob, all other arguments are optional and have default values:
 
 # Arguments
-- `prob::NLODEProblem{F,PRTYPE,T,D,Z,CS}`: The nonlinear ODE problem to solve.
+- `prob::ODEProblemData{F,PRTYPE,T,D,Z,CS}`: The nonlinear ODE problem to solve.
 - `al::QSSAlgorithm{SolverType, OrderType}`: The QSS algorithm to use for solving the problem.
 - `detection::Val{M}`: A type parameter indicating which detection mechanism to use.
 - `saveat::Float64`: The time interval at which to save the solution (default: `Inf`).
@@ -35,25 +13,39 @@ dispatches on a specific integrator based on the algorithm provided and send a n
 - `maxErr::Float64`: The maximum allowable error (default: `Inf`).
 - `maxiters::Int`: The maximum number of iterations (default: `Int(1e7)`).
 
+After the simulation, the solution is returned as a Solution object.
+"""
+function solve(prob::ODEProblemData{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType};detection::Val{M}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose=false::Bool) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,M}    
+   tspan=prob.tspan  # tspan separated before custom_solve to allow user to enter tspan with solve (not with prob)
+   custom_Solve(prob,al,Val(M),tspan[2],saveat,tspan[1],abstol,reltol,maxErr,maxiters,verbose)
+end
 
 """
-function solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType};detection::Val{M}=Val(3),saveat=Inf::Float64,abstol=1e-4::Float64,reltol=1e-3::Float64,maxErr=1.0::Float64,maxiters=Int(1e7)::Int,verbose=false::Bool) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,M}    
-   tspan=prob.tspan
-    custom_Solve(prob,al,Val(M),tspan[2],saveat,tspan[1],abstol,reltol,maxErr,maxiters,verbose)
- end
+    solve(prob::ODEProblemData{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};detection::Val{M}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose=false::Bool) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,M}     
 
- function solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS};detection::Val{M}=Val(3),saveat=Inf::Float64,abstol=1e-4::Float64,reltol=1e-3::Float64,maxErr=1.0::Float64,maxiters=Int(1e7)::Int) where{F,PRTYPE,T,D,Z,CS,M}    
-    solve(prob,QSSAlgorithm(Val(:nmliqss),Val(2));detection=detection,saveat=saveat,abstol=abstol,reltol=reltol,maxErr=maxErr,maxiters=maxiters) 
-  end
-#default solve method: ...extension or modification is done through creating another custom_solve with different PRTYPE
+same as the previous solve method, but with a specified time span. This method is useful when the user wants to specify the time span separately from the problem definition.
+"""
+function solve(prob::ODEProblemData{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};detection::Val{M}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose=false::Bool) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,M}    
+   custom_Solve(prob,al,Val(M),tspan[2],saveat,tspan[1],abstol,reltol,maxErr,maxiters,verbose)
+end
+
+ # user does not provide solver. default mliqss2 is used. tspan provided in solve
+function solve(prob::ODEProblemData{F,PRTYPE,T,D,Z,CS},tspan::Tuple{Float64, Float64};detection::Val{M}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose::Bool=false) where {F,PRTYPE,T,D,Z,CS,M}    
+   solve(prob,QSSAlgorithm(Val(:nmliqss),Val(2)),tspan;detection=detection,saveat=saveat,abstol=abstol,reltol=reltol,maxErr=maxErr,maxiters=maxiters,verbose=verbose)  
+end
+# user does not provide solver. default mliqss2 is used. tspan provided in prob
+function solve(prob::ODEProblemData{F,PRTYPE,T,D,Z,CS};detection::Val{M}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,maxErr::Float64=1.0,maxiters::Int=Int(1e7)) where{F,PRTYPE,T,D,Z,CS,M}    
+   solve(prob,QSSAlgorithm(Val(:nmliqss),Val(2));detection=detection,saveat=saveat,abstol=abstol,reltol=reltol,maxErr=maxErr,maxiters=maxiters) 
+end
+
 
 """
-    custom_Solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{Solver, Order},::Val{M},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxiters::Int,verbose::Bool) where{F,PRTYPE,T,D,Z,CS,Solver,Order,M}
+    custom_Solve(prob::ODEProblemData{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{Solver, Order},::Val{M},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxiters::Int,verbose::Bool) where{F,PRTYPE,T,D,Z,CS,Solver,Order,M}
 
-calls the integrator to solve the nonlinear ODE problem.
+default solve method: calls the integrator to solve the nonlinear ODE problem.
 
 # Arguments
-- `prob::NLODEProblem{F,PRTYPE,T,D,Z,CS}`: The nonlinear ODE problem to solve.
+- `prob::ODEProblemData{F,PRTYPE,T,D,Z,CS}`: The nonlinear ODE problem to solve.
 - `al::QSSAlgorithm{Solver, Order}`: The QSS algorithm to use for solving the problem.
 - `::Val{M}`: A type parameter indicating which detection mechanism to use.
 - `finalTime::Float64`: The final time for the simulation.
@@ -65,16 +57,19 @@ calls the integrator to solve the nonlinear ODE problem.
 - `maxiters::Int`: The maximum number of iterations.
 
 """
-function custom_Solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{Solver, Order},::Val{M},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxiters::Int,verbose::Bool) where{F,PRTYPE,T,D,Z,CS,Solver,Order,M}
-    if saveat!=Inf error("saveat is not implemented") end
+function custom_Solve(prob::ODEProblemData{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{Solver, Order},::Val{M},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxiters::Int,verbose::Bool) where{F,PRTYPE,T,D,Z,CS,Solver,Order,M}
+    if Order==1 && abstol<=1e-4 && reltol<=1e-3
+        @warn("The provided tolerance values are not suitable for the first order algorithm. Consider using (1e-3;1e-3) or higher.")
+    end
+    if saveat!=Inf error("saveat is not implemented yet") end
      commonQSSdata=createCommonData(prob,Val(Order),finalTime,saveat, initialTime,abstol,reltol,maxErr,maxiters,verbose)
      jac=getClosure(prob.jac)::Function #if in future jac and SD are different datastructures
      SD=getClosure(prob.SD)::Function
     if Solver==:qss
-        integrate(al,commonQSSdata,prob,prob.eqs,jac,SD)
+        integrate(al,commonQSSdata,prob,prob.eqs,jac,SD) 
     else
-          liqssdata=createLiqssData(Val(M),Val(T),Val(Order))
-           integrate(al,commonQSSdata,liqssdata,prob,prob.eqs,jac,SD,prob.exactJac)
+          liqssdata=createLiqssData(Val(PRTYPE),Val(M),Val(T),Val(Order))
+          integrate(al,commonQSSdata,liqssdata,prob,prob.eqs,jac,SD,prob.exactJac)  
     end
  end
  function getClosure(jacSD::Vector{Vector{Int}})::Function
@@ -86,12 +81,12 @@ function custom_Solve(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{Sol
 #helper methods...extension can be done through creating others via specializing on one PRTYPE or more of the symbols (PRTYPE,T,D,Z,Order) 
 #################################################################################################################################################################################
 """
-    createCommonData(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},::Val{Order},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxiters::Int,verbose::Bool) where{F,PRTYPE,T,D,Z,CS,Order}
+    createCommonData(prob::ODEProblemData{F,PRTYPE,T,D,Z,CS},::Val{Order},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxiters::Int,verbose::Bool) where{F,PRTYPE,T,D,Z,CS,Order}
 
 creates the necessary data for the simulation and stores it in a CommonQSS_Data struct.
 
 # Arguments
-- `prob::NLODEProblem{F,PRTYPE,T,D,Z,CS}`: The nonlinear ODE problem to solve.
+- `prob::ODEProblemData{F,PRTYPE,T,D,Z,CS}`: The nonlinear ODE problem to solve.
 - `::Val{Order}`: The order of the algorithm.
 - `finalTime::Float64`: The final time for the simulation.
 - `saveat::Float64`: The time interval at which to save the solution.
@@ -104,7 +99,7 @@ creates the necessary data for the simulation and stores it in a CommonQSS_Data 
 # Returns
 - A data structure containing common data required for the QSS algorithm.
 """
-function createCommonData(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},::Val{Order},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxiters::Int,verbose::Bool) where{F,PRTYPE,T,D,Z,CS,Order}
+function createCommonData(prob::ODEProblemData{F,PRTYPE,T,D,Z,CS},::Val{Order},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxiters::Int,verbose::Bool) where{F,PRTYPE,T,D,Z,CS,Order}
     quantum =  zeros(T)
     x = Vector{Taylor0}(undef, T)
     q = Vector{Taylor0}(undef, T)
@@ -133,10 +128,6 @@ function createCommonData(prob::NLODEProblem{F,PRTYPE,T,D,Z,CS},::Val{Order},fin
         savedTimes[i]=Vector{Float64}()
         savedVars[i]=Vector{Float64}()
     end
- #=    taylorOpsCache=Array{Taylor0,1}()# cache= vector of taylor0s of size CS
-    for i=1:CS
-    push!(taylorOpsCache,Taylor0(zeros(Order+1),Order))
-    end =#
     taylorOpsCache = Vector{Taylor0}(undef, CS)
     for i in 1:CS
         taylorOpsCache[i] = Taylor0(zeros(Order + 1), Order)
@@ -146,7 +137,7 @@ end
 
 
 """
-    createLiqssData(::Val{M},::Val{T},::Val{Order}) where {T,Order}
+    createLiqssData(::Val{:symbolic},::Val{M},::Val{T},::Val{Order}) where{T,Order,M}
 
 Creates LIQSS-specific data required for solving an ODE problem.
 
@@ -159,7 +150,7 @@ Creates LIQSS-specific data required for solving an ODE problem.
 - A data structure containing LIQSS-specific data required for liQSS algorithms.
 
 """
-function createLiqssData(::Val{M},::Val{T},::Val{Order}) where {M,T,Order}
+function createLiqssData(::Val{:symbolic},::Val{M},::Val{T},::Val{Order}) where{T,Order,M}
     qaux = Vector{MVector{Order,Float64}}(undef, T)
     dxaux=Vector{MVector{Order,Float64}}(undef, T)
      for i=1:T
@@ -167,9 +158,25 @@ function createLiqssData(::Val{M},::Val{T},::Val{Order}) where {M,T,Order}
         dxaux[i]=zeros(MVector{Order,Float64})
     end
     cacheA=zeros(MVector{1,Float64})
-    liqssdata= LiQSS_Data(Val(M),cacheA,qaux,dxaux)
+    liqssdata= AexprLiQSS_data(Val(M),1,cacheA,qaux,dxaux,1)    
 end
+
+function createLiqssData(::Val{:approximate},::Val{M},::Val{T},::Val{Order})where{T,Order,M}
+    a = Vector{Vector{Float64}}(undef, T)
+    qaux = Vector{MVector{Order,Float64}}(undef, T)
+    dxaux=Vector{MVector{Order,Float64}}(undef, T)
+    olddx = Vector{MVector{1,Float64}}(undef, T)
+     for i=1:T
+        a[i]=zeros(T)
+        qaux[i]=zeros(MVector{Order,Float64})
+        dxaux[i]=zeros(MVector{Order,Float64})
+        olddx[i]=zeros(MVector{1,Float64}) 
+    end
+    liqssdata= AmanualLiQSS_data(Val(M),a,1,qaux,dxaux,olddx) 
+end
+
+
 
 function Detection(detectNumber::Int)
     return Val(detectNumber)
-end
+end 
