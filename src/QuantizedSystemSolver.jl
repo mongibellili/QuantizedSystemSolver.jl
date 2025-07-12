@@ -30,7 +30,7 @@ module QuantizedSystemSolver
   include("qssAbstractTypes.jl")
                                           ############ problem generator ############
   ##### SimpleModelIR                                        
-  include("problem_generator/SimpleModelIR/SimpleModelIR.jl")
+  include("problem_generator/simpleModelIR/SimpleModelIR.jl")
   using .SimpleModelIR
   #####  Taylor series  #########
   include("problem_generator/taylor/constructors.jl") 
