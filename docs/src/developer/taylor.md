@@ -1,7 +1,7 @@
 # Taylor Variables
 
 ## Purpose
-QSS methods rely heavily on root finding and derivative computation. The approximation through Taylor variables transforms any complicated equations to polynomials, which makes root finding cheaper. In addition, the use of Taylor variables provide easily the different derivatives for complex expressions. The implementation includes various constructors and methods to manipulate and evaluate the Taylor series.
+QSS methods rely heavily on root finding and derivative computation. The approximation through Taylor variables transforms any complicated equations to polynomials, which makes root finding cheaper. In addition, the use of Taylor variables provide easily the different derivatives for complex expressions. The implementation includes various constructors and methods to manipulate and evaluate the Taylor series. in the [qss solver in c language](https://github.com/CIFASIS/qss-solver/blob/qss-solver-dev/src/engine/qss/qss_frw_imp.c), the developers increase time by dt and find f(simt+dt) again then the second derivative =(f(simt+dt)-f(simt))/dt.
 
 In the quantized system solver, and similar to the Taylor struct from the package TaylorSeries.jl, the Taylor0 struct serves as a convenient representation of Taylor series approximations while avoiding memory allocation. 
 

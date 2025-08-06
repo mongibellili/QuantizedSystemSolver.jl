@@ -56,12 +56,16 @@ newEx=QuantizedSystemSolver.transformF(ex);
 
 ```
 """
-function transformF(ex::Expr)
+ function transformF(ex::Expr)
     tracker = Ref(0)  # For cache index tracking
 
     prewalk(ex) do x
-        if x isa Expr && x.head == :ref 
-          return x
+        if x isa Expr && x.head == :call && x.args[1] isa Symbol # do not transform herlper functions (not base functions)
+            sym=x.args[1]
+            if !(sym in (:+, :-, :*, :/, :^, :%, :&, :|, :!, :(=),:(==), :!=, :<, :>, :<=, :>=)) && !(isdefined(Base, sym) && getfield(Base, sym) isa Function)
+               # @show sym
+                return x
+            end
         end
         if is_binary(x, :-)
             a, b = x.args[2], x.args[3]
@@ -128,3 +132,99 @@ function transformF(ex::Expr)
     ex.args[2] = tracker[]  # total cache count
     return ex
 end
+
+#= function transform_expr!(x, tracker::Base.RefValue{Int})
+    if is_binary(x, :-)
+        a, b = x.args[2], x.args[3]
+        if is_binary(a, :-)
+            x.args = [:subsub, a.args[2], a.args[3], b, next_cache!(tracker)]
+        elseif is_binary(a, :+)
+            x.args = [:addsub, a.args[2], a.args[3], b, next_cache!(tracker)]
+        elseif is_binary(a, :*)
+            x.args = [:mulsub, a.args[2], a.args[3], b, next_cache!(tracker)]
+        else
+            x.args = [:subT, a, b, next_cache!(tracker)]
+        end
+
+    elseif is_unary(x, :-)
+        x.args = [:negateT, x.args[2], next_cache!(tracker)]
+
+    elseif is_binary(x, :+)
+        a, b = x.args[2], x.args[3]
+        if is_binary(a, :-)
+            x.args = [:subadd, a.args[2], a.args[3], b, next_cache!(tracker)]
+        elseif is_binary(a, :*)
+            x.args = [:muladdT, a.args[2], a.args[3], b, next_cache!(tracker)]
+        else
+            x.args = [:addT, a, b, next_cache!(tracker)]
+        end
+
+    elseif x isa Expr && x.head == :call && x.args[1] == :+ && 4 ≤ length(x.args) ≤ 9
+        x.args[1] = :addT
+        push!(x.args, next_cache!(tracker))
+
+    elseif is_binary(x, :*)
+        x.args[1] = :mulT
+        push!(x.args, next_cache!(tracker))
+
+    elseif x isa Expr && x.head == :call && x.args[1] == :* && 4 ≤ length(x.args) ≤ 7
+        x.args[1] = :mulTT
+        push!(x.args, next_cache!(tracker))
+        push!(x.args, next_cache!(tracker))
+
+    elseif is_binary(x, :/)
+        x.args[1] = :divT
+        push!(x.args, next_cache!(tracker))
+
+    elseif x isa Expr && x.head == :call && x.args[1] in (:exp, :log, :sqrt, :abs, :atan2)
+        push!(x.args, next_cache!(tracker))
+
+    elseif x isa Expr && x.head == :call && x.args[1] == :^
+        x.args[1] = :powerT
+        push!(x.args, next_cache!(tracker))
+
+    elseif x isa Expr && x.head == :call && x.args[1] in (:cos, :sin, :tan, :atan)
+        push!(x.args, next_cache!(tracker))
+        push!(x.args, next_cache!(tracker))
+
+    elseif x isa Expr && x.head == :call && x.args[1] in (:acos, :asin)
+        push!(x.args, next_cache!(tracker))
+        push!(x.args, next_cache!(tracker))
+        push!(x.args, next_cache!(tracker))
+    end
+
+    return x
+end
+
+function transformF(ex::Expr)
+    tracker = Ref(0)
+
+    # Walk only the first argument of the expression
+    ex.args[1] = walk_expr(ex.args[1], false, tracker)
+
+    # Store final cache count in the second argument
+    ex.args[2] = tracker[]
+
+    return ex
+end
+
+
+function walk_expr(x, inside_helper::Bool,tracker::Base.RefValue{Int})
+    if x isa Expr && x.head == :call
+        fname = x.args[1]
+
+        is_helper = fname isa Symbol &&
+            !(fname in (:+, :-, :*, :/, :^, :%, :&, :|, :!, :(=), :(==), :!=, :<, :>, :<=, :>=)) &&
+            !(isdefined(Base, fname) && getfield(Base, fname) isa Function)
+
+        # Recurse with helper context if needed
+        new_args = map(arg -> walk_expr(arg, inside_helper || is_helper, tracker), x.args)
+        x = Expr(x.head, new_args...)
+    elseif x isa Expr
+        x = Expr(x.head, map(arg -> walk_expr(arg, inside_helper, tracker), x.args)...)
+    end
+
+    # Apply transformation only if NOT inside a helper call
+    return (!inside_helper && x isa Expr) ? transform_expr!(x, tracker) : x
+end
+ =#

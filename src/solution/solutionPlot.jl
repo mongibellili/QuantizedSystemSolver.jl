@@ -104,13 +104,13 @@ function plot_SolSum(sol::Sol{T,O},xvars::Int...;interp=0.0001,note=" "::String,
     println("pick idxs to plot their sum")
   end
   if xlims!=(0.0,0.0) && ylims!=(0.0,0.0) 
-    p1=plot!(p1,title="$(sol.sysName)_$(sol.algName)_$(sol.absQ)_$(sol.stats.totalSteps)_$(sol.stats.simulStepCount)_$(sol.stats.evCount) \n $note", xlims=xlims ,ylims=ylims,legend=legend)
+    p1=plot!(p1,title="$(sol.sysName)_$(sol.algName)_$(sol.absQ)_$(sol.stats.totalSteps)_$(sol.stats.simulSteps)_$(sol.stats.eventSteps) \n $note", xlims=xlims ,ylims=ylims,legend=legend)
   elseif xlims!=(0.0,0.0) && ylims==(0.0,0.0) 
-    p1=plot!(p1,title="$(sol.sysName)_$(sol.algName)_$(sol.absQ)_$(sol.stats.totalSteps)_$(sol.stats.simulStepCount)_$(sol.stats.evCount) \n $note", xlims=xlims #= ,ylims=ylims =#,legend=legend)
+    p1=plot!(p1,title="$(sol.sysName)_$(sol.algName)_$(sol.absQ)_$(sol.stats.totalSteps)_$(sol.stats.simulSteps)_$(sol.stats.eventSteps) \n $note", xlims=xlims #= ,ylims=ylims =#,legend=legend)
   elseif xlims==(0.0,0.0) && ylims!=(0.0,0.0) 
-    p1=plot!(p1,title="$(sol.sysName)_$(sol.algName)_$(sol.absQ)_$(sol.stats.totalSteps)_$(sol.stats.simulStepCount)_$(sol.stats.evCount) \n $note"#= , xlims=xlims  =#,ylims=ylims,legend=legend)
+    p1=plot!(p1,title="$(sol.sysName)_$(sol.algName)_$(sol.absQ)_$(sol.stats.totalSteps)_$(sol.stats.simulSteps)_$(sol.stats.eventSteps) \n $note"#= , xlims=xlims  =#,ylims=ylims,legend=legend)
   else
-    p1=plot!(p1, title="$(sol.sysName)_$(sol.algName)_$(sol.absQ)_$(sol.stats.totalSteps)_$(sol.stats.simulStepCount)_$(sol.stats.evCount) \n $note",legend=legend)
+    p1=plot!(p1, title="$(sol.sysName)_$(sol.algName)_$(sol.absQ)_$(sol.stats.totalSteps)_$(sol.stats.simulSteps)_$(sol.stats.eventSteps) \n $note",legend=legend)
   end
   p1
 end

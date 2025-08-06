@@ -1,13 +1,8 @@
 module SimpleModelIR
-
 using MacroTools: postwalk 
-
-
 include("types.jl")
 include("build_ir.jl")
 include("normalize_ir.jl")
-
-
 export
     AbstractODEStatement,
     AssignStatement,

@@ -3,16 +3,18 @@
 
 A struct that holds the statistics of a simulation. It has the following fields:
   - `totalSteps::Int`: The total number of simulation steps.
-  - `simulStepCount::Int`: The number of simultaneous steps.
-  - `evCount::Int`: The number of events.
+  - `simulSteps::Int`: The number of simultaneous steps.
+  - `inpuSteps::Int`: The number of input steps.
+  - `eventSteps::Int`: The number of events.
   - `numStateSteps::Vector{Int}`: A vector holding the number of steps for each state update.
   - `numInputSteps::Vector{Int}`: A vector holding the number of steps for each input update.
 """
 struct Stats
   totalSteps::Int
-  simulStepCount::Int
-  inpuStepCount::Int
-  evCount::Int
+  simulSteps::Int
+  inpuSteps::Int
+  eventSteps::Int
+  rejectedEvents::Int
   numStateSteps ::Vector{Int}
   numInputSteps ::Vector{Int}
 end
@@ -213,9 +215,10 @@ Displays the statistics of the simulation.
 function show(io::IO, a::Stats)
   println(io,"")
   println(io,"The total simulation steps: $(a.totalSteps)")
-  println(io,"The simultaneous  steps: $(a.simulStepCount)")
-  println(io,"The number of input steps: $(a.inpuStepCount)")
-  println(io,"The number of events: $(a.evCount)") 
+  println(io,"The simultaneous  steps: $(a.simulSteps)")
+  println(io,"The number of input steps: $(a.inpuSteps)")
+  println(io,"The number of events: $(a.eventSteps)") 
+  println(io,"The number of rejected events: $(a.rejectedEvents)")
   println(io,"The number of state steps per Var: $(a.numStateSteps)")
   println(io,"The number of input steps per Var: $(a.numInputSteps)")
 end

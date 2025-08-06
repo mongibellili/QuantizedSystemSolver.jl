@@ -82,7 +82,8 @@ end
 end
 function /(a::Taylor0, b::T) where {T<:Number}
     if b == 0
-        throw(ArgumentError("Division by zero: in $(a) / $(b) under arithmetic.jl"))
+        b=1e-9
+        #throw(ArgumentError("Division by zero: in $(a) / $(b) under arithmetic.jl"))
     end
     @inbounds aux = a.coeffs[1] / b
     v = Array{typeof(aux)}(undef, length(a.coeffs))
@@ -104,10 +105,13 @@ end
     a1nz = a1nz ≥ 0 ? a1nz : a1.order
     b1nz = b1nz ≥ 0 ? b1nz : a1.order
     ordfact = min(a1nz, b1nz)
+    if iszero(b1[ordfact])
+        b1[ordfact] = 1e-9
+    end
     cdivfact = a1[ordfact] / b1[ordfact]
-    iszero(b1[ordfact]) && throw(ArgumentError(
+    #= iszero(b1[ordfact]) && throw(ArgumentError(
         """Division does not define a Taylor0 polynomial;
-        order k=$(ordfact) => coeff[$(ordfact)]=$(cdivfact)."""))
+        order k=$(ordfact) => coeff[$(ordfact)]=$(cdivfact).""")) =#
     return ordfact, cdivfact
 end
 

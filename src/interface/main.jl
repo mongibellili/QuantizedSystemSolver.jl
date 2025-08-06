@@ -17,7 +17,7 @@ Creates an ODE problem with the given function `f`, initial conditions `u`, para
 # Returns
 - An ODE problem.
 """
-function ODEProblem(f::Function, u::Vector{Float64}, tspan::Tuple{A,B}, p::Union{Vector{EM}, Tuple{Vararg{EM}}};jac_mode ::Symbol= :symbolic) where{EM,A<:Union{Float64, Int64},B<:Union{Float64, Int64}}
+function ODEProblem(f::Function, u::Vector{C}, tspan::Tuple{A,B}, p::Union{Vector{EM}, Tuple{Vararg{EM}}};jac_mode ::Symbol= :symbolic) where{EM,A<:Union{Float64, Int64},B<:Union{Float64, Int64},C<:Union{Float64, Int64}}
     bt = stacktrace()
     is_top_level=false
     for i in 2:min(5, length(bt))
@@ -27,34 +27,42 @@ function ODEProblem(f::Function, u::Vector{Float64}, tspan::Tuple{A,B}, p::Union
             end
         end
     end
-    odeestring = @code_string f(u, u, p, tspan)
-    odeex = Meta.parse(odeestring)
-    Base.remove_linenums!(odeex)
-    odeExprs = odeex.args[2] #function body
-    stateVarName = odeex.args[1].args[3] # Symbol(:u) or other
-    discrParamName = odeex.args[1].args[4] # Symbol(:u) or other
-    problemName = odeex.args[1].args[1]
-    probSize = length(u)
-    discSize = length(p) 
-    if EM==Any
-        p=Float64[]#if user enters an empty vector... not force user to enter a type and keep using the type float64
+   odeString=""
+    for m in methods(f).ms
+        if length(m.sig.parameters) == 5   
+            odeString = @code_string f(u, u, p, tspan)
+            break
+        elseif length(m.sig.parameters) == 4
+            odeString = @code_string f(u, u, tspan)
+            break
+        end
+        error("Function $(f) must accept exactly 3 arguments (du, u, t) or 4 arguments (du, u, p, t).") 
     end
-    #ir=build_ir(odeExprs) #build IR
-    #probInfo =normalize_ir(ir, stateVarName, discrParamName) # normalize IR
-    probInfo=problem_to_normalized_ir(odeExprs, stateVarName, discrParamName) # combine build and normalize IR
+    odeex = Meta.parse(odeString)
+    Base.remove_linenums!(odeex)
+    stateVarName = odeex.args[1].args[3] # Symbol(:u) or other
+     if length(odeex.args[1].args)==4
+        discrParamName = odeex.args[1].args[4] # Symbol(:p) or other
+     else
+        discrParamName = :p # if no parameters are given, we create a dummy symbol
+     end
+    problemName = odeex.args[1].args[1]
+    odeBodyExprs = odeex.args[2] #function body
+    probSize = length(u)
+    discParamSize = length(p) # parameters may or may not be discrete.
+ 
+    probInfo=problem_to_normalized_ir(odeBodyExprs, stateVarName, discrParamName) # combine build and normalize IR
     ir= probInfo.ir # get the ir from probInfo
+    #@show ir
     zcSize = probInfo.numZC
     numHelperF=probInfo.helperFunSymSet
-    #symDict = probInfo.symDict
     du = odeex.args[1].args[2] # Symbol(:du)
-    #u = Float64.(u)  # Convert each element to Float64
+    if !(u isa Vector{Float64}) u = Float64.(u) end
     tspan = Float64.(tspan)  # Convert each element in tuple
-    p=Float64.(p)
+
     mod = typeof(f).name.module # Get the module where the function is defined
     preProcessData=PreProcessData(du,tspan,problemName,mod,is_top_level,numHelperF)
-   # @show zcSize
-    #odeProblemFunc(odeExprs, Val(probSize), Val(discSize), Val(zcSize), u,  p,preProcessData,jac_mode) # returns prob
-    odeProblemFunc(ir, Val(probSize), Val(discSize), Val(zcSize), u,  p,preProcessData,jac_mode) # returns prob
+    odeProblemFunc(ir, Val(probSize), Val(discParamSize), Val(zcSize), u,  p,preProcessData,jac_mode) # returns prob
 end
 
 """
@@ -68,7 +76,7 @@ Creates an ODE problem with the given function `f`, initial conditions `u`, and 
 # Returns
 - An ODE problem.
 """
-function ODEProblem(f::Function, u::Vector{Float64}, tspan::Tuple{A,B};jac_mode ::Symbol= :symbolic) where{A<:Union{Float64, Int64},B<:Union{Float64, Int64}}
+function ODEProblem(f::Function, u::Vector{C}, tspan::Tuple{A,B};jac_mode ::Symbol= :symbolic) where{A<:Union{Float64, Int64},B<:Union{Float64, Int64},C<:Union{Float64, Int64}}
     p=Float64[]
     ODEProblem(f, u, tspan, p,;jac_mode =jac_mode)
 end

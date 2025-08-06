@@ -1,4 +1,5 @@
 
+
 """
     minPosRoot(c::Float64,b::Float64, ::Val{1})
 
@@ -17,7 +18,7 @@ function minPosRoot(c::Float64,b::Float64, ::Val{1}) #call from reComputeNextTim
   if mpr < 0
     mpr = Inf
   end
-  # println("mpr inside minPosRoot in utils= ",mpr)
+  # println("mpr inside minPosRoot in utils= ",mpr) 
   return mpr
 end
 
@@ -51,8 +52,12 @@ function minPosRoot(c::Float64,b::Float64,a::Float64,::Val{2}) #called from upda
     if b == 0
       mpr = Inf
     else
-      if  0 <-c / b < 1e7 # neglecting a small 'a' then having a large h would cause an error  'a*h*h' because large
+      if a==0
         mpr = -c / b
+      else
+        if  0 <-c / b < 1e7 # neglecting a small 'a' then having a large h would cause an error  'a*h*h' because large
+          mpr = -c / b
+        end
       end
     end
     if mpr < 0

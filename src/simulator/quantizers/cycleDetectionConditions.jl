@@ -81,7 +81,7 @@ function detect1(::Val{6},ẋi,dxP,dxi,ẋj,dxj)
   return ((abs(dxj)>3*abs(ẋj)||3*abs(dxj)<abs(ẋj)) && dxi*dxP<0.0) ||((abs(dxi)>3*abs(dxP)||3*abs(dxi)<abs(dxP)) && dxj*ẋj<0.0) || ((dxj*ẋj)<0.0 && (dxi*dxP)<0.0)
 end
 #cases to remove: one value null and other very small
-
+#= 
 function detect1(::Val{7},ẋi,dxP,dxi,ẋj,dxj)
   if (dxj*ẋj)<=0.0 && (dxi*ẋi)<=0.0
     if (dxj)==0.0 && abs(ẋj)<1e-6
@@ -167,19 +167,40 @@ end
 function detect1(::Val{12},ẋi,dxP,dxi,ẋj,dxj)
   return (dxj*ẋj)<=0.0 && (dxi*dxP)<=0.0
 end
-
+ =#
 
 
 function detect2(::Val{0},xi1,dxi,dxithrow,xi2,ddxi,ddxithrow,βidir,βidth,xj1,dxj,xj2,ddxj,dqjplus,recentjDir,dirI)
   return false
 end
 
-
-
 """
     detect2(::Val{1},xi1,dxi,dxithrow,xi2,ddxi,ddxithrow,βidir,βidth,xj1,dxj,xj2,ddxj,dqjplus,recentjDir,dirI)
 
-cycle detection in order 2 that uses mechanism type 1. `xi1` and `xi2` are used. changes in the derivatives are checked.
+cycle detection in order 2 that uses mechanism type 1. `dxithrow` and `ddxithrow` are used. changes in the derivatives are checked.
+
+# Returns
+- A boolean indicating whether a cycle is present.
+```julia
+  if (abs(dxj-xj1)>(abs(dxj+xj1)/2) || abs(ddxj-xj2)>(abs(ddxj+xj2)/2))  
+    return (abs(dxi-dxithrow)>(abs(dxi+dxithrow)/2) || abs(ddxi-ddxithrow)>(abs(ddxi+ddxithrow)/2)) 
+  else  
+    return false
+  end
+```
+"""
+function detect2(::Val{1},xi1,dxi,dxithrow,xi2,ddxi,ddxithrow,βidir,βidth,xj1,dxj,xj2,ddxj,dqjplus,recentjDir,dirI)
+  if (abs(dxj-xj1)>(abs(dxj+xj1)/2) || abs(ddxj-xj2)>(abs(ddxj+xj2)/2))  
+    return (abs(dxi-dxithrow)>(abs(dxi+dxithrow)/2) || abs(ddxi-ddxithrow)>(abs(ddxi+ddxithrow)/2)) 
+  else  
+    return false
+  end
+end
+
+"""
+    detect2(::Val{2},xi1,dxi,dxithrow,xi2,ddxi,ddxithrow,βidir,βidth,xj1,dxj,xj2,ddxj,dqjplus,recentjDir,dirI)
+
+cycle detection in order 2 that uses mechanism type 2. `xi1` and `xi2` are used. changes in the derivatives are checked.
 
 # Returns
 - A boolean indicating whether a cycle is present.
@@ -191,35 +212,14 @@ cycle detection in order 2 that uses mechanism type 1. `xi1` and `xi2` are used.
   end
 ```
 """
-function detect2(::Val{1},xi1,dxi,dxithrow,xi2,ddxi,ddxithrow,βidir,βidth,xj1,dxj,xj2,ddxj,dqjplus,recentjDir,dirI)
+function detect2(::Val{2},xi1,dxi,dxithrow,xi2,ddxi,ddxithrow,βidir,βidth,xj1,dxj,xj2,ddxj,dqjplus,recentjDir,dirI)
   if (abs(dxj-xj1)>(abs(dxj+xj1)/2) || abs(ddxj-xj2)>(abs(ddxj+xj2)/2))  
     return (abs(dxi-xi1)>(abs(dxi+xi1)/2) || abs(ddxi-xi2)>(abs(ddxi+xi2)/2))  
   else  
     return false
   end
 end
-"""
-    detect2(::Val{2},xi1,dxi,dxithrow,xi2,ddxi,ddxithrow,βidir,βidth,xj1,dxj,xj2,ddxj,dqjplus,recentjDir,dirI)
 
-cycle detection in order 2 that uses mechanism type 2. `dxithrow` and `ddxithrow` are used. changes in the derivatives are checked.
-
-# Returns
-- A boolean indicating whether a cycle is present.
-```julia
-  if (abs(dxj-xj1)>(abs(dxj+xj1)/2) || abs(ddxj-xj2)>(abs(ddxj+xj2)/2))  
-    return (abs(dxi-dxithrow)>(abs(dxi+dxithrow)/2) || abs(ddxi-ddxithrow)>(abs(ddxi+ddxithrow)/2)) 
-  else  
-    return false
-  end
-```
-"""
-function detect2(::Val{2},xi1,dxi,dxithrow,xi2,ddxi,ddxithrow,βidir,βidth,xj1,dxj,xj2,ddxj,dqjplus,recentjDir,dirI)
-  if (abs(dxj-xj1)>(abs(dxj+xj1)/2) || abs(ddxj-xj2)>(abs(ddxj+xj2)/2))  
-    return (abs(dxi-dxithrow)>(abs(dxi+dxithrow)/2) || abs(ddxi-ddxithrow)>(abs(ddxi+ddxithrow)/2)) 
-  else  
-    return false
-  end
-end
 
 
 """

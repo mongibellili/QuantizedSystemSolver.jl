@@ -86,12 +86,10 @@ QuantizedSystemSolver.createContEqFun(otherCode::Expr,equs::Dict{Union{Int,Expr}
 ```
 
 ```@docs
-QuantizedSystemSolver.extractJacDepNormal(varNum::Int,rhs::Expr,jac :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},exactJacExpr :: Dict{Expr,Union{Float64,Int,Symbol,Expr}},jac_mode ::Symbol,symDict::Dict{Symbol,Expr},dD :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}}) 
+QuantizedSystemSolver.extractJacDep(b::Int,niter::Int,rhs::Expr,jac :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},exactJacExpr :: Dict{Expr,Union{Float64,Int,Symbol,Expr}},jac_mode ::Symbol,symDict::Dict{Symbol,Expr},dD :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}}) 
 ```
 
-```@docs
-QuantizedSystemSolver.extractJacDepLoop(b::Int,niter::Int,rhs::Expr,jac :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},exactJacExpr :: Dict{Expr,Union{Float64,Int,Symbol,Expr}},jac_mode ::Symbol,symDict::Dict{Symbol,Expr},dD :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}}) 
-```
+
 
 ```@docs
 QuantizedSystemSolver.extractZCJacDep(counter::Int,zcf::Expr,zcjac :: Vector{Vector{Int}},SZ ::Dict{Int,Set{Int}},dZ :: Dict{Int,Set{Int}})

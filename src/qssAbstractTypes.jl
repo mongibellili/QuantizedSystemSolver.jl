@@ -1,14 +1,14 @@
 
 """
-    ODEProblemData{F,PRTYPE,T,D,Z,CS}
+    ODEProblemData{F,JACMODE,T,D,Z,CS}
 This is a superclass for all ODE problems. It is parametric on:\n
-  - The problem type PRTYPE.
+  - The problem type JACMODE.
   - The number of continuous variables T
   - The number of discrete events D
   - The number of events (zero crossing functions) Z
   - The cache size CS.
 """
-abstract type ODEProblemData{F,PRTYPE,T,D,Z,CS} end
+abstract type ODEProblemData{F,JACMODE,T,D,Z,CS} end
 
 """
     Algorithm{N,O}

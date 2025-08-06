@@ -17,8 +17,9 @@ function exp(a::Taylor0)
     return c
 end
 function log(a::Taylor0)
-    iszero(constant_term(a)) && throw(DomainError(a,
-        """The 0-th order coefficient must be non-zero in order to expand `log` around 0."""))
+    if iszero(constant_term(a)) 
+         a[0]=1e-9  #throw(DomainError(a, """The 0-th order coefficient must be non-zero in order to expand `log` around 0."""))
+    end
     order = a.order
     aux = log(constant_term(a))
     aa = one(aux) * a
@@ -87,8 +88,9 @@ function atan(a::Taylor0)
     aa = one(aux) * a
     c = Taylor0(aux, order)
     r = Taylor0(one(aux) + a0^2, order)
-    iszero(constant_term(r)) && throw(DomainError(a,
-        """Series expansion of atan(x) diverges at x = ±im."""))
+    if iszero(constant_term(r)) 
+         r[0]=1e-9 #throw(DomainError(a,"""Series expansion of atan(x) diverges at x = ±im."""))
+    end
     for k in eachindex(a)
         atan!(c, aa, r, k)
     end
@@ -125,8 +127,9 @@ function asinh(a::Taylor0)
     aa = one(aux) * a
     c = Taylor0(aux, order)
     r = Taylor0(sqrt(a0^2 + 1), order)
-    iszero(constant_term(r)) && throw(DomainError(a,
-        """Series expansion of asinh(x) diverges at x = ±im."""))
+    if iszero(constant_term(r))
+        r[0] = 1e-9 #throw(DomainError(a,"""Series expansion of asinh(x) diverges at x = ±im."""))
+    end
     for k in eachindex(a)
         asinh!(c, aa, r, k)
     end
@@ -134,8 +137,7 @@ function asinh(a::Taylor0)
 end
 function acosh(a::Taylor0)
     a0 = constant_term(a)
-    a0^2 == one(a0) && throw(DomainError(a,
-        """Series expansion of acosh(x) diverges at x = ±1."""))
+    a0^2 == one(a0) && throw(DomainError(a,"""Series expansion of acosh(x) diverges at x = ±1."""))
     order = a.order
     aux = acosh(a0)
     aa = one(aux) * a
@@ -153,8 +155,9 @@ function atanh(a::Taylor0)
     aa = one(aux) * a
     c = Taylor0(aux, order)
     r = Taylor0(one(aux) - a0^2, order)
-    iszero(constant_term(r)) && throw(DomainError(a,
-        """Series expansion of atanh(x) diverges at x = ±1."""))
+    if iszero(constant_term(r))
+        r[0] = 1e-9 #throw(DomainError(a,"""Series expansion of atanh(x) diverges at x = ±1."""))
+    end
     for k in eachindex(a)
         atanh!(c, aa, r, k)
     end
@@ -165,7 +168,7 @@ end
 
 @inline function exp!(c::Taylor0, a::Taylor0, k::Int)
     if k == 0
-        @inbounds c[0] = exp(constant_term(a))  #this was already computed before!!no need to do anything if k==0
+        @inbounds c[0] = exp(constant_term(a))  #this gets visited only in the first call
         return nothing
     end
     @inbounds c[k] = k * a[k] * c[0]
@@ -392,14 +395,14 @@ end
     return nothing
 end
 function abs(a::Taylor0)
-    if constant_term(a) > 0
+    if constant_term(a) >= 0
         return a
     elseif constant_term(a) < 0
         return -a
-    else 
+    #= else 
         throw(DomainError(a,
             """The 0th order Taylor0 coefficient must be non-zero
-            (abs(x) is not differentiable at x=0)."""))
+            (abs(x) is not differentiable at x=0).""")) =#
     end
 end
 

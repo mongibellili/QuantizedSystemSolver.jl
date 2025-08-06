@@ -89,3 +89,6 @@ u = [1.0, 0.0]
 odeprob=ODEProblem(testExpoInternalDiscrete,u,tspan)
 sol=solve(odeprob,qss2())
 @test 0.07<sol(0.7,idxs=1)<0.1
+
+println("End external function tests.")
+

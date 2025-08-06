@@ -35,7 +35,6 @@ sol=solve(odeprob,liqss1())
 @test 0.6<sol(0.7,idxs=1)<0.8
 @test 0.5<sol(0.7,idxs=2)<0.7
 function acossin(du,u,p,t)
-    u = [1.0, 0.0]
     du[1] = acos(sin(u[2]))
     du[2] = (u[1])
 end 
@@ -47,8 +46,6 @@ sol=solve(odeprob,qss2())
 @test 0.4<sol(0.5,idxs=2)<0.8
 
 function squar(du,u,p,t)
-    name=("sysbN7",)
-    u = [1.0, 0.0]
     du[1] = -(u[2]+t^2)
     du[2] = u[1]
 end

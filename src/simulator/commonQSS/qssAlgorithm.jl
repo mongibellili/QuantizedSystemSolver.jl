@@ -6,7 +6,7 @@ This is the first subclass for QSS algorithms. It is parametric on:\n
   - The order of the algorithm O
 """
 struct QSSAlgorithm{N,O}<:Algorithm{N,O}
-    name::Val{N}
+    name::Val{N}  # we want N to be a symbol, removing Val makes N a type.
     order::Val{O}
 end
 

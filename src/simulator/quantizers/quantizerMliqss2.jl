@@ -7,21 +7,21 @@ This is similar to the [`isCycle_simulUpdate`](@ref) order 1 function.
 function isCycle_simulUpdate(aii::Float64,ajj::Float64,aij::Float64,aji::Float64,trackSimul,::Val{2},::Val{M},index::Int,j::Int,dirI::Float64, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64},dxaux::Vector{MVector{2,Float64}},qaux::Vector{MVector{2,Float64}},tx::Vector{Float64},tq::Vector{Float64},simt::Float64,ft::Float64) where {M}
 
   if isnan(aii)
-    @warn("a is NaN: The Jacobian is not defined at this instant ",simt,". This may be due to  an undefined operation. Consider computing the Jacobian coefficient manually by Explicitly writing jac_mode = :approximate in ODEProblem.")
-    a = 0.0
-end
-if isnan(ajj)
-  @warn("a is NaN: The Jacobian is not defined at this instant ",simt,". This may be due to  an undefined operation. Consider computing the Jacobian coefficient manually by Explicitly writing jac_mode = :approximate in ODEProblem.")
-  a = 0.0
-end
-if isnan(aij)
-  @warn("a is NaN: The Jacobian is not defined at this instant ",simt,". This may be due to  an undefined operation. Consider computing the Jacobian coefficient manually by Explicitly writing jac_mode = :approximate in ODEProblem.")
-  a = 0.0
-end
-if isnan(aji)
-  @warn("a is NaN: The Jacobian is not defined at this instant ",simt,". This may be due to  an undefined operation. Consider computing the Jacobian coefficient manually by Explicitly writing jac_mode = :approximate in ODEProblem.")
-  a = 0.0
-end
+    @warn("a is NaN: The Jacobian is not defined at this instant $(simt). This may be due to  an undefined operation. Consider computing the Jacobian coefficient manually by Explicitly writing jac_mode = :approximate in ODEProblem.")
+    aii = 0.0
+  end
+  if isnan(ajj)
+    @warn("a is NaN: The Jacobian is not defined at this instant $(simt). This may be due to  an undefined operation. Consider computing the Jacobian coefficient manually by Explicitly writing jac_mode = :approximate in ODEProblem.")
+    ajj = 0.0
+  end
+  if isnan(aij)
+    @warn("a is NaN: The Jacobian is not defined at this instant $(simt). This may be due to  an undefined operation. Consider computing the Jacobian coefficient manually by Explicitly writing jac_mode = :approximate in ODEProblem.")
+    aij = 0.0
+  end
+  if isnan(aji)
+    @warn("a is NaN: The Jacobian is not defined at this instant $(simt). This may be due to  an undefined operation. Consider computing the Jacobian coefficient manually by Explicitly writing jac_mode = :approximate in ODEProblem.")
+    aji = 0.0
+  end
   uii=dxaux[index][1]-aii*qaux[index][1]
   ui2=dxaux[index][2]-aii*qaux[index][2]
   xi=x[index][0];xj=x[j][0];qi=q[index][0];qj=q[j][0];qi1=q[index][1];qj1=q[j][1];xi1=x[index][1];xi2=2*x[index][2];xj1=x[j][1];xj2=2*x[j][2]
@@ -101,9 +101,6 @@ end
         if (abs(qi - xi) > 2.0*quani || abs(qj - xj) > 2.0*quanj) 
           h1 = sqrt(abs(2*quani/xi2));
           h2 = sqrt(abs(2*quanj/xj2));   #later add derderX =1e-12 when x2==0?
-
-
-
 
           h=min(h1,h2)
           if h!=Inf

@@ -20,7 +20,7 @@ Calculates the exponential of `a` and stores the result in `c`.
 - `c::Taylor0`: The result of `exp(a)`.
 """
 function exp(a::Taylor0, c::Taylor0)
-    order = a.order
+    #order = a.order
     #aux = exp(constant_term(a))
     for k in eachindex(a)
         exp!(c, a, k) 
@@ -208,7 +208,7 @@ function atan(a::Taylor0, c::Taylor0, r::Taylor0)
 end
 
 function atan2(a::Taylor0, c::Taylor0, r::Taylor0)
-    r[0]=atan2(a[0],c[0])
+    r[0]=Base.atan2(a[0],c[0])
     return r
 end
 
@@ -433,4 +433,21 @@ Calculates the square root of `a` and stores the result in `cache1`.
 function sqrt(a::T, cache1::Taylor0) where {T<:Number}
     cache1[0] = sqrt(a)
     return cache1
+end
+
+
+#= function LinearAlgebra.norm(v::AbstractVector{Taylor0})
+    return norm([x.coeffs[1] for x in v])
+end
+ =#
+#= function norm(v::AbstractVector{Taylor0})
+    return norm([x.coeffs[1] for x in v])
+end =#
+
+#= function norm(v::AbstractVector{Taylor0})
+    return sqrt(sum(x.coeffs[1]^2 for x in v)) 
+end =#
+
+function rad2deg(x::Taylor0) 
+    return x[0] * 180 / π
 end

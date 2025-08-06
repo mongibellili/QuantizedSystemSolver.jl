@@ -17,7 +17,7 @@ function odeProblemFunc(ir::ODEFunctionIR,::Val{T},::Val{D},::Val{Z},initCond::V
     symDict=Dict{Symbol,Expr}()
     equs=Dict{Union{Int,Expr},Union{Int,Symbol,Expr}}()
     jac = Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}}()# set used because do not want to re-insert an existing varNum
-    dD = Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}}() # like jac but for discrete variables
+    dD =  Dict{Union{Int,Symbol,Expr},Set{Union{Int,Symbol,Expr}}}() # like jac but for discrete variables
     exacteJacExpr = Dict{Expr,Union{Float64,Int,Symbol,Expr}}()
     zcequs=Vector{Expr}()#vect to collect the conditions of if-statements (zero-crossing)
     eventequs=Vector{Expr}()#vect to collect events (effect)
@@ -39,26 +39,28 @@ function odeProblemFunc(ir::ODEFunctionIR,::Val{T},::Val{D},::Val{Z},initCond::V
                 if rhs isa Number || rhs isa Symbol
                     equs[varNum] = transformFSimplecase(rhs)
                 elseif rhs isa Expr && rhs.head == :ref
-                    rhs = extractJacDepNormal(varNum, rhs, jac, exacteJacExpr, jac_mode, symDict, dD)
+                    rhs = extractJacDep(-1,varNum, rhs, jac, exacteJacExpr, jac_mode, symDict, dD)
                     equs[varNum] = transformFSimplecase(rhs)
                 elseif rhs isa Expr && rhs.head == :call && is_custom_function(rhs)
-                    rhs = extractJacDepNormal(varNum, rhs, jac, exacteJacExpr, jac_mode, symDict, dD)
+                    rhs = extractJacDep(-1,varNum, rhs, jac, exacteJacExpr, jac_mode, symDict, dD)
                     equs[varNum] = transformFSimplecase(rhs)
                 else
-                    rhs = extractJacDepNormal(varNum, rhs, jac, exacteJacExpr, jac_mode, symDict, dD)
+                   # @show rhs
+                    rhs = extractJacDep(-1,varNum, rhs, jac, exacteJacExpr, jac_mode, symDict, dD)
+                   # @show "after", rhs
                     temp = (transformF(:($(rhs), 1))).args[2]
                     num_cache_equs = max(num_cache_equs, temp)
                     equs[varNum] = rhs
                 end
 
-            elseif lhs isa Symbol && rhs isa Expr && rhs.head in [:call, :ref]
+          #=   elseif lhs isa Symbol && rhs isa Expr && rhs.head in [:call, :ref]
                 # Already processed in normalize_ir
                 continue
             elseif lhs isa Expr && lhs.head == :tuple && rhs isa Symbol
                 # Already processed
                 continue
             elseif lhs isa Symbol && rhs isa Number
-                continue
+                continue =#
             else
                 push!(otherCode.args, Expr(:(=), lhs, rhs))
             end
@@ -71,13 +73,13 @@ function odeProblemFunc(ir::ODEFunctionIR,::Val{T},::Val{D},::Val{Z},initCond::V
             if specRHS isa Number || specRHS isa Symbol
                 equs[:(($b, $niter))] = transformFSimplecase(specRHS)
             elseif specRHS isa Expr && specRHS.head == :ref
-                specRHS = extractJacDepLoop(b, niter, specRHS, jac, exacteJacExpr, jac_mode, symDict, dD)
+                specRHS = extractJacDep(b, niter, specRHS, jac, exacteJacExpr, jac_mode, symDict, dD)
                 equs[:(($b, $niter))] = transformFSimplecase(specRHS)
             elseif specRHS isa Expr && specRHS.head == :call && is_custom_function(specRHS)
-                specRHS = extractJacDepLoop(b, niter, specRHS, jac, exacteJacExpr, jac_mode, symDict, dD)
+                specRHS = extractJacDep(b, niter, specRHS, jac, exacteJacExpr, jac_mode, symDict, dD)
                 equs[:(($b, $niter))] = transformFSimplecase(specRHS)
             else
-                specRHS = extractJacDepLoop(b, niter, specRHS, jac, exacteJacExpr, jac_mode, symDict, dD)
+                specRHS = extractJacDep(b, niter, specRHS, jac, exacteJacExpr, jac_mode, symDict, dD)
                 temp = (transformF(:($(specRHS), 1))).args[2]
                 num_cache_equs = max(num_cache_equs, temp)
                 equs[:(($b, $niter))] = specRHS
@@ -111,52 +113,49 @@ function odeProblemFunc(ir::ODEFunctionIR,::Val{T},::Val{D},::Val{Z},initCond::V
     #@show eventequs
 
       #println("after second pass, otherCode=$otherCode , equs=$equs, jac=$jac, dD=$dD, exacteJacExpr=$exacteJacExpr, zcequs=$zcequs, eventequs=$eventequs, ZCjac=$ZCjac, SZ=$SZ, dZ=$dZ")
-    if length(functionEx.args)==0
-        closurefunc=0
-        diffEqfunctionExpression=createDiscEqFun(otherCode,equs,zcequs,eventequs,fname,closurefunc)# diff equations before this are stored in a dict:: now we have a giant function that holds all diff equations
-        exactJacfunction=createExactJacFun(otherCode,exacteJacExpr,fname,closurefunc) 
+    closurefunc=0
+    if length(functionEx.args)==0   
     elseif length(functionEx.args)==1
-        if jac_mode==:symbolic
-            @warn("symbolic jacobian mode is not advised with helper functions. Explicitly use jac_mode = :approximate in ODEProblem.")   
-        end
         closurefunc=@RuntimeGeneratedFunction(functionEx.args[1]) 
-        diffEqfunctionExpression=createDiscEqFun(otherCode,equs,zcequs,eventequs,fname,closurefunc)# diff equations before this are stored in a dict:: now we have a giant function that holds all diff equations
-        exactJacfunction=createExactJacFun(otherCode,exacteJacExpr,fname,closurefunc)
+        jac_mode==:symbolic && @warn("symbolic jacobian mode is not advised with helper functions. use jac_mode = :approximate in ODEProblem.")   
     else
         error("Error: Currently only one helper function is allowed inside the model function. Consider moving them to the top level.")
     end
  
+    if jac_mode==:symbolic        
+        exactJacfunction=createExactJacFun(otherCode,exacteJacExpr,fname,closurefunc) 
+    else
+        exactJacfunction=createExactJacFun(Expr(:block),exacteJacExpr,fname,closurefunc) 
+    end
+    diffEqfunctionExpression=createEqFun(otherCode,equs,zcequs,eventequs,fname,closurefunc)   # diff equations before this are stored in a dict:: now we have a giant function that holds all diff equations
+
+
+
+
+
     if numHelperFunCalls>length(functionEx.args)# the case when the user has defined a helper function inside the model function and one helperF outside and only called the outside helperF is considered a user mistake (either user made a typo or forgot to remove).
-        
-        if jac_mode==:symbolic
-            @warn("symbolic jacobian mode is not advised with helper functions. Explicitly use jac_mode = :approximate in ODEProblem.")   
+        jac_mode==:symbolic && @warn("symbolic jacobian mode is not advised with helper functions. use jac_mode = :approximate in ODEProblem.")  
+        if is_top_level                    
+            RuntimeGeneratedFunctions.init(Main)
+            exactJacfunctionF=RuntimeGeneratedFunction(mod, mod,exactJacfunction)
+            diffEqfunctionF=RuntimeGeneratedFunction(mod, mod,diffEqfunctionExpression)   
+        else
+            @warn("Simulation is not running on same level with helper functions. This may hurt performance. Consider placing the solve function on top level, or placing the helper function inside the model.")
+            exactJacfunctionF1 = Base.eval(mod, exactJacfunction)
+            exactJacfunctionF = (args...) -> Base.invokelatest(exactJacfunctionF1, args...)
+            diffEqfunctionF1 = Base.eval(mod, diffEqfunctionExpression)
+            diffEqfunctionF = (args...) -> Base.invokelatest(diffEqfunctionF1, args...)
         end
-            if is_top_level                    
-                RuntimeGeneratedFunctions.init(Main)
-                exactJacfunctionF=RuntimeGeneratedFunction(mod, mod,exactJacfunction)
-                diffEqfunctionF=RuntimeGeneratedFunction(mod, mod,diffEqfunctionExpression)   
-            else
-                @warn("Simulation is not running on same level with helper functions. This may hurt performance. Consider placing the solve function on top level, or placing the helper function inside the model.")
-             exactJacfunctionF1 = Base.eval(mod, exactJacfunction)
-             exactJacfunctionF = (args...) -> Base.invokelatest(exactJacfunctionF1, args...)
-             diffEqfunctionF1 = Base.eval(mod, diffEqfunctionExpression)
-             diffEqfunctionF = (args...) -> Base.invokelatest(diffEqfunctionF1, args...)
-            end
     else
         exactJacfunctionF=@RuntimeGeneratedFunction(exactJacfunction)
         diffEqfunctionF=@RuntimeGeneratedFunction(diffEqfunctionExpression) 
     end
 
 
-
-
-
-
-
-
     jacVect=createJacVect(jac,Val(T))
     SDVect=createSDVect(jac,Val(T))
     dDVect =createdDVect(dD,Val(D))
+
     SZVect=createSZVect(SZ,Val(T))
     # temporary dependencies to be used to determine HD and HZ...determine HD: event-->Derivative   && determine HZ:Event-->ZCfunction....influence of events on derivatives and zcfunctions:
     #an event is a discrteVar change or a cont Var change. So HD=HD1 UNION HD2  (same for HZ=HZ1 UNION HZ2)

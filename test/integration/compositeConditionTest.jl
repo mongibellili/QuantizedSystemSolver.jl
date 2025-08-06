@@ -42,8 +42,9 @@ p=[0.5]
 odeprob=ODEProblem(one_t_three_events,u,tspan,p)
 #@show odeprob.eqs
 sol=solve(odeprob,qss2())
-@show sol.stats
+
 
 
 @test 0.2<sol(0.7,idxs=1)<0.7
 @test 0.9<sol(0.7,idxs=2)<1.3
+println("End of composite condition test.")

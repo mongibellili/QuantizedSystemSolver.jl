@@ -1,32 +1,179 @@
-"""
-    EventDependencyStruct
- A struct that holds the event dependency information. It has the following fields:
-  - `id::Int:` the id of the event
-  - `evCont::Vector{Int}:` the index tracking used for HD & HZ. Also it is used to update q,quantum,recomputeNext when x is modified in an event
-  - `evDisc::Vector{Int}:` the index tracking used for HD & HZ.
-  - `evContRHS::Vector{Int}:` the index tracking used to update other Qs before executing the event
+
 
 """
-struct EventDependencyStruct
-  id::Int
-  evCont::Vector{Int} #LHS: index tracking used for HD & HZ. Also it is used to update q,quantum,recomputeNext when x is modified in an event
-  evDisc::Vector{Int} #LHS: index tracking used for HD & HZ.
-  evContRHS::Vector{Int} #Here we look at the RHS: index tracking used to update other Qs before executing the event
-end
+    extractJacDep(b::Int,niter::Int,rhs::Expr,jac :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},exactJacExpr :: Dict{Expr,Union{Float64,Int,Symbol,Expr}},jac_mode ::Symbol,symDict::Dict{Symbol,Expr},dD :: Dict{Union{Int,Symbol,Expr},Set{Union{Int,Symbol,Expr}}}) 
 
-function changeEventExprToFirstValue(ex::Expr)
-  newEx=postwalk(ex) do a  
-      if (a==:t)|| (a isa Expr && a.head == :ref && a.args[1]==:q) 
-          outerRef=Expr(:ref)
-          push!(outerRef.args,a)
-          push!(outerRef.args,:(0))
-          a=outerRef
-      end
-      return a
+Extracts the jacobian dependency (jac) as well as the exacte symbolic jacobian expression (exactJacExpr) and the dependency of state derivatives to discrete variables (dD), in the form of dictionaries, from the simple differential equations.\n
+
+  For the continuous part, similar to [`extractJacDep`](@ref)  function, this function sarts by looking for the 'i' in q[i] in the RHS and storing this 'i' in a jacSet for the varNum. Then, it changes q[i] to qi for symbolic differentiation. After finding ``\\frac{\\partial f_i}{\\partial q_i} `` as the exact jacobian entry, it changes back qi to q[i]. Also, any mute variable from the differential equations is changed to 'i'.\n
+  For the discrete part, the function puts the index of the differential equation in a set, and stores this set in a dictionary dD with the key being the index of the discrete variable.
+  # Example:
+```jldoctest
+using QuantizedSystemSolver
+(varNum, rhs, jac, exactJacExpr, symDict, dD) = (1, :(p[2] - 2.0 * q[1] * p[2]), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(), Dict{Expr, Union{Float64, Int64, Expr, Symbol}}(), Dict{Symbol, Expr}(:q10 => :(q[10]), :p2 => :(p[2]), :qiminus1 => :(q[i - 1]), :p1 => :(p[1]), :q1 => :(q[1])), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}())
+QuantizedSystemSolver.extractJacDep(varNum, rhs, jac, exactJacExpr,:symbolic, symDict, dD )
+(jac, exactJacExpr, dD) 
+
+# output
+
+(Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(1 => Set([1])), Dict{Expr, Union{Float64, Int64, Expr, Symbol}}(:((1, 1)) => :(-2.0 * p[2])), Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(2 => Set([1])))
+```
+
+"""
+function extractJacDep(b::Int,niter::Int,rhs::Expr,jac :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},exactJacExpr :: Dict{Expr,Union{Float64,Int,Symbol,Expr}},jac_mode ::Symbol,symDict::Dict{Symbol,Expr},dD :: Dict{Union{Int,Symbol,Expr},Set{Union{Int,Symbol,Expr}}}) 
+  
+  #jacDiscrSet is not needed unlike  jacset. from jacset we construct jac and sd. for discrete variables there is not jac, there is only dD, so its construction will be direct.
+  #postwalk
+
+  jacSet=Set{Union{Int,Symbol,Expr}}()
+  m=postwalk(rhs) do a   #
+      if a isa Expr && a.head == :ref 
+        base, idx1 =  a.args[1], a.args[2]  #parse_ref_upto2(a)
+        if base==:q#  
+          push!(jacSet,  idx1)  
+        elseif base==:p# 
+            dDset=Set{Union{Int,Symbol,Expr}}() # dDset cannot contain a symbol either a normal equation (int) or loop (expr)-------> delete symbol later
+            if haskey(dD, idx1)    # dict dD already contains key a.args[2] (in this case var i) # optional check but to skip the get function
+                dDset=get(dD,idx1,dDset) # if var di first time to influence some var, dDset is empty, otherwise get its set of influences 
+            end
+            if b!=-1
+              push!(dDset,  :(($b,$niter)))
+            else
+              push!(dDset,  niter)  
+            end
+            dD[idx1]=dDset       #update the dict
+        end
+        #symarg=symbolFromRef(base,idx1) #
+        symarg=Symbol(string(expr_to_flat_name(base), _idxToString(idx1)))
+        symDict[symarg]=a
+        a=symarg
+      elseif a isa Expr && a.head == :vect 
+         symarg=Symbol(expr_to_flat_name(a))
+        symDict[symarg]=a
+        a=symarg
+      end 
+      return a 
   end
-  newEx
+
+  if jac_mode==:symbolic
+    # extract the jac (continuous part)
+    basi = convert(Basic, m) # m ready: all refs are symbols
+    for i in jacSet  # jacset contains vars in RHS
+      symarg=Symbol(string(:q, _idxToString(i)))#symbolFromRef(:q,i) # specific to elements in jacSet: get q1 from 1 for exple
+      coef = diff(basi, symarg) # symbolic differentiation: returns type Basic
+      coefstr=string(coef);coefExpr=Meta.parse(coefstr)#convert from basic to expression
+      jacEntry=restoreRef(coefExpr,symDict)# get back ref: qi->q[i]
+      if b!=-1
+        exactJacExpr[:((($b,$niter),$i))]=jacEntry
+      else
+        exactJacExpr[:(($niter,$i))]=jacEntry
+      end
+    end
+  end
+  if length(jacSet)>0
+    if b!=-1
+      jac[:(($b,$niter))]=jacSet
+    else
+      jac[niter]=jacSet
+    end
+  end
+   #useNumber_inFuncalls(rhs)  # prevent using taylor0 in helper function calls because their body was not changed to zero-allocation ops.
+   rhs
 end
 
+
+
+"""
+    createJacVect(jac:: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},::Val{T}) where {T}
+
+  constructs the jacobian dependency as a vector from the existing dictionary jac resulted from [`extractJacDep`](@ref) and [`extractJacDepLoop`](@ref) functions. \n
+
+  This function just collects the data from the value of the dictionary if the key of the dictionary is an integer. (a dictionary contains(key=>value),...). In the case it is an expression :(b,niter), the function uses a 'for' loop to replace each 'b' by its corresponding integer. This approach depends on the size of the problem, but it runs one time.
+
+# Example:   
+```jldoctest
+using QuantizedSystemSolver
+jac=Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(1 => Set([2, 1]),:((2, 9)) => Set([:(i - 1), :i]),10 => Set([1, 10]))
+jacVect=QuantizedSystemSolver.createJacVect(jac,Val(10) )
+string(jacVect)
+
+# output
+
+"[[2, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9], [10, 1]]"
+
+```
+
+"""
+function createJacVect(jac:: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},::Val{T}) where {T}
+  jacVect = Vector{Vector{Int}}(undef, T)
+  for i=1:T
+      jacVect[i]=Vector{Int}()# define it so i can push elements as i find them below
+  end
+  for dictElement in jac
+      if dictElement[1] isa Int  #jac[varNum]=jacSet
+         jacVect[dictElement[1]]=[Int(eval(fa)) for fa in dictElement[2] ]# collect(dictElement[2]) # collect: set -> vector
+      elseif dictElement[1] isa Expr  #jac[:(($b,$niter))]=jacSet
+          for j_=(dictElement[1].args[1]):(dictElement[1].args[2])  
+              temp=Vector{Int}()
+              for element in dictElement[2]
+                  if element isa Expr || element isa Symbol#can split symbol alone since no need to postwalk
+                      fa= postwalk(a -> a isa Symbol && a==:i ? j_ : a, element) # change each symbol i to exact number 
+                      push!(temp,Int(eval(fa))) # change i+1 for exmple to the exact number when i known
+                  else #element is int
+                      push!(temp,element)
+                  end
+              end
+              jacVect[j_]=temp #fill the jac
+          end
+      end     
+  end
+  jacVect
+end
+"""
+    createSDVect(jac:: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},::Val{T}) where {T}
+
+ constructs the State to derivative dependency (opposite of jacobian dependency) as a vector from the existing dictionary jac resulted from the [`extractJacDep`](@ref) and the [`extractJacDepLoop`](@ref) functions. It is the opposite in the sense that here we collect the keys into some vectors whereas in the jacobian dependency we collect the values of the dictionary in some vectors. \n
+
+  If the key of the dictionary is an integer, then for all elements 'k' in the value of the dictionary (a set), the key is pushed into a new vector indexed at 'k'. In the case the key is an expression :(b,niter), the function uses a 'for' loop to replace each 'b' by its corresponding integer. This approach depends on the size of the problem, but it runs one time.
+# Example:   
+```jldoctest
+using QuantizedSystemSolver
+jac=Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}}(1 => Set([2, 1]),:((2, 9)) => Set([:(i - 1), :i]),10 => Set([1, 10]));
+SD=QuantizedSystemSolver.createSDVect(jac,Val(10) );
+string(SD)
+
+# output
+
+"[[10, 2, 1], [2, 3, 1], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9], [9], [10]]"
+
+```
+"""
+function createSDVect(jac:: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},::Val{T}) where {T}
+  sdVect = Vector{Vector{Int}}(undef, T)
+  for i=1:T
+      sdVect[i]=Vector{Int}()# define it so I can push elements as I find them below
+  end
+  for dictElement in jac
+      if dictElement[1] isa Int # key is an int
+          for k in dictElement[2]   #elments values 
+              push!(sdVect[Int(eval(k))],dictElement[1])
+          end
+      elseif dictElement[1] isa Expr # key is an expression
+          for j_=(dictElement[1].args[1]):(dictElement[1].args[2])  
+              for element in dictElement[2]
+                  if element isa Expr || element isa Symbol#element=
+                  fa= postwalk(a -> a isa Symbol && a==:i ? j_ : a, element)
+                  push!(sdVect[Int(eval(fa))],j_) 
+                  else#element is int
+                      push!(sdVect[element],j_)
+                  end
+              end
+             
+          end
+      end     
+  end
+  sdVect
+end
 
 
 """
@@ -51,7 +198,8 @@ function extractZCJacDep(counter::Int,zcf::Expr,zcjac :: Vector{Vector{Int}},SZ 
   zcjacSet=Set{Int}()
  # @show zcf
  #zcjacDiscrSet not needed unlike  zcjacSet. from zcjacSet we construct zcjac and SZ. for discrete variables there is not zcjac, there is only dZ, so its construction will be direct.
-  postwalk(zcf) do a   #
+ #postwalk
+ prewalk(zcf) do a   #
       if a isa Expr && a.head == :ref && a.args[1]==:q# 
           push!(zcjacSet,  (a.args[2]))  #
           SZset=Set{Int}()
@@ -77,111 +225,6 @@ end
 
 
 
-
-"""
-  handleEvents(argI::Expr,eventequs::Vector{Expr},length_zcequs::Int64,evsArr::Vector{EventDependencyStruct})
-
-Handles events in the quantized system solver.
-
-# Arguments
-- `argI::Expr`: An expression representing the 'if-statement'.
-- `eventequs::Vector{Expr}`: A vector of expressions representing the event equations.
-- `length_zcequs::Int64`: current number of treated zero-crossing equations. Usezd as index to store the events in order.
-- `evsArr`: An array containing EventDependencyStruct  objects.
-
-
-"""
-function handleEvents(argI::Expr,eventequs::Vector{Expr},length_zcequs::Int64,evsArr::Vector{EventDependencyStruct})
-                      
-            # each 'if-statmets' has 2 events (arg[2]=posEv and arg[3]=NegEv) each pos or neg event has a function...later i can try one event for zc
-              if length(argI.args)==2  #if user only wrote the positive evnt, here I added the negative event wich does nothing
-                #nothingexpr = quote nothing end # neg dummy event 
-                nothingexpr = Expr(:block,nothing) # does not require remove_linenums
-                push!(argI.args, nothingexpr)
-               # Base.remove_linenums!(argI.args[3])
-
-                nothingexpr = Expr(:block,nothing)
-            end 
-            #pos event
-            newPosEventExprToFunc=changeEventExprToFirstValue(argI.args[2])  #change u[1] to u[1][0]  # pos ev can't be a symbol ...later maybe add check anyway
-           #@show newPosEventExprToFunc
-            push!(eventequs,newPosEventExprToFunc) 
-            #neg eve
-            if argI.args[3].args[1] isa Expr # argI.args[3] isa expr and is either an equation or :block symbol end ...so lets check .args[1]
-                newNegEventExprToFunc=changeEventExprToFirstValue(argI.args[3])
-                push!(eventequs,newNegEventExprToFunc) 
-            else
-                push!(eventequs,argI.args[3]) #symbol nothing
-            end
-            #after constructing the equations we move to dependencies: we need to change A[n] to An so that they become symbols
-            posEvExp =  argI.args[2]
-            negEvExp =  argI.args[3]
-           # @show posEvExp
-            indexPosEv = 2 * length_zcequs  - 1 # store events in order
-            indexNegEv =  indexPosEv + 1 
-              #------------------pos Event--------------------#
-            posEv_disArrLHS= Vector{Int}()  
-            posEv_conArrLHS= Vector{Int}() 
-            posEv_conArrRHS=Set{Int}() 
-            #posEv_conArrRHS=Set{Int}()    #to be used inside intgrator to updateOtherQs (intgrateState) before executing the event there is no discArrRHS because p is not changing overtime to be updated      
-            for j = 1:length(posEvExp.args)  # j coressponds the number of statements under one posEvent
-             # @show posEvExp.args[j] 
-                if (posEvExp.args[j]  isa Expr &&  posEvExp.args[j].head in [:(=),:+=, :-=, :*=, :/=]) 
-                        poslhs=posEvExp.args[j].args[1];posrhs=posEvExp.args[j].args[2]
-                       # @show poslhs.args[1]
-                    if (poslhs  isa Expr &&  poslhs.head == :ref && (poslhs.args[1]==:q || poslhs.args[1]==:p))  
-                     # @show poslhs    
-                       if poslhs.args[1]==:q
-                            push!(posEv_conArrLHS,poslhs.args[2])
-                            if posEvExp.args[j].head in [:+=, :-=, :*=, :/=] # lhs+=rhs is lhs=lhs+rhs so lhs need to be accounted for
-                              push!(posEv_conArrRHS,  (poslhs.args[2])) 
-                            end
-                        else # lhs is a disc var 
-                            push!(posEv_disArrLHS,poslhs.args[2])
-                        end
-                        postwalk(posrhs) do a   #
-                            if a isa Expr && a.head == :ref && a.args[1]==:q# 
-                                push!(posEv_conArrRHS,  (a.args[2]))  #       ....             
-                            end
-                            return a 
-                        end
-                    end
-                end
-            end
-            #------------------neg Event--------------------#
-            negEv_disArrLHS= Vector{Int}()#
-            negEv_conArrLHS= Vector{Int}()# 
-            negEv_conArrRHS=Set{Int}()#to be used inside intgrator to updateOtherQs (intgrateState) before executing the event there is no discArrRHS because p is not changing overtime to be updated      
-            if negEvExp.args[1] != :nothing
-                for j = 1:length(negEvExp.args)  # j coressponds the number of statements under one negEvent
-                  if (negEvExp.args[j]  isa Expr &&  negEvExp.args[j].head in [:(=),:+=, :-=, :*=, :/=])  
-                    neglhs=negEvExp.args[j].args[1];negrhs=negEvExp.args[j].args[2]                   
-                    if (neglhs  isa Expr &&  neglhs.head == :ref && (neglhs.args[1]==:q || neglhs.args[1]==:p))  
-                      
-                        if neglhs.args[1]==:q
-                            push!(negEv_conArrLHS,neglhs.args[2])
-                            if negEvExp.args[j].head in [:+=, :-=, :*=, :/=] # lhs+=rhs is lhs=lhs+rhs so lhs need to be accounted for
-                              push!(negEv_conArrRHS,  (neglhs.args[2])) 
-                            end
-                        else # lhs is a disc var 
-                            push!(negEv_disArrLHS,neglhs.args[2])
-                        end
-                        postwalk(negrhs) do a   #
-                            if a isa Expr && a.head == :ref && a.args[1]==:q# 
-                                push!(negEv_conArrRHS,  (a.args[2]))  #                    
-                            end
-                            return a 
-                        end#end postwalk
-                    end#end if
-                  end
-                end#end for
-            end 
-            structposEvent = EventDependencyStruct(indexPosEv, posEv_conArrLHS, posEv_disArrLHS,collect(posEv_conArrRHS)) # posEv_conArr is vect 
-            push!(evsArr, structposEvent)
-            structnegEvent = EventDependencyStruct(indexNegEv, negEv_conArrLHS, negEv_disArrLHS,collect(negEv_conArrRHS))
-            push!(evsArr, structnegEvent)
-
-end
 
 """
     createSZVect(SZ :: Dict{Int64, Set{Int64}},::Val{T}) where {T} 
@@ -226,12 +269,13 @@ string(dDVect)
 "[[2, 3, 4, 5, 6, 7, 8, 9], [10, 1]]"
 ```
 """
-function createdDVect(dD::Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol}}},::Val{D}) where {D}
+function createdDVect(dD::Dict{Union{Int64,Symbol,Expr}, Set{Union{Int64, Expr, Symbol}}},::Val{D}) where {D}
   dDVect = Vector{Vector{Int}}(undef, D)
   for ii=1:D
       dDVect[ii]=Vector{Int}()# define it so i can push elements as i find them below
   end
   for dictElement in dD
+    if dictElement[1] isa Int
       temp=Vector{Int}()
       for k in dictElement[2] 
           if k isa Int
@@ -242,9 +286,131 @@ function createdDVect(dD::Dict{Union{Int64, Expr}, Set{Union{Int64, Expr, Symbol
               end
           end
       end
-     dDVect[dictElement[1]]=temp
+     dDVect[dictElement[1]]=temp ###################################
+    elseif dictElement[1] isa Symbol
+       setElement=first(dictElement[2])
+          for j_=(setElement.args[1]):(setElement.args[2])  
+           push!(dDVect[j_],j_)          ########################
+       end
+      elseif dictElement[1] isa Expr
+        setElement=first(dictElement[2])
+          for j_=(setElement.args[1]):(setElement.args[2])  
+            fa= postwalk(a -> a isa Symbol && a==:i ? j_ : a, dictElement[1]) # change each symbol i to exact number 
+          push!(dDVect[Int(eval(fa))],j_)
+       end
+    end
   end
   dDVect
+end
+
+"""
+  handleEvents(argI::Expr,eventequs::Vector{Expr},length_zcequs::Int64,evsArr::Vector{EventDependencyStruct})
+
+Handles events in the quantized system solver.
+
+# Arguments
+- `argI::Expr`: An expression representing the 'if-statement'.
+- `eventequs::Vector{Expr}`: A vector of expressions representing the event equations.
+- `length_zcequs::Int64`: current number of treated zero-crossing equations. Usezd as index to store the events in order.
+- `evsArr`: An array containing EventDependencyStruct  objects.
+
+
+"""
+function handleEvents(argI::Expr,eventequs::Vector{Expr},length_zcequs::Int64,evsArr::Vector{EventDependencyStruct})
+                      
+            # each 'if-statmets' has 2 events (arg[2]=posEv and arg[3]=NegEv) each pos or neg event has a function...later i can try one event for zc
+              if length(argI.args)==2  #if user only wrote the positive evnt, here I added the negative event wich does nothing
+                #nothingexpr = quote nothing end # neg dummy event 
+                nothingexpr = Expr(:block,nothing) # does not require remove_linenums
+                push!(argI.args, nothingexpr)
+               # Base.remove_linenums!(argI.args[3])
+
+                nothingexpr = Expr(:block,nothing)
+            end 
+            #pos event
+            newPosEventExprToFunc=changeEventExprToFirstValue(argI.args[2])  #change u[1] to u[1][0]  # pos ev can't be a symbol ...later maybe add check anyway
+           #@show newPosEventExprToFunc
+            push!(eventequs,newPosEventExprToFunc) 
+            #neg eve
+            if argI.args[3].args[1] isa Expr # argI.args[3] isa expr and is either an equation or :block symbol end ...so lets check .args[1]
+                newNegEventExprToFunc=changeEventExprToFirstValue(argI.args[3])
+                push!(eventequs,newNegEventExprToFunc) 
+            else
+                push!(eventequs,argI.args[3]) #symbol nothing
+            end
+            #after constructing the equations we move to dependencies: we need to change A[n] to An so that they become symbols
+            posEvExp =  argI.args[2]
+            negEvExp =  argI.args[3]
+           # @show posEvExp
+            indexPosEv = 2 * length_zcequs  - 1 # store events in order
+            indexNegEv =  indexPosEv + 1 
+                                  #------------------pos Event--------------------#
+            posEv_disArrLHS= Set{Int}()  
+            posEv_conArrLHS= Set{Int}() 
+            posEv_conArrRHS=Set{Int}() 
+            #posEv_conArrRHS=Set{Int}()    #to be used inside intgrator to updateOtherQs (intgrateState) before executing the event there is no discArrRHS because p is not changing overtime to be updated      
+            
+            assigns = find_assignments(posEvExp)
+            for j in assigns
+            #for j = 1:length(posEvExp.args)  # j coressponds the number of statements under one posEvent
+             # @show posEvExp.args[j] 
+                #if (posEvExp.args[j]  isa Expr &&  posEvExp.args[j].head in [:(=),:+=, :-=, :*=, :/=]) 
+                        poslhs=j.args[1];posrhs=j.args[2]
+                       # @show poslhs.args[1]
+                    if (poslhs  isa Expr &&  poslhs.head == :ref && (poslhs.args[1]==:q || poslhs.args[1]==:p))  
+                     # @show poslhs    
+                       if poslhs.args[1]==:q
+                            push!(posEv_conArrLHS,poslhs.args[2])
+                            if j.head in [:+=, :-=, :*=, :/=] # lhs+=rhs is lhs=lhs+rhs so lhs need to be accounted for
+                              push!(posEv_conArrRHS,  (poslhs.args[2])) 
+                            end
+                        else # lhs is a disc var 
+                            push!(posEv_disArrLHS,poslhs.args[2])
+                        end
+                        postwalk(posrhs) do a   #
+                            if a isa Expr && a.head == :ref && a.args[1]==:q# 
+                                push!(posEv_conArrRHS,  (a.args[2]))  #       ....             
+                            end
+                            return a 
+                        end
+                    end
+                #end
+            end
+                                        #------------------neg Event--------------------#
+            negEv_disArrLHS= Set{Int}()#
+            negEv_conArrLHS= Set{Int}()# 
+            negEv_conArrRHS=Set{Int}()#to be used inside intgrator to updateOtherQs (intgrateState) before executing the event there is no discArrRHS because p is not changing overtime to be updated      
+            if negEvExp.args[1] != :nothing
+                assigns = find_assignments(negEvExp)
+                for j in assigns
+                #for j = 1:length(negEvExp.args)  # j coressponds the number of statements under one negEvent
+                  #if (negEvExp.args[j]  isa Expr &&  negEvExp.args[j].head in [:(=),:+=, :-=, :*=, :/=])  
+                    neglhs=j.args[1];negrhs=j.args[2]                   
+                    if (neglhs  isa Expr &&  neglhs.head == :ref && (neglhs.args[1]==:q || neglhs.args[1]==:p))  
+                      
+                        if neglhs.args[1]==:q
+                            push!(negEv_conArrLHS,neglhs.args[2])
+                            if j.head in [:+=, :-=, :*=, :/=] # lhs+=rhs is lhs=lhs+rhs so lhs need to be accounted for
+                              push!(negEv_conArrRHS,  (neglhs.args[2])) 
+                            end
+                        else # lhs is a disc var 
+                            push!(negEv_disArrLHS,neglhs.args[2])
+                        end
+                        postwalk(negrhs) do a   #
+                            if a isa Expr && a.head == :ref && a.args[1]==:q# 
+                                push!(negEv_conArrRHS,  (a.args[2]))  #                    
+                            end
+                            return a 
+                        end#end postwalk
+                    end#end if
+                  #end
+                end#end for
+            end 
+            structposEvent = EventDependencyStruct(indexPosEv, collect(posEv_conArrLHS), collect(posEv_disArrLHS),collect(posEv_conArrRHS)) # posEv_conArr is vect 
+            push!(evsArr, structposEvent)
+            structnegEvent = EventDependencyStruct(indexNegEv, collect(negEv_conArrLHS), collect(negEv_disArrLHS),collect(negEv_conArrRHS))
+            push!(evsArr, structnegEvent)
+
 end
 
 """
@@ -392,58 +558,3 @@ function unionDependency(HZD1::Vector{Vector{Int}},HZD2::Vector{Vector{Int}})
   end
   HZD
 end 
-
-
-function createDiscEqFun(otherCode::Expr,equs::Dict{Union{Int,Expr},Union{Int,Symbol,Expr}},zcequs::Vector{Expr},eventequs::Vector{Expr},fname::Symbol,f)# where{F}
-  #allEpxpr=Expr(:block)
-  ##############diffEqua###############
-  s="if i==0 return nothing\n"  # :i is the mute var
-  for elmt in equs
-      Base.remove_linenums!(elmt[1])
-      Base.remove_linenums!(elmt[2])
-      if elmt[1] isa Int
-          s*="elseif i==$(elmt[1]) $(elmt[2]) ;return nothing\n"
-      end
-      if elmt[1] isa Expr
-          s*="elseif $(elmt[1].args[1])<=i<=$(elmt[1].args[2]) $(elmt[2]) ;return nothing\n"
-      end
-  end
-  s*=" end "
-  myex1=Meta.parse(s)
-  #push!(otherCode.args,myex1) 
-  otherCodeCopy=copy(otherCode)# to avoid changing the original
-  push!(otherCodeCopy.args,myex1)
-   ##############ZCF###################
-  if length(zcequs)>0
-      s="if zc==1  $(zcequs[1]) ;return nothing"
-      for i=2:length(zcequs)
-          s*= " elseif zc==$i $(zcequs[i]) ;return nothing"
-      end
-      s*= " end "
-      myex2=Meta.parse(s) 
-      push!(otherCodeCopy.args,myex2)
-  end
-   #############events#################
-  if length(eventequs)>0
-      s= "if ev==1  $(eventequs[1]) ;return nothing"
-      for i=2:length(eventequs)
-          s*= " elseif ev==$i $(eventequs[i]) ;return nothing"
-      end
-      s*= " end "
-      myex3=Meta.parse(s)
-      push!(otherCodeCopy.args,myex3)
-  end
- 
-  Base.remove_linenums!(otherCodeCopy)
-  def=Dict{Symbol,Any}()
-  def[:head] = :function
-  def[:name] = fname  
-  def[:args] = [:(i::Int),:(zc::Int),:(ev::Int),:(q::Vector{Taylor0}),:(p::Vector{Float64}), :(t::Taylor0),:(cache::Vector{Taylor0}),:(f_)]
-  def[:body] = otherCodeCopy 
-  functioncode=combinedef(def)
- # @show functioncode
-
-end
-
-
-

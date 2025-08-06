@@ -118,8 +118,7 @@ Here's a quick summary and what each helper function is doing:
 dictionary $dD$ for tracking dependencies of derivatives to discrete
 variables.
 
-*extractJacDepLoop:* Similar to extractJacDepNormal, but specifically
-for loop expressions. It tracks dependencies across loop iterations.
+
 
 *extractZCJacDep:* It Extracts zero-crossing Jacobian dependencies
 for discrete variables ($dZ$), and it updates $zcjac$, $SZ$.

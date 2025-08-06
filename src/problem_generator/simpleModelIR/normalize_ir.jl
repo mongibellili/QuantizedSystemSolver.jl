@@ -34,6 +34,38 @@ function convert_ints_except_indices(ex,  ::Val{true})   #change any float put b
     end#end postwalk
   return newEx
 end
+#= function changeExprToFirstValue2(ex::Expr)
+  newEx=postwalk(ex) do a  
+      if a isa Expr && a.head == :ref && a.args[1]==:q  
+          outerRef=Expr(:ref)
+          push!(outerRef.args,a)
+          push!(outerRef.args,:(0))
+          a=outerRef
+      end
+      return a
+  end
+  newEx
+end =#
+function changeExprToFirstValue2(expr)
+    if expr isa Expr
+        # Skip already transformed expressions like q[i][0] or q[i][1]
+        if expr.head == :ref && expr.args[1] isa Expr && expr.args[1].head == :ref && expr.args[1].args[1] == :q
+            return expr  # Already transformed → leave as is
+        end
+
+        # Match q[i] exactly
+        if expr.head == :ref && expr.args[1] == :q && length(expr.args) == 2
+            return Expr(:ref, expr, 0)  # q[i] → q[i][0]
+        end
+
+        # Recurse into subexpressions
+        new_args = map(changeExprToFirstValue2, expr.args)
+        return Expr(expr.head, new_args...)
+    else
+        return expr
+    end
+end
+
 
 """
     changeVarNames_params(ex::Expr,stateVarName::Symbol,discrParamName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}},helperFunSymSet::Set{Symbol})
@@ -68,14 +100,15 @@ function changeVarNames_params(ex::Expr,stateVarName::Symbol,discrParamName::Sym
         sym=element.args[1]
         if !(sym in (:+, :-, :*, :/, :^, :%, :&, :|, :!, :(=),:(==), :!=, :<, :>, :<=, :>=)) && !(isdefined(Base, sym) && getfield(Base, sym) isa Function)
           push!(helperFunSymSet, sym)# collect the helper functions used in the rhs of the equations 
-          # element.args[1]=:f_
+          element=changeExprToFirstValue2(element) # change q[1] to q[1][0]
         end
+      elseif element isa Expr && element.head == :ref
+        # Process the :ref expression, marking that we are inside a reference
+        #return Expr(:ref, element.args[1], map(arg -> changeVarNames_params(arg, stateVarName, discrParamName, muteVar, param, helperFunSymSet), element.args[2:end])...)
       end
       return element
     end#end postwalk
-   # @show newEx
     newEx = convert_ints_except_indices(newEx,Val(false))#convert all integers to float64 except indices
-   # @show newEx
   newEx
 end
 
@@ -322,7 +355,14 @@ function process_if_expr(statement,stateVarName,discrParamName,param,helperFunSy
     # === Normalize inequalities: A < B -> B - A > 0 ===
     if cond.head == :call && cond.args[1] in [:<, :<=]
         cond = Expr(:call, :>, cond.args[3], cond.args[2])
-    elseif cond.head == :call && cond.args[1] in [:>, :>=,:(==)]
+    elseif cond.head == :call && cond.args[1] == :(==)
+        if_expr = statement.body
+        if length(if_expr.args) == 3
+            error("Equality condition must not have an else branch. Please contact the developers if this feature is needed.")
+        elseif length(if_expr.args) == 2
+            push!(if_expr.args, if_expr.args[2] ) # add the then block as else block, because rising or falling should trigger the same action.
+        end
+    elseif cond.head == :call && cond.args[1] in [:>, :>=]
         # already fine
     elseif cond.head in [:&&, :||]
         # OK for now, we'll handle decomposition later
@@ -353,9 +393,6 @@ function process_if_expr(statement,stateVarName,discrParamName,param,helperFunSy
     elseif kind == :and && !has_else
         zcfcond1, zcfcond2 = cond_zcfs
         cond1, cond2 = new_conds
-      #=   inner = Expr(:if,deepcopy(cond2), then_block) # deepcopy because inside events we do not want transformation to conditions in taylorEquationConstruction to be reflected back (pass by reference)
-        outer = Expr(:if, deepcopy(cond1), inner) =#
-
         inner = Expr(:if,deepcopy(cond2), then_block) # deepcopy because inside events we do not want transformation to conditions in taylorEquationConstruction to be reflected back (pass by reference)
         outer = Expr(:if, deepcopy(cond1), inner)
         push!(new_if_statements, IfStatement(zcfcond1, outer))
@@ -439,6 +476,12 @@ function normalize_ir(ir, stateVarName::Symbol, discrParamName::Symbol)
                 new_rhs = changeVarNames_params(rhs, stateVarName, discrParamName, :nothing, param, helperFunSymSet)
                 statement.rhs = new_rhs
                 param[lhs] = new_rhs
+            elseif lhs isa Symbol && rhs isa Expr && rhs.head in [:vect, :tuple]
+                if rhs.head == :vect
+                    @warn "Vector literal assigned to `$(lhs)` may cause allocations. Consider using a tuple or pass it through parameters if appropriate."
+                end
+                new_rhs = changeVarNames_params(rhs, stateVarName, discrParamName, :nothing, param, helperFunSymSet)
+                statement.rhs = new_rhs
             elseif lhs isa Expr && lhs.head == :ref
                 if lhs.args[2] isa Expr && lhs.args[2].head == :call
                     lhs.args[2] = Int(eval(changeVarNames_params(lhs.args[2], stateVarName, discrParamName, :nothing, param, helperFunSymSet)))

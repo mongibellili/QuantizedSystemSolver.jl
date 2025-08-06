@@ -20,7 +20,6 @@ sol=solve(odeprob,nmliqss2())
 
 # test du= one var; test all algs; test manual jacobian computation during simulation run
 function system2(du,u,p,t)
-    u = [-1.0, -2.0]
     du[1] = u[2]
     du[2] =1.24*u[1]+0.01*u[2]-0.2
 end  
@@ -45,10 +44,9 @@ u = [-1.0, -2.0]
 odeprob=ODEProblem(system3,u,tspan)
 for N=0:6
   solve(odeprob,nmliqss2(),detection=Detection(N))
-end
-for N=0:12
   solve(odeprob,nmliqss1(),detection=Detection(N))
 end
+
 sol=solve(odeprob,nmliqss2(),reltol=1e-3,abstol=1e-5)
 u1, u2 = -8.73522174738572, -7.385745994549763
 λ1, λ2 = -10.841674966758294, -9.168325033241706
@@ -80,144 +78,6 @@ sol=solve(odeprob,nmliqss1())
 sol=solve(odeprob,nmliqss2())
 @test 0.6<sol(0.5,idxs=2)<0.8
  
-# test du = t for a discrete problem; test p=[]
-function one_t_one_event(du,u,p,t)
-du[1] = t
-du[2] =1.24*u[1]-0.01*u[2]+0.2
-if t-2.0>0.0
-    u[1] = 0.0
-else
-    u[2] = 0.0
-end
-end 
-tspan=(0.0,5.0)
-u = [1.0, 0.0]
-p=[]
-odeprob=ODEProblem(one_t_one_event,u,tspan,p)
-sol=solve(odeprob,qss2())
-sol=solve(odeprob,liqss2())
-sol=solve(odeprob,nmliqss2())
-@test 0.6<sol(0.5,idxs=2)<0.8
-
-# test du = t and a loop in a discrete problem; test plot
-function one_t_discrete_loop(du,u,p,t)
-    du[1] = t
-    for k in 2:5 
-        du[k]=(u[k]-u[k-1]) ;
-    end 
-    if t-3.0>0.0
-        u[1] = 1.0
-        u[2] = 0.0
-        u[3] = 1.0
-        u[4] = 0.0
-        u[5] = 1.0  
-    end
-end  
-tspan=(0.0,6.0)
-u = [1.0, 0.0,1.0, 0.0,1.0]
-p=[]
-odeprob=ODEProblem(one_t_discrete_loop,u,tspan,p)
-sol=solve(odeprob,qss2())
-sol=solve(odeprob,liqss2())
-sol=solve(odeprob,nmliqss2())
-@test -0.75<sol(0.5,idxs=2)<-0.6
-plot_SolSum(sol)
-plot_SolSum(sol,1,2,xlims=(0.0,1.0),ylims=(0.0,2.0))
-plot_SolSum(sol,1,2,xlims=(0.0,1.0),ylims=(0.0,0.0))
-plot_SolSum(sol,1,2,xlims=(0.0,0.0),ylims=(0.0,1.0))
-plot_SolSum(sol,1,2)
-#= save_Sol(sol,1,2,3,4,5)
-save_SolSum(sol,1,2)  =#
-plot(sol,idxs=[1],xlims=(0.0,1.0),ylims=(0.0,2.0))
-plot(sol,idxs=[1],xlims=(0.0,1.0),ylims=(0.0,0.0))
-plot(sol,idxs=[1],xlims=(0.0,0.0),ylims=(0.0,1.0))
-plot(sol)
-plot(sol,idxs=[1,2,3])
-plot(sol,idxs=(1,2))
-plot(sol,idxs=(1,2,3))
-
-# previous test + another event; order1 algs
-function one_t_two_events(du,u,p,t)
-    du[1] = t
-    for k in 2:5 
-        du[k]=p[1]*(u[k]-u[k-1]) ;
-    end 
-    if t-5.0>0.0
-        p[1]=0.0
-    end
-    if t-3.0>0.0
-        u[1] = 1.0
-        u[2] = 0.0
-        u[3] = 1.0
-        u[4] = 0.0
-        u[5] = 1.0
-        p[1]=1.0
-    end
-end 
-tspan=(0.0,6.0)
-u = [1.0, 0.0,1.0, 0.0,1.0]
-p=[0.5]
-odeprob=ODEProblem(one_t_two_events,u,tspan,p)
-sol=solve(odeprob,qss1())
-sol=solve(odeprob,liqss1())
-sol=solve(odeprob,nmliqss2())
-@test 1.1<sol(0.5,idxs=1)<1.3
-@test -0.35<sol(0.5,idxs=2)<-0.2
-
-# previous test + another event; order2 algs
-function one_t_three_events(du,u,p,t)
-    du[1] = t+u[2]   
-    for k in 2:5 
-        du[k]=p[k]*(u[k*1]-u[k-1]-u[k+1])+(p[k+1]+p[k-1])*p[k*1] ;
-    end 
-    if t-5.0>0.0
-        p[2]=0.0
-    end
-    if u[1]+u[2]>3.0
-        u[1] = 1.0
-        u[3] = 1.0
-        u[4] = 0.0
-        p[1]=1.0
-    end
-    if p[1]-u[4]+u[5]>0.0
-        u[2]=0.0
-    end
-end
-tspan=(0.0,6.0)
-u = [1.0, 1.0,1.0, 0.0,1.0,1.0]
-p=[0.5,1.0,1.0,1.0,1.0,1.0]
-odeprob=ODEProblem(one_t_three_events,u,tspan,p)
-sol=solve(odeprob,qss2())
-sol=solve(odeprob,liqss2())
-sol=solve(odeprob,nmliqss2())
-@test 1.7<sol(0.7,idxs=1)<1.95
-@test 0.2<sol(0.7,idxs=2)<0.35
-
-
-function testParams(du, u, p, t)
-  # System size and parameters
-  N = 5  
-  @show N
-  C=1
-  M = [1.0, 1.2, 0.9, 1.1, 1.0] 
-  D = [0.2, 0.3, 0.25, 0.22, 0.2] 
-  α, β= 12.0, -1.001
-  a=u[2] 
-  for k in C:N-1
-      du[k] = β
-  end
-  du[N-1+C] = β*u[N+N] / M[N] 
-  for k in 6:10
-      du[k] = - a*α*u[k] - D[k-5] * u[k] 
-  end
-  if t>2.0
-    u[2]=0.0
-  end
-end
-u0 = [0.1, 0.2, 0.15, 0.05, 0.1,5.0, 1.0, 0.5, 2.0, 0.0]
-tspan = (0.0, 5.0)
-odeprob = ODEProblem(testParams, u0, tspan)
-
 
 
 function simple_loop(du,u,p,t)
@@ -251,5 +111,177 @@ u = [-0.5, 0.0,1.0]
 odeprob=ODEProblem(simple_loop_discrete,u,tspan,jac_mode= :approximate)
 
 sol=solve(odeprob,nmliqss2())
-@show sol.stats
 @test 0.9<sol(0.7,idxs=1)<1.1
+
+
+# test du = t for a discrete problem; test p=[]
+function one_t_one_event(du,u,p,t)
+du[1] = t
+du[2] =1.24*u[1]-0.01*u[2]+0.2
+if t>2.0
+    u[1] = 0.0
+else
+    u[2] = 0.0
+end
+end 
+tspan=(0.0,5.0)
+u = [1.0, 0.0]
+p=[]
+odeprob=ODEProblem(one_t_one_event,u,tspan,p)
+sol=solve(odeprob,qss2())
+sol=solve(odeprob,liqss2())
+sol=solve(odeprob,nmliqss2())
+@test 0.6<sol(0.5,idxs=2)<0.8
+
+# test du = t and a loop in a discrete problem; test plot
+function one_t_discrete_loop(du,u,p,t)
+    du[1] = t
+    for k in 2:5 
+        du[k]=(u[k]-u[k-1]) ;
+    end 
+    if t>3.0
+        u[1] = 1.0
+        u[2] = 0.0
+        u[3] = 1.0
+        u[4] = 0.0
+        u[5] = 1.0  
+    end
+end  
+tspan=(0.0,6.0)
+u = [1.0, 0.0,1.0, 0.0,1.0]
+p=[]
+odeprob=ODEProblem(one_t_discrete_loop,u,tspan,p)
+sol=solve(odeprob,qss2())
+sol=solve(odeprob,liqss2())
+sol=solve(odeprob,nmliqss2())
+@test -0.75<sol(0.5,idxs=2)<-0.6
+plot_SolSum(sol)
+plot_SolSum(sol,1,2,xlims=(0.0,1.0),ylims=(0.0,2.0))
+plot_SolSum(sol,1,2,xlims=(0.0,1.0),ylims=(0.0,0.0))
+plot_SolSum(sol,1,2,xlims=(0.0,0.0),ylims=(0.0,1.0))
+plot_SolSum(sol,1,2)
+#= save_Sol(sol,1,2,3,4,5)
+save_SolSum(sol,1,2)  =#
+plot(sol,idxs=[1],xlims=(0.0,1.0),ylims=(0.0,2.0))
+plot(sol,idxs=[1],xlims=(0.0,1.0),ylims=(0.0,0.0))
+plot(sol,idxs=[1],xlims=(0.0,0.0),ylims=(0.0,1.0))
+plot(sol)
+plot(sol,idxs=[1,2,3])
+plot(sol,idxs=(1,2))
+plot(sol,idxs=(1,2,3))
+
+# previous test + another event; order1 algs
+function one_t_two_events(du,u,p,t) 
+    du[1] = t
+    du[2]=-u[1]*p[2][1]
+    for k in 3:5 
+        du[k]=p[1]*(u[k]-u[k-1]) ;
+    end 
+    if t>5.0
+        p[1]=0.0
+    end
+    if t-3.0>0.0
+        u[1] = 1.0
+        u[2] = 0.0
+        u[3] = 1.0
+        u[4] = 0.0
+        u[5] = 1.0
+        p[1]=1.0
+    end
+end 
+tspan=(0.0,6.0)
+u = [1.0, 0.0,1.0, 0.0,1.0]
+p=[0.5,[0.1,0.2]]
+odeprob=ODEProblem(one_t_two_events,u,tspan,p)
+sol=solve(odeprob,qss1())
+sol=solve(odeprob,liqss1())
+sol=solve(odeprob,nmliqss2())
+@test 1.1<sol(0.5,idxs=1)<1.3
+@test -0.1<sol(0.5,idxs=2)<-0.005
+
+# previous test + another event; order2 algs
+function one_t_three_events(du,u,p,t)
+    du[1] = t+u[2]   
+    for k in 2:5 
+        du[k]=p[k]*(u[k*1]-u[k-1]-u[k+1])+(p[k+1]+p[k-1])*p[k*1] ;
+    end 
+    if t>5.0
+        p[2]=0.0
+    end
+    if u[1]+u[2]>3.0
+        u[1] = 1.0
+        u[3] = 1.0
+        u[4] = 0.0
+        p[1]=1.0
+    end
+    if p[1]-u[4]+u[5]>0.0
+        u[2]=0.0
+    end
+end
+tspan=(0.0,6.0)
+u = [1.0, 1.0,1.0, 0.0,1.0,1.0]
+p=[0.5,1.0,1.0,1.0,1.0,1.0]
+odeprob=ODEProblem(one_t_three_events,u,tspan,p)
+sol=solve(odeprob,qss2())
+sol=solve(odeprob,liqss2())
+sol=solve(odeprob,nmliqss2())
+@test 1.7<sol(0.7,idxs=1)<1.95
+@test 0.2<sol(0.7,idxs=2)<0.35
+
+
+function testParams(du, u, t)
+  # System size and parameters
+  function foo(x)
+      return -x^2
+  end
+  N = 5  
+  C=1
+ 
+  D = [0.2, 0.3, 0.25, 0.22, 0.2] 
+  α, β= 12.0, -1.001  
+  a=u[2] 
+  for k in C:N-1
+      du[k] = β
+  end
+  du[N-1+C] = foo(a+u[3])
+  for k in 6:7
+      du[k] = - a*α*u[k] - D[k-5] * u[k] 
+  end
+  for k in 8:10
+      du[k] = foo(u[1])
+  end
+  if t>2.0
+    u[2]=0.0
+  end
+end
+u0 = [0.1, 0.2, 0.15, 0.05, 0.1,5.0, 1.0, 0.5, 2.0, 0.0]
+tspan = (0.0, 5.0)
+odeprob = ODEProblem(testParams, u0, tspan)
+
+
+function testCompositeRef(du, u, t)
+  # System size and parameters
+  function foo(x)
+      return (-x^2, -x)
+  end
+    a=u[2] ;b=u[3]
+  M = [a-b, a+b] 
+
+ 
+
+  for k in 1:2
+      du[k] = M[1]
+  end
+  du[3] = foo(a)[1]
+  
+
+  if t>2.0
+    u[2]=0.0
+  end
+end
+u0 = [0.1, 0.2, 0.15]
+tspan = (0.0, 5.0)
+odeprob = ODEProblem(testCompositeRef, u0, tspan)
+
+
+println("End of simple systems.")
