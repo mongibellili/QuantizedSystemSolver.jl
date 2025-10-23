@@ -113,7 +113,9 @@ function problem_to_normalized_ir(expr::Expr, stateVarName::Symbol, discrParamNa
     ir = build_ir(expr) # build IR
     stack = SymbolTableStack() # initialize the stack with one table
     normalized_ir_statements,numZC, numHelperF = normalize_ir(ir.statements,stack, stateVarName, discrParamName,:nothing,inline_mode) # normalize IR
+
     ir.statements=normalized_ir_statements
+    
     return probInfo(ir,  numZC, numHelperF)
 end
 

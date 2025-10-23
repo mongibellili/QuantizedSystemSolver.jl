@@ -23,7 +23,7 @@ module QuantizedSystemSolver
   import LinearAlgebra: dot, cross, transpose, adjoint, norm
    # import LinearAlgebra: norm
                 ##### list of public (API) 
-  export ODEProblemTest,ODEProblem,IR,solve ,ODEProblemData,Detection# 
+  export ODEProblemTest,ODEProblem,IR,solve ,ODEProblemData,Detection,@_inline,@_noinline# 
   export qss1,qss2,qss3,liqss1,liqss2,liqss3,saveat,nmliqss1,nmliqss2,nmliqss3
 
   export save_SolSum,solInterpolated,plot_SolSum,plot

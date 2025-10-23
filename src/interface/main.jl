@@ -96,3 +96,10 @@ struct probInfo #helper struct to return number of "if_statements" and a diction
     numZC::Int
     helperFunSymSet::Int64
 end
+
+
+
+
+macro _inline(expr)
+    #return Expr(:call, Symbol("_inline"), expr)
+end

@@ -343,7 +343,7 @@ function normalize_ir(ir_statements,stack, stateVarName::Symbol, discrParamName:
             lhs = statement.expr.args[3].args[1]
             rhs = statement.expr.args[3].args[2]
 
-            # create an AssignStatement from the @_inline. no need to handle @no_inline because it goes under the default behavior: else below
+            # create an AssignStatement from the @inline. no need to handle @no_inline because it goes under the default behavior: else below
             assignment_from_macro = AssignStatement(lhs, rhs)
             handleAssignStatement!(assignment_from_macro, stateVarName, discrParamName, stack, helperFunSymSet,muteVar,inline_mode,user_inline=true) # true means user_inline
           
@@ -352,7 +352,7 @@ function normalize_ir(ir_statements,stack, stateVarName::Symbol, discrParamName:
             lhs = statement.expr.args[3].args[1]
             rhs = statement.expr.args[3].args[2]
 
-            # create an AssignStatement from the @_inline. no need to handle @no_inline because it goes under the default behavior: else below
+            # create an AssignStatement from the @inline. no need to handle @no_inline because it goes under the default behavior: else below
             assignment_from_macro = AssignStatement(lhs, rhs)
             handleAssignStatement!(assignment_from_macro, stateVarName, discrParamName, stack, helperFunSymSet,muteVar,inline_mode,user_noinline=true) # true means user_inline
           
