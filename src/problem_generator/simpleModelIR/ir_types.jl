@@ -134,7 +134,7 @@ mutable struct SymbolEntry
 end
 
 mutable struct SymbolTable
-    entries::Dict{Symbol, SymbolEntry}  #     #if in future: allow @inline with lhs is expr, then entries::Dict{Union{Expr, Symbol}, SymbolEntry} 
+    entries::Dict{Symbol, SymbolEntry}  #     #if in future: allow @_inline with lhs is expr, then entries::Dict{Union{Expr, Symbol}, SymbolEntry} 
 end
 SymbolTable() = SymbolTable(Dict{Symbol, SymbolEntry}())
 

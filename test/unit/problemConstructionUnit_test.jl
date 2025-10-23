@@ -24,9 +24,9 @@ end =#
 
  function test_ir(du,u,p,t)
       a,b=2.3,4.5
-      @inline x=foo(u[1])
+      @_inline x=foo(u[1])
       y=bar(2.0,a)
-      @inline z=[1.1,2.2,3.3]
+      @_inline z=[1.1,2.2,3.3]
       c=y[1]
       d,y[1]=1.0,2.0+b
       y[2]=4.0
