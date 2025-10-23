@@ -12,18 +12,20 @@ module QuantizedSystemSolver
  
   import Plots: plot!,plot
           ##### for taylorseries subcomponent   #######
-  import Base: ==, +, -, *, /, ^             
+  import Base: ==, +, -, *, /, ^    
+  import Base: show         
   import Base: iterate, size, eachindex, firstindex, lastindex,
      length, getindex, setindex!
   import Base:  sqrt, exp, log, sin, cos, sincos, tan,
     asin, acos, atan, sinh, cosh, tanh, atanh, asinh, acosh,
     zero, one, zeros, ones, isinf, isnan, iszero,sign,
-    convert,  show,abs,mod,rem,min,max,rad2deg
+    convert,abs,mod,rem,min,max,rad2deg
   import LinearAlgebra: dot, cross, transpose, adjoint, norm
    # import LinearAlgebra: norm
                 ##### list of public (API) 
-  export ODEProblemTest,ODEProblem,solve ,ODEProblemData,Detection# 
+  export ODEProblemTest,ODEProblem,IR,solve ,ODEProblemData,Detection# 
   export qss1,qss2,qss3,liqss1,liqss2,liqss3,saveat,nmliqss1,nmliqss2,nmliqss3
+
   export save_SolSum,solInterpolated,plot_SolSum,plot
   export getErrorByRefs,getAverageErrorByRefs,getError,getAverageError
   # public functions and structs used in documentation
@@ -35,6 +37,8 @@ module QuantizedSystemSolver
   ##### SimpleModelIR                                        
   include("problem_generator/simpleModelIR/SimpleModelIR.jl")
   using .SimpleModelIR
+  using .SimpleModelIR: InlineMode, MANUAL, AUTO, FULL  # re-export for users
+  export InlineMode, MANUAL, AUTO, FULL
   #####  Taylor series  #########
   include("problem_generator/taylor/constructors.jl") 
   include("problem_generator/taylor/arithmetic.jl")
@@ -43,11 +47,12 @@ module QuantizedSystemSolver
   include("problem_generator/taylor/functionsT.jl")
   include("problem_generator/taylor/linearAlgebraT.jl")
    #####  problem #########
+     include("problem_generator/problem/qssProblemTypes.jl")
   include("problem_generator/problem/taylorEquationConstruction.jl")
   include("problem_generator/problem/createDependenciesHelper.jl")
   include("problem_generator/problem/qssProblemCreateDependencies.jl")
   include("problem_generator/problem/qssProblemCreateFunctions.jl")
-  include("problem_generator/problem/qssProblemDefinition.jl")
+
   include("problem_generator/problem/qssProblem.jl")
   
                                         ############## solution ################

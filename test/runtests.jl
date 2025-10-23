@@ -1,14 +1,9 @@
 using QuantizedSystemSolver
 using Test
-using Plots
-using BSON
+
+#using RuntimeGeneratedFunctions
 @testset "QuantizedSystemSolver.jl" begin
-    include("./unit/taylor0Functions.jl")
-    include("./unit/taylor0Arithmetic.jl")
-    include("./unit/qssUnitTests.jl")
-    include("./integration/exampleTest.jl")
-    include("./integration/baseFunctions.jl")
-    include("./integration/realSystemsTests.jl")
-    include("./integration/helperFunctionUsage.jl")
-    include("./integration/compositeConditionTest.jl")
+    include("./unit/all_unit_tests.jl")
+    include("./integration/all_integration_tests.jl")
+
 end

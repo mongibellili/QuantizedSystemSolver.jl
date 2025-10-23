@@ -1,12 +1,6 @@
 
 
 
-#A helper struct that holds the final IR. in addition, it used to return the number of `if_statements` and the number of helper functions written by the user. These two numbers are extracted during the normalization
-struct probInfo
-    ir::ODEFunctionIR
-    numZC::Int
-    helperFunSymSet::Int64
-end
 
 
 function convert_ints_except_indices(ex,  ::Val{false}) #convert all integers to float64 except indices
@@ -34,19 +28,8 @@ function convert_ints_except_indices(ex,  ::Val{true})   #change any float put b
     end#end postwalk
   return newEx
 end
-#= function changeExprToFirstValue2(ex::Expr)
-  newEx=postwalk(ex) do a  
-      if a isa Expr && a.head == :ref && a.args[1]==:q  
-          outerRef=Expr(:ref)
-          push!(outerRef.args,a)
-          push!(outerRef.args,:(0))
-          a=outerRef
-      end
-      return a
-  end
-  newEx
-end =#
-function changeExprToFirstValue2(expr)
+
+function changeExprToFirstValue(expr)
     if expr isa Expr
         # Skip already transformed expressions like q[i][0] or q[i][1]
         if expr.head == :ref && expr.args[1] isa Expr && expr.args[1].head == :ref && expr.args[1].args[1] == :q
@@ -59,7 +42,7 @@ function changeExprToFirstValue2(expr)
         end
 
         # Recurse into subexpressions
-        new_args = map(changeExprToFirstValue2, expr.args)
+        new_args = map(changeExprToFirstValue, expr.args)
         return Expr(expr.head, new_args...)
     else
         return expr
@@ -68,43 +51,75 @@ end
 
 
 """
-    changeVarNames_params(ex::Expr,stateVarName::Symbol,discrParamName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}},helperFunSymSet::Set{Symbol})
+    rename_and_swap(ex::Expr,stateVarName::Symbol,discrParamName::Symbol,muteVar::Symbol,stack::SymbolTableStack,helperFunSymSet::Set{Symbol})
 
-As the name suggests, this changes the continuous variables names to :q and the discrete variable name to :p and any mute variables to :i. It also plugs the parameters values from a parameter dictionary into the differential equations. The function changeVarNames_params has three methods. One for RHS of equations, one for if-statements when RHS is an expression, and one for if-statements when RHS is a symbol. This is method one. It has an additional symDict::Dict{Symbol,Expr} to collect the translation of symbols of continous and discrete variables (q[i] <-> qi). 
+As the name suggests, this changes the continuous variables names to :q and the discrete variable name to :p and any mute variables to :i. It also plugs the parameters values from a parameter dictionary into the differential equations. The function rename_and_swap has three methods. One for RHS of equations, one for if-statements when RHS is an expression, and one for if-statements when RHS is a symbol. This is method one. It has an additional symDict::Dict{Symbol,Expr} to collect the translation of symbols of continous and discrete variables (q[i] <-> qi). 
 
 # arguments:
 - `ex::Expr`: the expression to be changed
 - `stateVarName::Symbol`: the name of the state variable
 - `muteVar::Symbol`: the name of the mute variable
-- `param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}}`: the dictionary of parameters
+- `stack::SymbolTableStack`: contains a dictionary of parameters
 
 
 # Example:
 ```jldoctest
 using QuantizedSystemSolver
 
-(ex, stateVarName, discrParamName,muteVar, param) = (:(du[k] = u[k] * u[k - 1] * coef2), :u,:p, :k, Dict{Symbol, Union{Float64, Int64,Expr,Symbol}}(:coef1 => 2.0, :coef2 => 1.5))
+(ex, stateVarName, discrParamName,muteVar, stack) = (:(du[k] = u[k] * u[k - 1] * coef2), :u,:p, :k, Dict{Symbol, Union{Float64, Int64,Expr,Symbol}}(:coef1 => 2.0, :coef2 => 1.5))
 
-  newEx=QuantizedSystemSolver.changeVarNames_params(ex, stateVarName,discrParamName, muteVar, param,Set([:f]))
-(newEx, stateVarName, muteVar, param)
+  newEx=QuantizedSystemSolver.rename_and_swap(ex, stateVarName,discrParamName, muteVar, stack,Set([:f]))
+(newEx, stateVarName, muteVar, stack)
 # output
 
 (:(du[i] = q[i] * q[i - 1] * 1.5), :u, :k, Dict{Symbol, Union{Float64, Int64, Expr, Symbol}}(:coef1 => 2.0, :coef2 => 1.5))
 ```
 """
-function changeVarNames_params(ex::Expr,stateVarName::Symbol,discrParamName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}},helperFunSymSet::Set{Symbol})
+
+
+function is_custom_function(expr::Expr;custom=true)
+    # expr is assumed to be a :call
+    expr.head == :call || error("Expected Expr with head :call, got $(expr.head). Please report this bug")
+    f = expr.args[1]
+    if f isa Symbol
+        # builtin operator or Base function?
+        if f in SKIP_SYMBOLS # (:+, :-, :*, :/, :^, :%, :&, :|, :!, :(=), :(==), :!=, :<, :>, :<=, :>=)
+            return false
+        elseif custom && isdefined(Base, f) && getfield(Base, f) isa Function
+            return false
+        else
+            return true   # user-defined symbol
+        end
+    else
+        return true       # anything else (lambda, getfield, (g()), etc.) → treat as custom
+    end
+end
+
+
+function rename_and_swap(ex::Expr,stateVarName::Symbol,discrParamName::Symbol,muteVar::Symbol,stack::SymbolTableStack,helperFunSymSet::Set{Symbol})
   newEx=postwalk(ex) do element#postwalk to change var names and parameters
       if element isa Symbol   
-        element=changeVarNames_params(element,stateVarName,discrParamName,muteVar,param,helperFunSymSet)
-      elseif element isa Expr && element.head == :call && element.args[1] isa Symbol 
-        sym=element.args[1]
-        if !(sym in (:+, :-, :*, :/, :^, :%, :&, :|, :!, :(=),:(==), :!=, :<, :>, :<=, :>=)) && !(isdefined(Base, sym) && getfield(Base, sym) isa Function)
-          push!(helperFunSymSet, sym)# collect the helper functions used in the rhs of the equations 
-          element=changeExprToFirstValue2(element) # change q[1] to q[1][0]
+        element=rename_and_swap(element,stateVarName,discrParamName,muteVar,stack,helperFunSymSet)
+      elseif element isa Expr && element.head == :call #&& element.args[1] isa Symbol 
+   #=         sym=element.args[1]
+        if !(sym in SKIP_SYMBOLS) && !(isdefined(Base, sym) && getfield(Base, sym) isa Function)  =#
+        if is_custom_function(element)
+            if element.args[1] isa Symbol
+                 push!(helperFunSymSet, element.args[1])# collect the helper functions used in the rhs of the equations 
+            else
+                 push!(helperFunSymSet, Symbol(element.args[1]) )
+            end
+          element=changeExprToFirstValue(element) # change q[1] to q[1][0]
         end
-      elseif element isa Expr && element.head == :ref
+      elseif element isa Expr && element.head == :ref  #change [q[1], 6.6, q[1]][1] to q[1] 
+            container = element.args[1]
+            idx = element.args[2]
+
+            if container isa Expr && container.head == :vect && idx isa Int
+                return container.args[idx]
+            end
         # Process the :ref expression, marking that we are inside a reference
-        #return Expr(:ref, element.args[1], map(arg -> changeVarNames_params(arg, stateVarName, discrParamName, muteVar, param, helperFunSymSet), element.args[2:end])...)
+        #return Expr(:ref, element.args[1], map(arg -> rename_and_swap(arg, stateVarName, discrParamName, muteVar, stack, helperFunSymSet), element.args[2:end])...)
       end
       return element
     end#end postwalk
@@ -114,329 +129,158 @@ end
 
 
 """
-    changeVarNames_params(element::Symbol,stateVarName::Symbol,discrParamName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}},helperFunSymSet::Set{Symbol})
+    rename_and_swap(element::Symbol,stateVarName::Symbol,discrParamName::Symbol,muteVar::Symbol,stack::SymbolTableStack,helperFunSymSet::Set{Symbol})
 
-This is method three of the function changeVarNames_params. It is for if-statements when RHS is a symbol. 
+This is method three of the function rename_and_swap. It is for if-statements when RHS is a symbol. 
 Again, it changes the symbol to :q if it is a continuous variable, to :p if it is a discrete variable, to :i if it is a mute variable, and to its corresponding value if it is a parameter.
 
 
 """
-function changeVarNames_params(element::Symbol,stateVarName::Symbol,discrParamName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}},helperFunSymSet::Set{Symbol})
-          #@show stateVarName, element
-        if haskey(param, element)#symbol is a parameter
-            if param[element] isa Symbol
-              element=param[element]#copy(::Symbol) does not exist
-            else
-              element=copy(param[element])
-            end
-          elseif element==stateVarName #symbol is a var
-              element=:q 
-          elseif element==:discrete || element==discrParamName#symbol is a discr var
-              element=:p
-          elseif element==muteVar #symbol is a mute var
-              element=:i
-          end
-      return element
+function rename_and_swap(element::Symbol,stateVarName::Symbol,discrParamName::Symbol,muteVar::Symbol,stack::SymbolTableStack,helperFunSymSet::Set{Symbol})
+    
+    if element in SKIP_SYMBOLS || isdefined(Base, element)#symbol is sign or in base like cos...
+    elseif element==stateVarName #symbol is a var
+        element=:q 
+    elseif element==:discrete || element==discrParamName#symbol is a discr var: p can be used both for simple param passing and for discrete variables (the word discrete if in future we want to separate them)
+        element=:p
+    elseif element==muteVar #symbol is a mute var
+        element=:i
+    else
+        entry = lookup(stack, element) # lookup the symbol in the stack
+        if !isnothing(entry) && entry.safe_to_inline
+            val = entry.value
+            element = (val isa Expr) ?  copy(val) : val  # Copy if Expr to avoid IR side effects
+        end
+    end
+    return element
 end
-function changeVarNames_params(element::Number,stateVarName::Symbol,discrParamName::Symbol,muteVar::Symbol,param::Dict{Symbol,Union{Float64,Int64,Expr,Symbol}},helperFunSymSet::Set{Symbol})
+function rename_and_swap(element::Union{Number,String,Char,Bool},stateVarName::Symbol,discrParamName::Symbol,muteVar::Symbol,stack::SymbolTableStack,helperFunSymSet::Set{Symbol})
    return element
 end
 
 
-
-
-
-"""
-    recurse(e::Expr,flattened::Vector{Expr})
-
-Break down a compound condition into basic components.
-This function recursively decomposes a condition expression into its basic components, flattening nested logical operators (&&, ||) into a list of expressions. It returns a vector of flattened expressions.
-# Example:
-```jldoctest
-using QuantizedSystemSolver
-ex=:(u < 1 || u > 10)
-flattened = Expr[]
-QuantizedSystemSolver.recurse(ex, flattened)
-flattened
-
-# output
-
-2-element Vector{Expr}:
- :(u < 1)
- :(u > 10)
-```
-"""
-function recurse(e::Expr,flattened::Vector{Expr})
-    if e isa Expr && e.head in [:&&, :||]
-        for arg in e.args
-            recurse(arg,flattened)
+function contains_vect_or_custom(ex; skip_self=false)
+    found = false
+    postwalk(ex) do node
+        if node isa Expr
+            if (node.head in [:vect, :vcat]) || (node.head == :call && is_custom_function(node))
+                # if skip_self=true, only mark found if node is not the root
+                if !(skip_self && node === ex)
+                    found = true
+                end
+            end
         end
-    else
-        push!(flattened, e)
+        return node
     end
+    return found
 end
-"""
-    decompose_condition(cond::Expr)
-
-Break down a compound condition into basic components.
-Returns a tuple (kind, normalized conditions).
-where kind is :or or :and depending on the original condition.
-# Example:
-```jldoctest
-using QuantizedSystemSolver
-ex=:(u < 1 || u > 10)
-(kind,flattened)=QuantizedSystemSolver.decompose_condition(ex)
-(kind,flattened)
-
-# output
-
-(:or, Expr[:(u < 1), :(u > 10)])
-```
-"""
-function decompose_condition(cond::Expr)
-    if cond.head in [:&&, :||]
-        kind = cond.head == :&& ? :and : :or
-        flattened = Expr[]
-        recurse(cond,flattened)
-        if length(flattened) > 2
-            return (:multi, flattened)
-        else
-            return (kind, flattened)
-        end
-    else
-        return (:single, [cond])
-    end
-end
-"""
-    to_zcf(expr::Expr)
-
-Convert a condition expression to zero-crossing form.
-This function transforms a condition expression into a zero-crossing form (ZCF) by rearranging the terms. For example, it converts expressions like `A < B` to `B - A ` and `A > B` to `A - B`.
-It is used to prepare conditions for further processing in the normalization of IRs.    
-# Example:
-```jldoctest
-using QuantizedSystemSolver
-ex1 = :(u > 10)
-ex2 = :(u < 1)
-zcf1 = QuantizedSystemSolver.to_zcf(ex1)
-zcf2 = QuantizedSystemSolver.to_zcf(ex2)
-(zcf1, zcf2)
-# output
-
-(:(u - 10), :(1 - u))
-"""
-function to_zcf(expr)
-    if expr.head == :call && expr.args[1] in [:>, :>=,:(==)]
-        return Expr(:call, :-, expr.args[2], expr.args[3])
-    elseif expr.head == :call && expr.args[1] in [:<, :<=]
-        return Expr(:call, :-, expr.args[3], expr.args[2])
-    end
-
-end
-
-"""
-    process_if_condition(cond, stateVarName, discrParamName, param, helperFunSymSet)
-
-Processes an `if` condition within the intermediate representation (IR).
-
-# Arguments
-- `cond`: The condition expression to be processed.
-- `stateVarName`: The name of the state variable involved in the condition.
-- `discrParamName`: The name of the discrete parameter relevant to the condition.
-- `param`: Additional parameters required for processing.
-- `helperFunSymSet`: A set of helper function symbols used during processing.
-
-# Returns
-Returns the processed representation of the `if` condition, potentially transformed for normalization within the IR.
-
-# Notes
-This function is intended for internal use in the normalization of IR.
-"""
-function process_if_condition(cond, stateVarName, discrParamName, param, helperFunSymSet)
-    kind, original_conds = decompose_condition(cond)
-
-    new_subconds = [
-        changeVarNames_params(
-            c,
-            stateVarName,
-            discrParamName,
-            :nothing,
-            param,
-            helperFunSymSet,
-        ) for c in original_conds
-    ]
-    cond_zcfs = [
-            to_zcf(c)
-            for c in new_subconds
-    ]
-
-    return kind, cond_zcfs,new_subconds
-end
-
-"""
-    process_if_block(block_expr::Expr, stateVarName, discrParamName, param, helperFunSymSet)
-
-Processes an `if` block (body) expression within the intermediate representation (IR).
-
-# Arguments
-- `block_expr::Expr`: The Julia expression representing the `if` block to be processed.
-- `stateVarName`: The name of the state variable involved in the block.
-- `discrParamName`: The name  of the discrete variable.
-- `param`: Additional parameter(s) required for processing the block.
-- `helperFunSymSet`: A set of helper function symbols used during processing.
-
-# Returns
-- The processed `if` block body (change of variable names).
-
-# Notes
-- This function is intended for internal use within the IR normalization pipeline.
-"""
-function process_if_block(block_expr::Expr, stateVarName, discrParamName, param, helperFunSymSet)
-    # Ensure it's a block of statements
-    stmts = block_expr.head == :block ? block_expr.args : [block_expr]
-    to_delete = Int[]
-    for (i, stmt) in enumerate(stmts)
-        if stmt isa Expr && stmt.head in [:(=), :+=, :-=, :*=, :/=]
-            lhs, rhs = stmt.args[1], stmt.args[2]
-            stmt.args[1] = changeVarNames_params(lhs, stateVarName, discrParamName, :nothing, param, helperFunSymSet)
-            #@show stmt.args[1]
-            if stmt.args[1] isa Symbol && rhs isa Expr && rhs.head in [:call, :ref]
-                stmt.args[2] = changeVarNames_params(rhs, stateVarName, discrParamName, :nothing, param, helperFunSymSet)
-                param[lhs] = stmt.args[2]
-                push!(to_delete, i)
+# --- Decide AssignAction based on mode, user flags, RHS ---
+function decide_action(rhs; mode::InlineMode, user_inline::Bool=false, user_noinline::Bool=false)
+    if mode == MANUAL
+        return user_inline ? RegisterSwapRemove() : RegisterNoSwapKeep()
+    elseif mode == AUTO
+        # Hybrid AUTO: scalar custom functions are inlined with warning
+        if user_inline
+            return RegisterSwapRemove()
+        elseif user_noinline
+            return RegisterNoSwapKeep()
+        elseif rhs isa Expr
+            if rhs.head == :call
+                if is_custom_function(rhs)
+                    return RegisterSwapRemoveWarn()  # inline with warning
+                elseif !contains_vect_or_custom(rhs)
+                    return RegisterSwapRemove()      # safe built-in op
+                else
+                    return RegisterNoSwapKeep()
+                end
+            elseif rhs.head in [:vect, :vcat]
+                return RegisterNoSwapKeep()          # never inline vectors
+            elseif rhs.head in [:tuple, :curly]
+                return RegisterNoSwapKeep()          # never inline tuples/curly
+            elseif rhs.head == :ref  && (rhs.args[1]==:q || rhs.args[1]==:p)
+                 return RegisterSwapRemove() 
             else
-                stmt.args[2] = changeVarNames_params(rhs, stateVarName, discrParamName, :nothing, param, helperFunSymSet)
+                return RegisterNoSwapKeep()
             end
         else
-            stmts[i] = changeVarNames_params(stmt, stateVarName, discrParamName, :nothing, param, helperFunSymSet)
+            return RegisterSwapRemove()              # literal or symbol
+        end
+    else # FULL
+        return user_noinline ? RegisterNoSwapKeep() : RegisterSwapRemove()
+    end
+end
+
+# --- Main handler ---
+function handleAssignStatement!(statement::AssignStatement,
+                                stateVarName::Symbol, discrParamName::Symbol,
+                                stack::SymbolTableStack, helperFunSymSet::Set{Symbol},
+                                muteVar::Symbol,
+                                mode::InlineMode;
+                                user_inline::Bool=false,
+                                user_noinline::Bool=false)
+
+    currentTable = peek(stack)
+    lhs, rhs = statement.lhs, statement.rhs
+
+    # rename / swap RHS first
+    rhs = rename_and_swap(rhs, stateVarName, discrParamName, muteVar, stack, helperFunSymSet)
+    statement.rhs = rhs
+
+    # Decide policy action
+    action = decide_action(rhs; mode=mode, user_inline=user_inline, user_noinline=user_noinline)
+
+    # Emit warning if Hybrid AUTO inlined custom function
+    if action.warn
+        @warn "Inlined custom function $(rhs). If it returns a vector/matrix, this may cause allocations."
+    end
+
+    # --- Handle LHS shape ---
+    if lhs isa Symbol
+        if action.register
+            add_symbol!(currentTable, lhs, rhs, action.swap)
+        end
+        statement.keep_assignment = action.keep
+
+    elseif lhs isa Expr
+        if lhs.head == :tuple
+            # Tuple destructuring: per element
+            keep = action.keep
+            base_sym = rhs == discrParamName ? :p : rhs == stateVarName ? :q : rhs
+            for (i, sym) in enumerate(lhs.args)
+                if sym isa Symbol
+                    if action.register
+                        add_symbol!(currentTable, sym, :($base_sym[$i]), action.swap)
+                    end
+                else
+                    keep = true
+                    if sym isa Expr && sym.head == :ref
+                        sym.args[1] = rename_and_swap_lhs(sym.args[1], stateVarName, discrParamName, muteVar, stack, helperFunSymSet)
+                    end
+                end
+            end
+            statement.keep_assignment = keep
+
+        elseif lhs.head == :ref
+            # Cannot register ref LHS; just rename indices
+            lhs.args[1] = rename_and_swap_lhs(lhs.args[1], stateVarName, discrParamName, muteVar, stack, helperFunSymSet)
+            if lhs.args[2] isa Expr && lhs.args[2].head == :call
+                lhs.args[2] = Int(eval(rename_and_swap(lhs.args[2], stateVarName, discrParamName, muteVar, stack, helperFunSymSet)))
+            end
+            statement.keep_assignment = true
+
+        else
+            # Fallback: e.g., obj.field = rhs
+            statement.keep_assignment = true
         end
     end
 
-    # Remove unnecessary assignments
-    for i in reverse(to_delete)
-        splice!(stmts, i)
-    end
-    return length(stmts) == 1 ? stmts[1] : Expr(:block, stmts...)
+    return nothing
 end
 
 
 
 
-"""
-    process_if_expr(statement,stateVarName,discrParamName,param,helperFunSymSet)
 
-Processes an `IfStatement` within the intermediate representation (IR) of a simple model. 
-This function normalizes the given `IfStatement` according to the provided state variable name, discrete variable name, additional parameters, and a set of helper function symbols:
-    - Applies variable substitution and body block processing.
-    - Decomposes composite conditions (&&, ||).
-
-# Arguments
-- `statement::IfStatement`: The `IfStatement` node to be processed.
-- `stateVarName`: The name of the state variable relevant to the normalization.
-- `discrParamName`: The name of the discretization parameter.
-- `param`: Additional parameter(s) required for normalization.
-- `helperFunSymSet`: A set of symbols representing helper functions used during normalization.
-
-# Returns
-- `Vector{IfStatement}`: A vector of normalized `IfStatement` objects resulting from the processing.
-
-# Notes
-This function is typically used as part of the IR normalization pipeline in the `SimpleModelIR` module.
-"""
-function process_if_expr(statement,stateVarName,discrParamName,param,helperFunSymSet)
-    cond = statement.condition
-    if !(cond isa Expr && (
-            (cond.head == :call && cond.args[1] in [:>, :>=, :<, :<=,:(==)]) ||
-            cond.head in [:&&, :||]
-        ))
-        #@show statement
-        return [statement]  # Already normalized
-    end
-    # === Normalize inequalities: A < B -> B - A > 0 ===
-    if cond.head == :call && cond.args[1] in [:<, :<=]
-        cond = Expr(:call, :>, cond.args[3], cond.args[2])
-    elseif cond.head == :call && cond.args[1] == :(==)
-        if_expr = statement.body
-        if length(if_expr.args) == 3
-            error("Equality condition must not have an else branch. Please contact the developers if this feature is needed.")
-        elseif length(if_expr.args) == 2
-            push!(if_expr.args, if_expr.args[2] ) # add the then block as else block, because rising or falling should trigger the same action.
-        end
-    elseif cond.head == :call && cond.args[1] in [:>, :>=]
-        # already fine
-    elseif cond.head in [:&&, :||]
-        # OK for now, we'll handle decomposition later
-    else
-        error("Unsupported if condition: $cond")
-    end
-    # === Apply changeVarNames_params to whole condition ===
-    kind, cond_zcfs,new_conds = process_if_condition(cond, stateVarName, discrParamName, param, helperFunSymSet)
-
-    # === Process IF body ===
-    if_expr = statement.body
-    processed_expr = process_if_block(if_expr.args[2], stateVarName, discrParamName, param, helperFunSymSet)
-    then_block = processed_expr.head == :block ? processed_expr : Expr(:block, processed_expr)
-    if_expr.args[2] = then_block
-    has_else = length(if_expr.args) == 3
-   # @show has_else
-    if has_else
-        processed_expr = process_if_block(if_expr.args[3], stateVarName, discrParamName, param, helperFunSymSet)
-        else_block = processed_expr.head == :block ? processed_expr : Expr(:block, processed_expr)
-        if_expr.args[3] = else_block
-    end
-    # === Generate new IfStatement IRs ===
-    new_if_statements = IfStatement[]
-    if kind == :single
-        if_expr.args[1] = cond_zcfs[1]
-        push!(new_if_statements, IfStatement(cond_zcfs[1], if_expr))
-
-    elseif kind == :and && !has_else
-        zcfcond1, zcfcond2 = cond_zcfs
-        cond1, cond2 = new_conds
-        inner = Expr(:if,deepcopy(cond2), then_block) # deepcopy because inside events we do not want transformation to conditions in taylorEquationConstruction to be reflected back (pass by reference)
-        outer = Expr(:if, deepcopy(cond1), inner)
-        push!(new_if_statements, IfStatement(zcfcond1, outer))
-        #  reverse the order
-        inner_rev = Expr(:if, deepcopy(cond1), then_block)
-        outer_rev = Expr(:if, deepcopy(cond2), inner_rev)
-        push!(new_if_statements, IfStatement(zcfcond2, outer_rev))
-
-    elseif kind == :and && has_else
-        zcfcond1, zcfcond2 = cond_zcfs
-        cond1, cond2 = new_conds
-        inner = Expr(:if, deepcopy(cond2), then_block)
-        outer = Expr(:if, deepcopy(cond1), inner, else_block)
-        push!(new_if_statements, IfStatement(zcfcond1, outer))
-        #  reverse the order
-        inner_rev = Expr(:if, deepcopy(cond1), then_block)
-        outer_rev = Expr(:if, deepcopy(cond2), inner_rev, else_block)
-        push!(new_if_statements, IfStatement(zcfcond2, outer_rev))
-
-    elseif kind == :or && !has_else
-        zcfcond1, zcfcond2 = cond_zcfs
-        cond1, cond2 = new_conds
-        push!(new_if_statements, IfStatement(zcfcond1, Expr(:if, deepcopy(cond2), then_block)))
-        push!(new_if_statements, IfStatement(zcfcond2, Expr(:if, deepcopy(cond1), then_block)))
-    elseif kind == :or && has_else
-        cond1, cond2 = cond_zcfs
-        zcfcond1, zcfcond2 = cond_zcfs
-        cond1, cond2 = new_conds
-        fallback1 = Expr(:if, Expr(:call, :!,  deepcopy(cond2)), else_block)
-        push!(new_if_statements, IfStatement(zcfcond1, Expr(:if, deepcopy(cond1), then_block, fallback1)))
-
-        fallback2 = Expr(:if, Expr(:call, :!, deepcopy(cond1)), else_block)
-        push!(new_if_statements, IfStatement(zcfcond2, Expr(:if, deepcopy(cond2), then_block, fallback2)))
-    elseif kind == :multi
-        renamed_cond = changeVarNames_params(statement.condition, stateVarName, discrParamName, :nothing, param, helperFunSymSet)
-        if_expr.args[1] = deepcopy(renamed_cond)
-        for cond_i in cond_zcfs
-            new_expr = Expr(:if, deepcopy(cond_i), if_expr, if_expr)
-            push!(new_if_statements, IfStatement(cond_i, new_expr))
-        end
-    end
-
-    return new_if_statements
-end
 
 
 
@@ -457,82 +301,73 @@ Normalizes the intermediate representation (IR) of an ODE function.
 This function processes the given ODE function IR, normalizing its structure with respect to the specified state variable and discretization parameter.
 The normalization includes renaming variables, swapping parameters, and decomposing composite if-statements.
 """
-function normalize_ir(ir, stateVarName::Symbol, discrParamName::Symbol)
-    param = Dict{Symbol, Union{Float64, Int64, Expr, Symbol}}()
+function normalize_ir(ir_statements,stack, stateVarName::Symbol, discrParamName::Symbol,muteVar::Symbol,inline_mode::InlineMode)
     helperFunSymSet = Set{Symbol}()
     numZC = 0
-    normalized_statements = []
-    for statement in ir.statements
+    normalized_statements = Vector{AbstractODEStatement}()
+    for statement in ir_statements
         if statement isa AssignStatement
-            lhs, rhs = statement.lhs, statement.rhs
-            if lhs isa Symbol && rhs isa Number
-                param[lhs] = Float64(rhs)
-            elseif rhs isa Symbol && lhs isa Expr && lhs.head == :tuple
-                base_sym = rhs == discrParamName ? :p : rhs == stateVarName ? :q : rhs
-                for (i, sym) in enumerate(lhs.args)
-                    param[sym] = :($base_sym[$i])
-                end
-            elseif lhs isa Symbol && rhs isa Expr && (rhs.head == :call || rhs.head == :ref)
-                new_rhs = changeVarNames_params(rhs, stateVarName, discrParamName, :nothing, param, helperFunSymSet)
-                statement.rhs = new_rhs
-                param[lhs] = new_rhs
-            elseif lhs isa Symbol && rhs isa Expr && rhs.head in [:vect, :tuple]
-                if rhs.head == :vect
-                    @warn "Vector literal assigned to `$(lhs)` may cause allocations. Consider using a tuple or pass it through parameters if appropriate."
-                end
-                new_rhs = changeVarNames_params(rhs, stateVarName, discrParamName, :nothing, param, helperFunSymSet)
-                statement.rhs = new_rhs
-            elseif lhs isa Expr && lhs.head == :ref
-                if lhs.args[2] isa Expr && lhs.args[2].head == :call
-                    lhs.args[2] = Int(eval(changeVarNames_params(lhs.args[2], stateVarName, discrParamName, :nothing, param, helperFunSymSet)))
-                end
-                if rhs isa Expr && rhs.head != :vect
-                    new_rhs = changeVarNames_params(rhs, stateVarName, discrParamName, :nothing, param, helperFunSymSet)
-                    statement.rhs = new_rhs
-                    if haskey(param, lhs.args[2])
-                        lhs.args[2] = param[lhs.args[2]] 
-                    end
-                elseif rhs isa Symbol && haskey(param, rhs)
-                    statement.rhs = param[rhs]
-                end
-            end
-             push!(normalized_statements, statement)
+            handleAssignStatement!(statement, stateVarName, discrParamName, stack, helperFunSymSet,muteVar,inline_mode) # notice that muteVar is passed to handleAssignStatement! so that it is not swapped
+            push!(normalized_statements, statement)
         elseif statement isa ForStatement
+            localSymTable = SymbolTable()
+            push_scope!(stack, localSymTable)
             muteVar = statement.var
             b = statement.start
             niter = statement.stop
-            for body_statement in statement.body              
-                if body_statement isa AssignStatement
-                    body_statement.rhs = changeVarNames_params(body_statement.rhs, stateVarName, discrParamName, muteVar, param, helperFunSymSet)
-                end
-            end
             if !(b isa Int64)
-                statement.start = Int(eval(changeVarNames_params(b, stateVarName, discrParamName, :nothing, param, helperFunSymSet)))
+                statement.start = Int(eval(rename_and_swap(b, stateVarName, discrParamName, :nothing, stack, helperFunSymSet)))
             end
             if !(niter isa Int64)
-                statement.stop = Int(eval(changeVarNames_params(niter, stateVarName, discrParamName, :nothing, param, helperFunSymSet)))
+                statement.stop = Int(eval(rename_and_swap(niter, stateVarName, discrParamName, :nothing, stack, helperFunSymSet)))
             end
-             push!(normalized_statements, statement)
+            # recursive call to normalize the body of the for loop: no need to get the return because here all we want is the swapping: 
+            # notice that inside normalize, only process_if_expr gets a new expr...so, an if statment under a for statment won't change (which what we want because it s not an event)
+            normalize_ir(statement.body,stack, stateVarName, discrParamName,muteVar,inline_mode) 
+
+            push!(normalized_statements, statement)
+            pop_scope!(stack)
         elseif statement isa IfStatement
-           
-           # cond = statement.condition
-           # @show "before normalize if", statement
-            new_ifs = process_if_expr(statement, stateVarName, discrParamName, param, helperFunSymSet)
-           # @show new_ifs
+            localSymTable = SymbolTable()
+            push_scope!(stack, localSymTable)
+            new_ifs = process_if_expr(statement, stateVarName, discrParamName, stack, helperFunSymSet)
             numZC += length(new_ifs)
             append!(normalized_statements, new_ifs) 
-        else
-            if statement isa ExprStatement && statement.expr.head == :function
-                # put function name in param so that call to it can be replaced
-                param[statement.expr.args[1].args[1]]=:f_
-            end
-             
-             append!(normalized_statements, [statement])
+            pop_scope!(stack)
+        elseif statement isa ExprStatement && statement.expr.head == :function
+                # put function name in stack so that call to it can be replaced. This is a closure function and not allowed inside RuntimeGeneratedFunctions, so i pass it to integrator as :f_
+                currentTable = peek(stack)
+                add_symbol!(currentTable, statement.expr.args[1].args[1], :f_)
+                push!(normalized_statements, statement)
+        elseif statement isa ExprStatement && statement.expr.head == :macrocall && statement.expr.args[1] == Symbol("@inline") && statement.expr.args[3] isa Expr && statement.expr.args[3].head == :(=)
+            lhs = statement.expr.args[3].args[1]
+            rhs = statement.expr.args[3].args[2]
+
+            # create an AssignStatement from the @inline. no need to handle @no_inline because it goes under the default behavior: else below
+            assignment_from_macro = AssignStatement(lhs, rhs)
+            handleAssignStatement!(assignment_from_macro, stateVarName, discrParamName, stack, helperFunSymSet,muteVar,inline_mode,user_inline=true) # true means user_inline
+          
+            push!(normalized_statements, assignment_from_macro)
+        elseif statement isa ExprStatement && statement.expr.head == :macrocall && statement.expr.args[1] == Symbol("@noinline") && statement.expr.args[3] isa Expr && statement.expr.args[3].head == :(=)
+            lhs = statement.expr.args[3].args[1]
+            rhs = statement.expr.args[3].args[2]
+
+            # create an AssignStatement from the @inline. no need to handle @no_inline because it goes under the default behavior: else below
+            assignment_from_macro = AssignStatement(lhs, rhs)
+            handleAssignStatement!(assignment_from_macro, stateVarName, discrParamName, stack, helperFunSymSet,muteVar,inline_mode,user_noinline=true) # true means user_inline
+          
+            push!(normalized_statements, assignment_from_macro)
+        else #ExprStatement
+            new_expr = rename_and_swap(statement.expr, stateVarName, discrParamName, muteVar, stack, helperFunSymSet) # rhs = f(q[i], p[i]) or rhs=q[i]
+            statement.expr = new_expr
+            push!(normalized_statements, statement)
         end
     end
-    ir.statements = normalized_statements
+
+    #@show ir_statements
     numHelperF = length(helperFunSymSet)
-    return probInfo(ir,numZC, numHelperF)
+    #return probInfo(numZC, numHelperF) # return the number of zero-crossings and the number of helper functions
+    return normalized_statements,numZC, numHelperF
 end
 
 

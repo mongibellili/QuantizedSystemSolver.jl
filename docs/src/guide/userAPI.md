@@ -16,12 +16,12 @@ ODEProblem(f::Function, u::Vector{Float64}, tspan::Tuple{A,B};jac_mode ::Symbol=
 ## The solve function:
 
 ```@docs
-solve(prob::ODEProblemData{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType};detection::Val{M}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose=false::Bool) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,M}        
+solve(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS},al::QSSAlgorithm{SolverType, OrderType};detection::Val{M}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose=false::Bool) where{JACMODE,T,D,Z,CS,F,JAC,CLS,SolverType,OrderType,M}        
 ```
 
 
 ```@docs
-solve(prob::ODEProblemData{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};detection::Val{M}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose=false::Bool) where{F,PRTYPE,T,D,Z,CS,SolverType,OrderType,M} 
+solve(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};detection::Val{M}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose=false::Bool) where{JACMODE,T,D,Z,CS,F,JAC,CLS,SolverType,OrderType,M} 
 ```
 
 

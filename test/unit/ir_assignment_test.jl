@@ -1,28 +1,4 @@
-#= function foo(i)
-  i+1.0
-end
-function bar(a,b)
-  [a+b, a-b, a*b]
-end =#
-
-#= :a = 2.3 (optimized out)
-:b = 4.5 (optimized out)
-:x = :(foo((q[1])[0])) (optimized out)
-:y = :(bar(2.0, 2.3))
-:z = :([1.1, 2.2, 3.3]) (optimized out)
-:c = :(y[1]) (optimized out)
-:d = 1.0 (optimized out)
-:(y[1]) = :(2.0 + 4.5)
-:(y[2]) = 4.0
-:((e, y[3])) = :p
-:vec2 = :([1.0, 2.0])
-:g = :([2.22, 3.33])
-:h = :vec2 (optimized out)
-:(g[1]) = 5.0 =#
-
-
-
- function test_ir(du,u,p,t)
+function test_ir_assignment(du,u,p,t)
       a,b=2.3,4.5
       @inline x=foo(u[1])
       y=bar(2.0,a)
@@ -39,7 +15,7 @@ end =#
 end  
 tspan=(0.0,2.0)
 u = [-0.5, 0.0,1.0] 
-ir_group=IR(test_ir, u, tspan, inline_mode=AUTO)
+ir_group=IR(test_ir_assignment, u, tspan,inline_mode=AUTO) 
 all_statements=ir_group.ir.statements
 
 @test all_statements[1].lhs == :a
@@ -63,7 +39,7 @@ all_statements=ir_group.ir.statements
 @test all_statements[5].keep_assignment == false
 
 @test all_statements[6].lhs == :c
-@test all_statements[6].rhs == :((bar(2.0, 2.3))[1] )
+@test all_statements[6].rhs == :((bar(2.0, 2.3))[1])
 @test all_statements[6].keep_assignment == true
 
 @test all_statements[7].lhs == :d
@@ -98,3 +74,26 @@ all_statements=ir_group.ir.statements
 @test all_statements[14].lhs == :(g[1])
 @test all_statements[14].rhs == 5.0
 @test all_statements[14].keep_assignment == true
+
+
+#= function foo(i)
+  i+1.0
+end
+function bar(a,b)
+  [a+b, a-b, a*b]
+end =#
+
+#= :a = 2.3 (optimized out)
+:b = 4.5 (optimized out)
+:x = :(foo((q[1])[0])) (optimized out)
+:y = :(bar(2.0, 2.3))
+:z = :([1.1, 2.2, 3.3]) (optimized out)
+:c = :(y[1]) (optimized out)
+:d = 1.0 (optimized out)
+:(y[1]) = :(2.0 + 4.5)
+:(y[2]) = 4.0
+:((e, y[3])) = :p
+:vec2 = :([1.0, 2.0])
+:g = :([2.22, 3.33])
+:h = :vec2 (optimized out)
+:(g[1]) = 5.0 =#

@@ -564,14 +564,6 @@ end
 end
 
 
-
-
-
-
-
-
-
-
 function Derivative(y, x)
     #partial derivative of abs(x)/dx...maybe needed for symbolic differentiation in the diff function inside extractdependency...message that recommends using manual jac in case of external functions, because this Derivative function is not the solution, it is just a ductape to prevent breakage
     if x > 0

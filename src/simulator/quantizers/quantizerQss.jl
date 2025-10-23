@@ -1,6 +1,6 @@
 function prepareAii(i::Int,j::Int,a::Int,exactA::FU, q::Vector{Taylor0}, d, cacheA::MVector{1,Float64} , simt::Float64, clF::F) where {F,FU}
   cacheA[1] = 0.0
-  exactA(q, d, cacheA, i, j, simt,clF)
+  exactA(q, d, cacheA, i, j, simt,clF) 
   return cacheA[1] 
 end
 
@@ -123,7 +123,8 @@ function updateZCF(::Val{O},::Val{CS},f::PRFUN,j::Int,q::Vector{Taylor0},tq::Vec
   for b in zc_SimpleJac[j] # elapsed update all other vars that this zcf depends upon.
           integrateState(Val(O - 1),q[b],tq[b],simt);tq[b]=simt
   end
-  clearCache(taylorOpsCache, Val(CS), Val(O)); f(-1, j, -1, q, d, t, taylorOpsCache,clF)   # run ZCF--------    
+  clearCache(taylorOpsCache, Val(CS), Val(O)); 
+  f(-1, j, -1, q, d, t, taylorOpsCache,clF)   # run ZCF--------    
 end
 
 """
@@ -372,28 +373,32 @@ Compute the next event time for a given zero-crossing function.
 # Returns
 - The computed next event time for the state variable `j`.
 """
-function computeNextEventTime(::Val{O},j::Int,ZCFun::Taylor0,oldsignValue::MMatrix{Z,2} ,simt::Float64,  nextEventTime :: MVector{Z,Float64}, quantum::Vector{Float64},absZ::Float64,relZ::Float64) where {O, Z}
+function computeNextEventTime(::Val{O},j::Int,ZCFun::Taylor0,oldsignValue::MMatrix{Z,2} ,simt::Float64,  nextEventTime :: MVector{Z,Float64}, quantum::Vector{Float64},absZ::Float64,relZ::Float64#= ,totalSteps::Integer =#) where {O, Z}
   
-   tol_zcf= absZ + relZ*abs(ZCFun[0])
-  if abs(oldsignValue[j,2]) <= 1e-6*tol_zcf  && abs(ZCFun[0]) <= 1e-6*tol_zcf
-    nextEventTime[j]=Inf
-  elseif (oldsignValue[j,1] != sign(ZCFun[0])) && abs(oldsignValue[j,2]) >tol_zcf#prevent double tapping: when zcf is leaving zero it should be considered an event
-    nextEventTime[j]=simt 
-  elseif abs(ZCFun[0]) <= tol_zcf && abs(oldsignValue[j,2]) >tol_zcf#prevent double tapping: when zcf is leaving zero it should be considered an event
-    nextEventTime[j]=simt
+  # tol_zcf= absZ + relZ*abs(ZCFun[0])
+  if abs(oldsignValue[j,2]) <= absZ  && abs(ZCFun[0]) <= absZ
 
+    nextEventTime[j]=Inf
+  elseif (oldsignValue[j,1] != sign(ZCFun[0])) && abs(oldsignValue[j,2])  > 1e-15 #prevent double tapping: when zcf is leaving zero it should be considered an event
+    nextEventTime[j]=simt 
+  elseif abs(ZCFun[0]) <= absZ && abs(oldsignValue[j,2]) > absZ 
+    nextEventTime[j]=simt+(absZ / abs(ZCFun[1]))
+ 
   else # old and new ZCF both pos or both neg
-    mpr=minPosRoot(ZCFun, Val(O)) # zcfun uses q so normally O-1, but for time events we still need O. (the 'a' term is not used for state events)
+    mpr=minPosRoot(ZCFun, Val(O)) # zcfun uses q so normally O-1, but for time events we still need O. (the 'a' term is not used for state events: a.h^2+b.h+c)
     if mpr < 1e-12  
-        delta = tol_zcf / abs(ZCFun[1])
-        if delta < nextfloat(simt) - simt
-            delta = 1e-14
+        delta = absZ / abs(ZCFun[1]) # if zcf is passing sharply, zcf1 high, delta ->small (do not attempt to move forward much)
+        if delta < 1e-15#  nextfloat(simt) - simt  # if there is no luck in moving forward safely, take the risk with 1e-15. note: buck failed with 1e-14.
+            delta = 1e-15 # note: buck failed with 1e-14.
         end
         mpr += delta
     end
     nextEventTime[j] =simt + mpr
-    oldsignValue[j,1]=sign(ZCFun[0])#update the values
+
+    oldsignValue[j,1]=sign(ZCFun[0])#update the values 
     oldsignValue[j,2]=ZCFun[0]
-  end
+   
+  end 
   
 end
+

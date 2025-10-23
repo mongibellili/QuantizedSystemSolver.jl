@@ -4,8 +4,32 @@
 function parse_expr_tree(expr::Expr)
     statements = AbstractODEStatement[]
     for subexpr in expr.args
-        if subexpr isa Expr && subexpr.head == :(=)
-            push!(statements, AssignStatement(subexpr.args[1], subexpr.args[2])) 
+        if subexpr isa Expr && subexpr.head in [:(=), :+=, :-=, :*=, :/=]
+            lhs = subexpr.args[1]
+            rhs = subexpr.args[2]
+            if lhs isa Expr && lhs.head == :tuple && rhs isa Expr && rhs.head == :tuple
+                length(lhs.args) == length(rhs.args) || 
+                    error("lhs and rhs must have the same length in $lhs = $rhs")
+
+                for (l, r) in zip(lhs.args, rhs.args)
+                    push!(statements, AssignStatement(l, r))
+                end
+            else
+                # regular assignment
+                if subexpr.head == :+=
+                    rhs = Expr(:call, :+, lhs, rhs)
+                elseif subexpr.head == :-=
+                    rhs = Expr(:call, :-, lhs, rhs)
+                elseif subexpr.head == :*=
+                    rhs = Expr(:call, :*, lhs, rhs)
+                elseif subexpr.head == :/=
+                    rhs = Expr(:call, :/, lhs, rhs)
+                end
+                push!(statements, AssignStatement(lhs, rhs))
+            end
+     
+
+  
         elseif subexpr isa Expr && subexpr.head == :if
             condition = subexpr.args[1]
             then_branch = subexpr.args[2]
@@ -33,8 +57,7 @@ function parse_expr_tree(expr::Expr)
             else
                 error("Unsupported loop iterator format: $loop_iter")
             end
-            local_statements = parse_expr_tree(Expr(:block, (subexpr.args[2] isa Expr && subexpr.args[2].head == :block ?
-                subexpr.args[2].args : [subexpr.args[2]])...))
+            local_statements = parse_expr_tree(Expr(:block, (subexpr.args[2] isa Expr && subexpr.args[2].head == :block ? subexpr.args[2].args : [subexpr.args[2]])...))
             push!(statements, ForStatement(loop_var, loop_start, loop_end, local_statements, loop_statement, loop_iter, loop_type))
         #elseif subexpr isa Expr && subexpr.head == :function
         elseif subexpr isa Expr
@@ -86,8 +109,11 @@ This function processes the input symbolic expression, extracting relevant infor
 It uses the provided state variable and discretization parameter names to correctly interpret the structure of the problem.
 this process is delegated to build_ir and normalize_ir functions.
 """
-function problem_to_normalized_ir(expr::Expr, stateVarName::Symbol, discrParamName::Symbol)
+function problem_to_normalized_ir(expr::Expr, stateVarName::Symbol, discrParamName::Symbol, inline_mode::InlineMode)
     ir = build_ir(expr) # build IR
-    return normalize_ir(ir, stateVarName, discrParamName)
+    stack = SymbolTableStack() # initialize the stack with one table
+    normalized_ir_statements,numZC, numHelperF = normalize_ir(ir.statements,stack, stateVarName, discrParamName,:nothing,inline_mode) # normalize IR
+    ir.statements=normalized_ir_statements
+    return probInfo(ir,  numZC, numHelperF)
 end
 

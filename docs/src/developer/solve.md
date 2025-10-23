@@ -37,12 +37,12 @@ Constructs and returns an AmanualLiQSS_data object, which stores coefficient dat
 ## Internals
 
 ```@docs
-QuantizedSystemSolver.custom_Solve(prob::ODEProblemData{F,PRTYPE,T,D,Z,CS},al::QSSAlgorithm{Solver, Order},::Val{M},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxiters::Int,verbose::Bool) where{F,PRTYPE,T,D,Z,CS,Solver,Order,M}    
+QuantizedSystemSolver.custom_Solve(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS},al::QSSAlgorithm{Solver, Order},::Val{M},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxiters::Int,verbose::Bool) where{JACMODE,T,D,Z,CS,F,JAC,CLS,Solver,Order,M}    
 ```
 
 
 ```@docs 
-QuantizedSystemSolver.createCommonData(prob::ODEProblemData{F,PRTYPE,T,D,Z,CS},::Val{Order},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxiters::Int,verbose::Bool) where{F,PRTYPE,T,D,Z,CS,Order}
+QuantizedSystemSolver.createCommonData(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS},::Val{Order},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,maxErr::Float64,maxiters::Int,verbose::Bool) where{JACMODE,T,D,Z,CS,F,JAC,CLS,Order}
 ```
 
 ```@docs

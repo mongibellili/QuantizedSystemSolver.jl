@@ -1,6 +1,6 @@
 
 """
-    integrate(alg::QSSAlgorithm{:nmliqss,O}, commonQssData::CommonQSS_Data{Z}, liqssdata::LiQSS_Data{O,CDM}, odep::ODEProblemData{F,JACMODE,T,D,Z,CS}, f::Function, jac::Function, SD::Function, exactA::Function) where {F,JACMODE,O,T,D,Z,CS,CDM}
+    integrate(alg::QSSAlgorithm{:nmliqss,O}, commonQssData::CommonQSS_Data{Z}, liqssdata::LiQSS_Data{O,CDM}, odep::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS}, f::Function, jac::Function, SD::Function, exactA::Function) where {JACMODE,T,D,Z,CS,F,JAC,CLS,CDM}
 
 Integrates a nonlinear ordinary differential equation (ODE) problem with `events` using the nmLiqss (modified Liqss that detect events) discrete integrator algorithm.
 
@@ -8,7 +8,7 @@ Integrates a nonlinear ordinary differential equation (ODE) problem with `events
 - `Al::QSSAlgorithm{:nmliqss,O}`: The QSS algorithm type for nmLiqss.
 - `commonQssData::CommonQSS_Data{Z}`: Common QSS data structure.
 - `liqssdata::LiQSS_Data{O,CDM}`: LiQSS data structure.
-- `odep::ODEProblemData{F,JACMODE,T,D,Z,CS}`: Nonlinear ODE problem to be solved.
+- `odep::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS}`: Nonlinear ODE problem to be solved.
 - `f::Function`: The function defining the ODE system.
 - `jac::Function`: The Jacobian dependency function of the ODE system.
 - `SD::Function`: The state derivative dependency function.
@@ -18,7 +18,7 @@ Integrates a nonlinear ordinary differential equation (ODE) problem with `events
 - A solution.
 
 """
-function integrate(alg::QSSAlgorithm{:nmliqss,O}, commonQssData::CommonQSS_Data{Z,PT}, odep::ODEProblemData{F,JACMODE,T,D,Z,CS}, f::Function, jac::Function, SD::Function,liqssdata::LiQSS_Data{O,CDM}, exactA::Function) where {F,JACMODE,O,T,D,Z,CS,CDM,PT}
+function integrate(alg::QSSAlgorithm{:nmliqss,O}, commonQssData::CommonQSS_Data{Z,PT}, odep::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS}, f::F, jac::JAC_CLS, SD::SD_CLS,liqssdata::LiQSS_Data{O,CDM}, exactA::Function) where {O,JACMODE,T,D,Z,CS,F,JAC,CLS,PT,JAC_CLS,SD_CLS,CDM}
   VERBOSE,ft,initTime,relQ,absQ,relZ,absZ,maxErr,maxiters,quantum,nextStateTime,nextEventTime,nextInputTime,tx,tq,x,q,t,savedVars,savedTimes,
   taylorOpsCache,d,numStateSteps,numInputSteps,oldsignValue,clF,zc_SimpleJac,HZ,HD,SZ,evDep = initIntegrator(Val(O), Val(T), Val(CS), odep, commonQssData, f)
   # implicit integrator data
@@ -72,7 +72,11 @@ function integrate(alg::QSSAlgorithm{:nmliqss,O}, commonQssData::CommonQSS_Data{
         aij=prepareAii(i, j,a,exactA, q, d, cacheA, simt, clF)
         aji=prepareAii(j, i,a,exactA, q, d, cacheA, simt, clF)
         ajj=prepareAii(j, j,a,exactA, q, d, cacheA, simt, clF)
+
+
+        
         if j != i && aij * aji != 0.0
+
           integrateOlddx(Val(O),j,x,tx,simt,olddx)
           if isCycle_simulUpdate(aii,ajj,aij, aji, trackSimul, Val(O),Val(CDM), i, j, dirI, x, q, quantum, dxaux, qaux, tx, tq, simt, ft)
             simulStepCount += 1
@@ -158,12 +162,17 @@ function integrate(alg::QSSAlgorithm{:nmliqss,O}, commonQssData::CommonQSS_Data{
       updateLinearApprox(i,x,q,a,qaux,olddx,simt)
        #################################################################event########################################
     else
-      updateZCF(Val(O),Val(CS),f,i,q,tq,simt,d,t,taylorOpsCache,clF,zc_SimpleJac)
-      if oldsignValue[i, 2] * taylorOpsCache[1][0] >= 0 # if computeNextEvent errored 
-        tol_zcf= absZ + relZ*abs(taylorOpsCache[1][0] )
-        if abs(taylorOpsCache[1][0]) > tol_zcf # if error is negligeable then ok consider as event, else reject....if both have same sign and zcf is not very small: zc==1e-9*absQ is allowed as an event
+       updateZCF(Val(O),Val(CS),f,i,q,tq,simt,d,t,taylorOpsCache,clF,zc_SimpleJac)
+      if oldsignValue[i, 2] * taylorOpsCache[1][0] > 0 # if computeNextEvent errored 
+        #tol_zcf= absZ + relZ*abs(taylorOpsCache[1][0] )
+        if abs(taylorOpsCache[1][0]) > absZ # if error is negligeable then ok consider as event, else reject....if both have same sign and zcf is not very small: zc==1e-9*absQ is allowed as an event
           computeNextEventTime(Val(O), i, taylorOpsCache[1], oldsignValue, simt, nextEventTime, quantum, absZ,relZ)
           rejectedEvCount+=1
+          continue #event rejected
+        end
+        if abs(oldsignValue[i, 2]) < absZ#*1e-6 # if oldsignValue very small, reject event , just already handled     
+          rejectedEvCount+=1
+          computeNextEventTime(Val(O), i, taylorOpsCache[1], oldsignValue, simt, nextEventTime, quantum, absZ,relZ)
           continue #event rejected
         end
       end   
@@ -183,6 +192,10 @@ function integrate(alg::QSSAlgorithm{:nmliqss,O}, commonQssData::CommonQSS_Data{
       end
       for k in zc_SimpleJac[i]  
         push!(savedVars[k], (q[k][0])) # save the variables that caused this event; (zcf depends on these)
+        push!(savedTimes[k], simt)
+      end
+       for k in evDep[modifiedIndex].evCont
+        push!(savedVars[k], q[k][0]) # save the variables that are affected by this event before the event; (var=...)
         push!(savedTimes[k], simt)
       end
       f(-1, -1, modifiedIndex, q, d, t, taylorOpsCache,clF)# execute event----------------no need to clear cache; events touch vectors directly
@@ -219,6 +232,9 @@ function integrate(alg::QSSAlgorithm{:nmliqss,O}, commonQssData::CommonQSS_Data{
     end
   
   end#end while
+   for i = 1:T
+      push!(savedVars[i], x[i][0]); push!(savedTimes[i], ft) # final point
+    end
    stats=Stats(totalSteps,simulStepCount,inpuStepCount,evCount,rejectedEvCount,numStateSteps,numInputSteps)
    createSol(Val(T), Val(O), savedTimes, savedVars, toString(alg), string(odep.prname), absQ, stats, ft)
 end#end integrate

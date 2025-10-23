@@ -3,13 +3,11 @@
 
 ### Problem definition
 
-```@docs
-QuantizedSystemSolver.ODEContProblem{F,PRTYPE,T,D,Z,CS}
-```
+
 
 
 ```@docs
-QuantizedSystemSolver.ODEDiscProblem{F,PRTYPE,T,D,Z,CS}
+QuantizedSystemSolver.ODEDiscProblem{JACMODE,T,D,Z,CS,F,JAC,CLS}
 ```
 
 

@@ -3,10 +3,6 @@ function initIntegrator(::Val{O},::Val{T},::Val{CS},odep, commonQssData::CommonQ
   VERBOSE=commonQssData.verbose
   if VERBOSE println("integrating...") end
 
-
-   
-
-
   ft = commonQssData.finalTime
   initTime = commonQssData.initialTime
   relQ = commonQssData.relQ
@@ -31,6 +27,7 @@ function initIntegrator(::Val{O},::Val{T},::Val{CS},odep, commonQssData::CommonQ
  
  # discrete prob data
      clF=odep.closureFuncs[1]
+
   zc_SimpleJac = odep.ZCjac
   HZ = odep.HZ
   HD = odep.HD

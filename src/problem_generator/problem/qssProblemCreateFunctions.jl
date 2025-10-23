@@ -1,6 +1,24 @@
 
+
+to_expr(a::AssignStatement) = Expr(:(=), a.lhs, a.rhs)
+
+
+to_expr(a::IfStatement)     = Expr(:if, a.condition, to_expr(a.body), nothing)
+to_expr(a::ForStatement)    = Expr(:for,
+                                   Expr(:in, a.var, Expr(:colon, a.start, a.stop)),
+                                   to_expr(a.body))
+to_expr(a::WhileStatement)  = Expr(:while, a.condition, to_expr(a.body))
+to_expr(a::ExprStatement)   = a.expr
+# Fallback for things already expressions or basic values
+to_expr(x::Expr)    = x
+to_expr(x::Symbol)  = x
+to_expr(x::Number)  = x
+to_expr(x) = Meta.parse(string(x))
+
+
+
 """
-    createExactJacFun(otherCode::Expr,Exactjac:: Dict{Expr,Union{Float64,Int,Symbol,Expr}},funName::Symbol,f) 
+    createExactJacFun(finalJacFunctionCode::Expr,Exactjac:: Dict{Expr,Union{Float64,Int,Symbol,Expr}},funName::Symbol,f) 
 
  constructs the exact jacobian entries as a function from the existing dictionary Exactjac resulted from extractJacDep and extractJacDepLoop functions. \n
 
@@ -39,94 +57,161 @@ exactJac
   end)
 ```
 """
-function createExactJacFun(passed_otherCode::Expr,Exactjac:: Dict{Expr,Union{Float64,Int,Symbol,Expr}},funName::Symbol,f) 
-  ss="if i==0 return nothing\n"
-  for dictElement in Exactjac
-      if dictElement[1].args[1] isa Int
-          ss*="elseif i==$(dictElement[1].args[1]) && j==$(dictElement[1].args[2]) \n"
-          ss*="cache[1]=$(dictElement[2]) \n"
-          ss*=" return nothing \n"
-      elseif dictElement[1].args[1] isa Expr
-          ss*="elseif $(dictElement[1].args[1].args[1])<=i<=$(dictElement[1].args[1].args[2]) && j==$(dictElement[1].args[2]) \n"
-          ss*="cache[1]=$(dictElement[2]) \n"
-          ss*=" return nothing \n"
-      end     
-  end 
-  ss*=" end \n"        
-  myex1=Meta.parse(ss)
-  Base.remove_linenums!(myex1)
 
-  otherCode=copy(passed_otherCode)# to avoid changing the original
-  push!(otherCode.args,myex1)
+
+function createExactJacFun(modelHelperCode::Expr,Exactjac:: Dict{Expr,ScopedEquation},funName::Symbol) 
+    finalJacFunctionCode=copy(modelHelperCode)#start by kept helper assignments. copy to avoid changing the original modelHelperCode (needed in diffeqfunction)
+
+    branches = []
+    #push!(branches, :(i == 0) => :(return nothing))  # first branch
+
+    for (key_expr, scoped) in Exactjac
+        cond_expr = nothing
+        body_exprs = []
+
+        # Condition: either (i == X && j == Y) or (range <= i <= range && j == Y)
+        if key_expr.args[1] isa Int
+            cond_expr = :((i == $(key_expr.args[1])) && (j == $(key_expr.args[2])))
+        elseif key_expr.args[1] isa Expr
+            start_val = key_expr.args[1].args[1]
+            stop_val  = key_expr.args[1].args[2]
+            cond_expr = :(($start_val <= i <= $stop_val) && (j == $(key_expr.args[2])))
+        else
+            error("Unsupported key type in Exactjac: $key_expr")
+        end
+
+        # Add helper assignments if any
+        for k in scoped.helperAssignments
+            if !(k isa AssignStatement) || k.keep_assignment
+                push!(body_exprs, to_expr(k))
+            end
+        end
+
+        # Main assignment: cache[1] = (rhs)
+        push!(body_exprs, Expr(:(=), Expr(:ref, :cache, 1), to_expr(scoped.eqs_RHS)))
+        push!(body_exprs, :(return nothing))
+
+        push!(branches, cond_expr => Expr(:block, body_exprs...))
+    end
+
+    # Else branch: error if no match
+    #else_branch = :(error("Invalid i,j: ", i, ", ", j))
+
+    ex = ex = :(nothing)#else_branch
+    for (cond, body) in reverse(branches)
+        ex = Expr(:if, cond, body, ex)
+    end
+
+    push!(finalJacFunctionCode.args, ex)
+ 
+
+
   
-  Base.remove_linenums!(otherCode)
+  Base.remove_linenums!(finalJacFunctionCode)
   def1=Dict{Symbol,Any}() 
   def1[:head] = :function
   def1[:name] = Symbol(:exactJac,funName)  
   #def1[:args] = [:(q::Vector{Taylor0}),:(p::Vector{Float64}),:(cache::AbstractVector{Float64}),:(i::Int),:(j::Int),:(t::Float64),:(f_)]
-  #def1[:args] = [:(q::Vector{Taylor0}),:(p::Vector{Any}),:(cache::AbstractVector{Float64}),:(i::Int),:(j::Int),:(t::Float64),:(f_)]
   def1[:args] = [:(q::Vector{Taylor0}),:(p),:(cache::AbstractVector{Float64}),:(i::Int),:(j::Int),:(t::Float64),:(f_)]
-  def1[:body] = otherCode
+  def1[:body] = finalJacFunctionCode
   functioncode1=combinedef(def1)
 end
  
 
 
-function createEqFun(passed_otherCode::Expr,equs::Dict{Union{Int,Expr},Union{Int,Symbol,Expr}},zcequs::Vector{Expr},eventequs::Vector{Expr},fname::Symbol,f)# where{F}
-  #allEpxpr=Expr(:block)
-  ##############diffEqua###############
-  s="if i==0 return nothing\n"  # :i is the mute var
-  for elmt in equs
-      Base.remove_linenums!(elmt[1])
-      Base.remove_linenums!(elmt[2])
-      if elmt[1] isa Int
-          s*="elseif i==$(elmt[1]) $(elmt[2]) ;return nothing\n"
-      end
-      if elmt[1] isa Expr
-          s*="elseif $(elmt[1].args[1])<=i<=$(elmt[1].args[2]) $(elmt[2]) ;return nothing\n"
-      end
-  end
-  s*=" end "
-  myex1=Meta.parse(s)
+"""
+    build_flat_if(varsym::Symbol, branches::Vector{Any})
+
+Builds an AST of the form:
+
+    if varsym == 1
+        branch1
+        return nothing
+    elseif varsym == 2
+        branch2
+        return nothing
+    ...
+    else
+        nothing
+    end
+"""
+function build_flat_if(varsym::Symbol, branches_vect::Vector)
+    pairs = []
+    for (idx, rhs) in enumerate(branches_vect)
+        cond_expr = :( $varsym == $idx )
+        body_expr = Expr(:block, to_expr(rhs), :(return nothing))
+        push!(pairs, cond_expr => body_expr)
+    end
+
+    # default else branch
+    ex = :(nothing)
+    for (cond, body) in reverse(pairs)
+        ex = Expr(:if, cond, body, ex)
+    end
+    return ex
+end
 
 
-  
-  #push!(otherCode.args,myex1) 
-  otherCodeCopy=copy(passed_otherCode)# to avoid changing the original
-  push!(otherCodeCopy.args,myex1)
-   ##############ZCF###################
-  if length(zcequs)>0
-      s="if zc==1  $(zcequs[1]) ;return nothing"
-      for i=2:length(zcequs)
-          s*= " elseif zc==$i $(zcequs[i]) ;return nothing"
-      end
-      s*= " end "
-      myex2=Meta.parse(s) 
-      push!(otherCodeCopy.args,myex2)
-  end
-   #############events#################
-  if length(eventequs)>0
-      s= "if ev==1  $(eventequs[1]) ;return nothing"
-      for i=2:length(eventequs)
-          s*= " elseif ev==$i $(eventequs[i]) ;return nothing"
-      end
-      s*= " end "
-      myex3=Meta.parse(s)
-      push!(otherCodeCopy.args,myex3)
-  end
+function createEqFun(modelHelperCode::Expr,equs::Dict{Union{Int,Symbol,Expr},ScopedEquation},zcequs::Vector{Expr},eventequs::Vector{Expr},fname::Symbol)# where{F}
+    finalFunctionCode=copy(modelHelperCode)#start by kept helper assignments. copy to avoid changing the original modelHelperCode (needed in exactJacfunction)
+    branches = []
+
+    for (condkey, scoped) in equs
+        cond_expr = nothing
+        body_exprs = []
+
+        if condkey isa Int
+            cond_expr = :(i == $condkey)
+        elseif condkey isa Expr && condkey.head == :tuple  # i.e. :(2:3)
+            start_val = condkey.args[1]
+            stop_val  = condkey.args[2]
+            cond_expr = :($start_val <= i <= $stop_val)
+        elseif condkey isa Symbol   # check and remove this line later, symbol never visited because varnum gets converted to int in normalize_ir.jl line 170
+            cond_expr = :(i == $condkey)
+        else
+            error("Unsupported key type: $condkey")
+        end
+
+        # Add helper assignments if any
+        for k in scoped.helperAssignments
+            if !(k isa AssignStatement) || k.keep_assignment
+                push!(body_exprs, to_expr(k))
+            end
+        end
+
+        # Add main equation RHS
+        push!(body_exprs, to_expr(scoped.eqs_RHS))
+
+        push!(branches, cond_expr => Expr(:block, body_exprs...))
+    end
+
+    # Build flat if/elseif chain
+    ex = :(nothing)  # default else
+    for (cond, body) in reverse(branches)
+        ex = Expr(:if, cond, body, ex)
+    end
+    push!(finalFunctionCode.args, ex)
+
+    ############## ZCF ###################
+    if !isempty(zcequs)
+        myex2 = build_flat_if(:zc, zcequs)
+        push!(finalFunctionCode.args, myex2)
+    end
+
+    ############## events ################
+    if !isempty(eventequs)
+        myex3 = build_flat_if(:ev, eventequs)
+        push!(finalFunctionCode.args, myex3)
+    end
  
-  Base.remove_linenums!(otherCodeCopy)
+  Base.remove_linenums!(finalFunctionCode)
   def=Dict{Symbol,Any}()
   def[:head] = :function
   def[:name] = fname  
   #def[:args] = [:(i::Int),:(zc::Int),:(ev::Int),:(q::Vector{Taylor0}),:(p::Vector{Float64}), :(t::Taylor0),:(cache::Vector{Taylor0}),:(f_)]  
-  #def[:args] = [:(i::Int),:(zc::Int),:(ev::Int),:(q::Vector{Taylor0}),:(p::Vector{Any}), :(t::Taylor0),:(cache::Vector{Taylor0}),:(f_)]  
   def[:args] = [:(i::Int),:(zc::Int),:(ev::Int),:(q::Vector{Taylor0}),:(p), :(t::Taylor0),:(cache::Vector{Taylor0}),:(f_)]  
-  def[:body] = otherCodeCopy 
+  def[:body] = finalFunctionCode 
   functioncode=combinedef(def)
  # @show functioncode
 
 end
-
-
-

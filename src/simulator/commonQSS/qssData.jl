@@ -9,8 +9,6 @@
     q :: Vector{Taylor0}
     tx ::  Vector{Float64} 
     tq :: Vector{Float64} 
-   # d::Vector{Any}  
-    #d::Vector{Float64} 
     d::Vector{PT} 
     nextStateTime :: Vector{Float64}    
     nextInputTime :: Vector{Float64} # 

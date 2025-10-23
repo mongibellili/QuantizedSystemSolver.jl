@@ -1,10 +1,10 @@
 """
-    solve(prob::ODEProblemData{F,JACMODE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType};detection::Val{CDM}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,absZtol::Float64=-1.0,relZtol::Float64=-1.0,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose=false::Bool) where{F,JACMODE,T,D,Z,CS,SolverType,OrderType,CDM}
+    solve(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS},al::QSSAlgorithm{SolverType, OrderType};detection::Val{CDM}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,absZtol::Float64=-1.0,relZtol::Float64=-1.0,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose=false::Bool) where{JACMODE,T,D,Z,CS,F,JAC,CLS,SolverType,OrderType,CDM}
 
 dispatches on a specific integrator based on the algorithm provided and sends a nonlinear ODE problem to the integrator. With the exception of the argument prob, all other arguments are optional and have default values:
 
 # Arguments
-- `prob::ODEProblemData{F,JACMODE,T,D,Z,CS}`: The nonlinear ODE problem to solve.
+- `prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS}`: The nonlinear ODE problem to solve.
 - `al::QSSAlgorithm{SolverType, OrderType}`: The QSS algorithm to use for solving the problem.
 - `detection::Val{CDM}`: A type parameter indicating which detection mechanism to use.
 - `saveat::Float64`: The time interval at which to save the solution (default: `Inf`).
@@ -15,43 +15,49 @@ dispatches on a specific integrator based on the algorithm provided and sends a 
 
 After the simulation, the solution is returned as a Solution object.
 """
-function solve(prob::ODEProblemData{F,JACMODE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType};detection::Val{CDM}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,absZtol::Float64=-1.0,relZtol::Float64=-1.0,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose=false::Bool) where{F,JACMODE,T,D,Z,CS,SolverType,OrderType,CDM}    
+function solve(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS},al::QSSAlgorithm{SolverType, OrderType};detection::Val{CDM}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,absZtol::Float64=-1.0,relZtol::Float64=-1.0,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose=false::Bool) where{JACMODE,T,D,Z,CS,F,JAC,CLS,SolverType,OrderType,CDM}    
    tspan=prob.tspan  # tspan separated before custom_solve to allow user to enter tspan with solve (not with prob)
    if absZtol==-1.0 && relZtol==-1.0 # if user does not provide absZtol and relZtol, then use the default values of reltol and abstol
-        absZtol=1e-3*abstol^2;relZtol=abstol^2
+        #absZtol=1e-2*abstol^2;relZtol=abstol^2
+        #absZtol=1e-9;
+        absZtol=1e-6*abstol  
+        relZtol=abstol
+
    end
    custom_Solve(prob,al,Val(CDM),tspan[2],saveat,tspan[1],abstol,reltol,absZtol,relZtol,maxErr,maxiters,verbose)
 end
 
 """
-    solve(prob::ODEProblemData{F,JACMODE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};detection::Val{CDM}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,absZtol::Float64=-1.0,relZtol::Float64=-1.0,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose=false::Bool) where{F,JACMODE,T,D,Z,CS,SolverType,OrderType,CDM}     
+    solve(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};detection::Val{CDM}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,absZtol::Float64=-1.0,relZtol::Float64=-1.0,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose=false::Bool) where{JACMODE,T,D,Z,CS,F,JAC,CLS,SolverType,OrderType,CDM}     
 
 same as the previous solve method, but with a specified time span. This method is useful when the user wants to specify the time span separately from the problem definition.
 """
-function solve(prob::ODEProblemData{F,JACMODE,T,D,Z,CS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};detection::Val{CDM}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,absZtol::Float64=-1.0,relZtol::Float64=-1.0,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose=false::Bool) where{F,JACMODE,T,D,Z,CS,SolverType,OrderType,CDM}    
+function solve(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};detection::Val{CDM}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,absZtol::Float64=-1.0,relZtol::Float64=-1.0,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose=false::Bool) where{JACMODE,T,D,Z,CS,F,JAC,CLS,SolverType,OrderType,CDM}    
     if absZtol==-1.0 && relZtol==-1.0 # if user does not provide absZtol and relZtol, then use the default values of reltol and abstol
-        absZtol=1e-3*abstol^2;relZtol=abstol^2
+        #absZtol=1e-3*abstol^2;relZtol=abstol^2
+        absZtol=1e-6*abstol  
+        relZtol=abstol
     end
     custom_Solve(prob,al,Val(CDM),tspan[2],saveat,tspan[1],abstol,reltol,absZtol,relZtol,maxErr,maxiters,verbose)
 end
 
  # user does not provide solver. default mliqss2 is used. tspan provided in solve
-function solve(prob::ODEProblemData{F,JACMODE,T,D,Z,CS},tspan::Tuple{Float64, Float64};detection::Val{CDM}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,absZtol::Float64=-1.0,relZtol::Float64=-1.0,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose::Bool=false) where {F,JACMODE,T,D,Z,CS,CDM}    
+function solve(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS},tspan::Tuple{Float64, Float64};detection::Val{CDM}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,absZtol::Float64=-1.0,relZtol::Float64=-1.0,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose::Bool=false) where {JACMODE,T,D,Z,CS,F,JAC,CLS,CDM}    
    solve(prob,QSSAlgorithm(Val(:nmliqss),Val(2)),tspan;detection=detection,saveat=saveat,abstol=abstol,reltol=reltol,absZtol=absZtol,relZtol=relZtol,maxErr=maxErr,maxiters=maxiters,verbose=verbose)  
 end
 # user does not provide solver. default mliqss2 is used. tspan provided in prob
-function solve(prob::ODEProblemData{F,JACMODE,T,D,Z,CS};detection::Val{CDM}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,absZtol::Float64=-1.0,relZtol::Float64=-1.0,maxErr::Float64=1.0,maxiters::Int=Int(1e7)) where{F,JACMODE,T,D,Z,CS,CDM}    
+function solve(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS};detection::Val{CDM}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,absZtol::Float64=-1.0,relZtol::Float64=-1.0,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose::Bool=false) where{JACMODE,T,D,Z,CS,F,JAC,CLS,CDM}    
    solve(prob,QSSAlgorithm(Val(:nmliqss),Val(2));detection=detection,saveat=saveat,abstol=abstol,reltol=reltol,absZtol=absZtol,relZtol=relZtol,maxErr=maxErr,maxiters=maxiters) 
 end
 
 
 """
-    custom_Solve(prob::ODEProblemData{F,JACMODE,T,D,Z,CS},al::QSSAlgorithm{Solver, Order},::Val{CDM},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,absZtol::Float64,relZtol::Float64,maxErr::Float64,maxiters::Int,verbose::Bool) where{F,JACMODE,T,D,Z,CS,Solver,Order,CDM}
+    custom_Solve(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS},al::QSSAlgorithm{Solver, Order},::Val{CDM},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,absZtol::Float64,relZtol::Float64,maxErr::Float64,maxiters::Int,verbose::Bool) where{JACMODE,T,D,Z,CS,F,JAC,CLS,Solver,Order,CDM}
 
 default solve method: calls the integrator to solve the nonlinear ODE problem.
 
 # Arguments
-- `prob::ODEProblemData{F,JACMODE,T,D,Z,CS}`: The nonlinear ODE problem to solve.
+- `prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS}`: The nonlinear ODE problem to solve.
 - `al::QSSAlgorithm{Solver, Order}`: The QSS algorithm to use for solving the problem.
 - `::Val{CDM}`: A type parameter indicating which detection mechanism to use.
 - `finalTime::Float64`: The final time for the simulation.
@@ -63,22 +69,22 @@ default solve method: calls the integrator to solve the nonlinear ODE problem.
 - `maxiters::Int`: The maximum number of iterations.
 
 """
-function custom_Solve(prob::ODEProblemData{F,JACMODE,T,D,Z,CS},al::QSSAlgorithm{Solver, Order},::Val{CDM},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,absZtol::Float64,relZtol::Float64,maxErr::Float64,maxiters::Int,verbose::Bool) where{F,JACMODE,T,D,Z,CS,Solver,Order,CDM}
+function custom_Solve(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS},al::QSSAlgorithm{Solver, Order},::Val{CDM},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,absZtol::Float64,relZtol::Float64,maxErr::Float64,maxiters::Int,verbose::Bool) where{JACMODE,T,D,Z,CS,F,JAC,CLS,Solver,Order,CDM}
     if Order==1 && abstol<=1e-4 && reltol<=1e-3
         @warn("The provided tolerance values are not suitable for the first order algorithm. Consider using (1e-3;1e-3) or higher.")
     end
-    if saveat!=Inf error("saveat is not implemented yet") end
+    if saveat!=Inf @warn("saveat is not implemented yet") end
      commonQSSdata=createCommonData(prob,Val(Order),finalTime,saveat, initialTime,abstol,reltol,absZtol,relZtol,maxErr,maxiters,verbose)
-     jac=getClosure(prob.jac)::Function #if in future jac and SD are different datastructures
-     SD=getClosure(prob.SD)::Function
+     jac=getClosure(prob.jac) #if in future jac and SD are different datastructures
+     SD=getClosure(prob.SD)
     if Solver==:qss
         integrate(al,commonQSSdata,prob,prob.eqs,jac,SD) 
     else
           liqssdata=createLiqssData(Val(JACMODE),Val(CDM),Val(T),Val(Order))
-          integrate(al,commonQSSdata,prob,prob.eqs,jac,SD,liqssdata,prob.exactJac)  
+          integrate(al,commonQSSdata,prob,prob.eqs,jac,SD,liqssdata,prob.exactJac)   
     end
  end
- function getClosure(jacSD::Vector{Vector{Int}})::Function
+ function getClosure(jacSD::Vector{Vector{Int}})
     function closureJacSD(i::Int)
          jacSD[i]
     end
@@ -87,12 +93,12 @@ function custom_Solve(prob::ODEProblemData{F,JACMODE,T,D,Z,CS},al::QSSAlgorithm{
 #helper methods...extension can be done through creating others via specializing on one JACMODE or more of the symbols (JACMODE,T,D,Z,Order) 
 #################################################################################################################################################################################
 """
-    createCommonData(prob::ODEProblemData{F,JACMODE,T,D,Z,CS},::Val{Order},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,absZtol::Float64,relZtol::Float64,maxErr::Float64,maxiters::Int,verbose::Bool) where{F,JACMODE,T,D,Z,CS,Order}
+    createCommonData(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS},::Val{Order},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,absZtol::Float64,relZtol::Float64,maxErr::Float64,maxiters::Int,verbose::Bool) where{JACMODE,T,D,Z,CS,F,JAC,CLS,Order}
 
 creates the necessary data for the simulation and stores it in a CommonQSS_Data struct.
 
 # Arguments
-- `prob::ODEProblemData{F,JACMODE,T,D,Z,CS}`: The nonlinear ODE problem to solve.
+- `prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS}`: The nonlinear ODE problem to solve.
 - `::Val{Order}`: The order of the algorithm.
 - `finalTime::Float64`: The final time for the simulation.
 - `saveat::Float64`: The time interval at which to save the solution.
@@ -105,7 +111,7 @@ creates the necessary data for the simulation and stores it in a CommonQSS_Data 
 # Returns
 - A data structure containing common data required for the QSS algorithm.
 """
-function createCommonData(prob::ODEProblemData{F,JACMODE,T,D,Z,CS},::Val{Order},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,absZtol::Float64,relZtol::Float64,maxErr::Float64,maxiters::Int,verbose::Bool) where{F,JACMODE,T,D,Z,CS,Order}
+function createCommonData(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS},::Val{Order},finalTime::Float64,saveat::Float64,initialTime::Float64,abstol::Float64,reltol::Float64,absZtol::Float64,relZtol::Float64,maxErr::Float64,maxiters::Int,verbose::Bool) where{JACMODE,T,D,Z,CS,F,JAC,CLS,Order}
     quantum =  zeros(T)
     x = Vector{Taylor0}(undef, T)
     q = Vector{Taylor0}(undef, T)
@@ -119,14 +125,12 @@ function createCommonData(prob::ODEProblemData{F,JACMODE,T,D,Z,CS},::Val{Order},
     t = Taylor0(zeros(Order + 1), Order)
     t[1]=1.0
     t[0]=initialTime
-   # d = zeros(D) 
-    #d = Vector{Any}(undef, D)
-   #=  for i=1:D
-        d[i]=prob.discreteVars[i]
-    end =#
-    d = deepcopy(prob.discreteVars) # copy the discrete vars from the problem to the common data
-    
 
+    d = deepcopy(prob.discreteVars) # copy the discrete vars from the problem to the common data . deepcopy needed in case running multiple simulations in the same "run"
+    
+    #expected_steps=Int(ceil((finalTime-initialTime)/saveat))+1
+    expected_steps=Int(ceil((finalTime-initialTime)/(Order*reltol)))+1
+    #expected_steps=500
      
     for i = 1:T
         nextInputTime[i]=Inf
@@ -136,8 +140,10 @@ function createCommonData(prob::ODEProblemData{F,JACMODE,T,D,Z,CS},::Val{Order},
         q[i]=Taylor0(zeros(Order+1), Order)#q normally 1-order lower than x but since we want f(q) to  be a taylor that holds all info (1,2,3), lets have q of same Order and not update last coeff        
         tx[i] = initialTime
         tq[i] = initialTime
-        savedTimes[i]=Vector{Float64}()
-        savedVars[i]=Vector{Float64}()
+        savedTimes[i]=Vector{Float64}(undef, expected_steps)
+        savedVars[i]=Vector{Float64}(undef, expected_steps)
+        resize!(savedTimes[i], 0)                     
+        resize!(savedVars[i], 0)                     
     end
     taylorOpsCache = Vector{Taylor0}(undef, CS)
     for i in 1:CS

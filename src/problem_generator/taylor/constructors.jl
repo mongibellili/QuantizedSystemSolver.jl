@@ -12,17 +12,27 @@ defines a Taylor Variable. It has the following fields:\n
   - coeffs: An array of Float64 that holds the coefficients of the Taylor series
   - order: The order of the Taylor series
 """
-struct Taylor0 #<: AbstractSeries{Float64}
+struct Taylor0 
     coeffs::Array{Float64,1}
     order::Int
 end
-#Taylor0(x::Taylor0) = x
 Taylor0(coeffs::Array{Float64,1}) = Taylor0(coeffs, length(coeffs) - 1)
 function Taylor0(x::Float64, order::Int)
     v = fill(0.0, order + 1)
     v[1] = x
     return Taylor0(v, order)
 end
+
+function Taylor0(t::Taylor0, order::Int)
+    n = length(t.coeffs) - 1
+    if order > n
+        coeffs = vcat(t.coeffs, zeros(order - n))
+    else
+        coeffs = t.coeffs[1:order+1]
+    end
+    return Taylor0(coeffs, order)
+end
+
 getcoeff(a::Taylor0, n::Int) = (@assert 0 ≤ n ≤ a.order;return a[n])
 getindex(a::Taylor0, n::Int) = a.coeffs[n+1]
 setindex!(a::Taylor0, x::T, n::Int) where {T<:Number} = a.coeffs[n+1] = x

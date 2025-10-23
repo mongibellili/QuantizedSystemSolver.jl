@@ -24,9 +24,7 @@ Update the quantized state for the LIQSS1 (Linearly Implicit Quantized State Sys
 - None. The function updates the quantized state and other info in place.
 """
 function updateQ(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64},a::Float64, dxaux::Vector{MVector{1,Float64}}, qaux::Vector{MVector{1,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64})  
-   #=  cacheA[1] = 0.0
-    exactA(qv, d, cacheA, i, i, simt,f)
-    a = cacheA[1] =#
+
     q = qv[i][0]
     x = xv[i][0]
     x1 = xv[i][1]
@@ -74,16 +72,7 @@ function updateQ(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, qua
             end
         end
     else
-        #= if x1 > 0.0
-            q = x + Δ
-        else
-            q = x - Δ
-        end
-        if x1 != 0
-            h = (abs(Δ / x1))
-        else
-            h = Inf
-        end =#
+      
         if x1 != 0.0
             #quantum[i]=1quan
             h = abs(1 * Δ / x1)   # *10 just to widen the step otherwise it would behave like 1st order
@@ -124,9 +113,7 @@ Initialize the quantized state for the LIQSS1 method.
 This function initializes the quantized state for the LIQSS1 method by updating the quantized state variables and their associated times based on the provided state variables, derivatives, and quantum values.
 """
 function updateQInit(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, quantum::Vector{Float64},a::Float64,  dxaux::Vector{MVector{1,Float64}}, qaux::Vector{MVector{1,Float64}}, tx::Vector{Float64}, tq::Vector{Float64}, simt::Float64, ft::Float64, nextStateTime::Vector{Float64}) 
-  #=   cacheA[1] = 0.0
-    exactA(qv, d, cacheA, i, i, simt,f)
-    a = cacheA[1] =#
+  
     q = qv[i][0]
     x = xv[i][0]
     x1 = xv[i][1]
@@ -174,16 +161,7 @@ function updateQInit(::Val{1}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0},
             end
         end
     else
-      #=   if x1 > 0.0
-            q = x + Δ
-        else
-            q = x - Δ
-        end
-        if x1 != 0
-            h = (abs(Δ / x1))
-        else
-            h = Inf 
-        end =#
+   
         if x1 != 0.0
             #quantum[i]=1quan
             h = abs(1 * Δ / x1)   # *10 just to widen the step otherwise it would behave like 1st order

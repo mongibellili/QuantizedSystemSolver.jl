@@ -63,8 +63,6 @@ function isCycle_simulUpdate(aii::Float64,ajj::Float64,aij::Float64,aji::Float64
 
   iscycle=detect2(Val(M),xi1,dxi,dxithrow,xi2,ddxi,ddxithrow,βidir,βidth,xj1,dxj,xj2,ddxj,dqjplus,recentjDir,dirI) 
 
-
- 
   if iscycle
         aiijj=aii+ajj
         aiijj_=aij*aji-aii*ajj
@@ -117,7 +115,7 @@ function isCycle_simulUpdate(aii::Float64,ajj::Float64,aij::Float64,aji::Float64
 
         end
 
-        maxIter=2
+        maxIter=10
         while (abs(qi - xi) > 2.0*quani || abs(qj - xj) > 2.0*quanj) && (maxIter>0)
           maxIter-=1
           if maxIter>1  #ie simul step failed

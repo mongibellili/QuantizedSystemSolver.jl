@@ -7,6 +7,7 @@ end
 tspan=(0.0,1.0)
 u = [-1.0, -2.0]
 odeprob=ODEProblem(system1,u,tspan)
+
 sol=solve(odeprob,qss1())
 sol=solve(odeprob,qss2())
 sol=solve(odeprob,liqss1())

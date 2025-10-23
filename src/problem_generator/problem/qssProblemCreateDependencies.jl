@@ -20,13 +20,13 @@ QuantizedSystemSolver.extractJacDep(varNum, rhs, jac, exactJacExpr,:symbolic, sy
 ```
 
 """
-function extractJacDep(b::Int,niter::Int,rhs::Expr,jac :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},exactJacExpr :: Dict{Expr,Union{Float64,Int,Symbol,Expr}},jac_mode ::Symbol,symDict::Dict{Symbol,Expr},dD :: Dict{Union{Int,Symbol,Expr},Set{Union{Int,Symbol,Expr}}}) 
+function extractJacDep(b::Int,niter::Int,rhs::Expr,jac :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},dD :: Dict{Union{Int,Symbol,Expr},Set{Union{Int,Symbol,Expr}}}) 
   
   #jacDiscrSet is not needed unlike  jacset. from jacset we construct jac and sd. for discrete variables there is not jac, there is only dD, so its construction will be direct.
   #postwalk
 
   jacSet=Set{Union{Int,Symbol,Expr}}()
-  m=postwalk(rhs) do a   #
+  postwalk(rhs) do a   #
       if a isa Expr && a.head == :ref 
         base, idx1 =  a.args[1], a.args[2]  #parse_ref_upto2(a)
         if base==:q#  
@@ -43,33 +43,12 @@ function extractJacDep(b::Int,niter::Int,rhs::Expr,jac :: Dict{Union{Int,Expr},S
             end
             dD[idx1]=dDset       #update the dict
         end
-        #symarg=symbolFromRef(base,idx1) #
-        symarg=Symbol(string(expr_to_flat_name(base), _idxToString(idx1)))
-        symDict[symarg]=a
-        a=symarg
-      elseif a isa Expr && a.head == :vect 
-         symarg=Symbol(expr_to_flat_name(a))
-        symDict[symarg]=a
-        a=symarg
+      
       end 
       return a 
   end
 
-  if jac_mode==:symbolic
-    # extract the jac (continuous part)
-    basi = convert(Basic, m) # m ready: all refs are symbols
-    for i in jacSet  # jacset contains vars in RHS
-      symarg=Symbol(string(:q, _idxToString(i)))#symbolFromRef(:q,i) # specific to elements in jacSet: get q1 from 1 for exple
-      coef = diff(basi, symarg) # symbolic differentiation: returns type Basic
-      coefstr=string(coef);coefExpr=Meta.parse(coefstr)#convert from basic to expression
-      jacEntry=restoreRef(coefExpr,symDict)# get back ref: qi->q[i]
-      if b!=-1
-        exactJacExpr[:((($b,$niter),$i))]=jacEntry
-      else
-        exactJacExpr[:(($niter,$i))]=jacEntry
-      end
-    end
-  end
+  
   if length(jacSet)>0
     if b!=-1
       jac[:(($b,$niter))]=jacSet
@@ -77,11 +56,57 @@ function extractJacDep(b::Int,niter::Int,rhs::Expr,jac :: Dict{Union{Int,Expr},S
       jac[niter]=jacSet
     end
   end
+
+  jacSet
+
+   
+
    #useNumber_inFuncalls(rhs)  # prevent using taylor0 in helper function calls because their body was not changed to zero-allocation ops.
-   rhs
+   #rhs
 end
 
+function extractJacExpression(b::Int,niter::Int,rhs::Expr,jacSet::Set{Union{Int,Symbol,Expr}},exactJacExpr :: Dict{Expr,ScopedEquation},helperAssignments::Vector{AbstractODEStatement},symDict::Dict{Symbol,Expr}) 
+  
+ 
+    empty!(symDict) # in each equation fk, we change the symbols, find the dfk/dxi where i ∈ jacset
 
+    m=postwalk(rhs) do a   #
+      if a isa Expr && a.head == :ref 
+        base, idx1 =  a.args[1], a.args[2] 
+        symarg=Symbol(string(expr_to_flat_name(base), _idxToString(idx1)))
+        symDict[symarg]=a
+        a=symarg
+      elseif a isa Expr && a.head == :vect 
+         symarg=Symbol(expr_to_flat_name(a)) 
+        symDict[symarg]=a
+        a=symarg
+      end 
+      return a 
+  end
+
+
+
+    # extract the jac (continuous part)
+    basi = convert(Basic, m) # m ready: all refs are symbols
+    for i in jacSet  # jacset contains vars in RHS
+      symarg=Symbol(string(:q, _idxToString(i)))#symbolFromRef(:q,i) # specific to elements in jacSet: get q1 from 1 for exple
+      coef = diff(basi, symarg) # symbolic differentiation: returns type Basic
+      coefstr=string(coef);
+      coefExpr=Meta.parse(coefstr)#convert from basic to expression
+      jacEntry=restoreRef(coefExpr,symDict)# get back ref: 
+      jacEntry = changeExprToFirstValue(jacEntry)  # qi->q[i][0]
+      jacEntry=changeT(jacEntry) # t -> t[0]
+      if b!=-1
+        exactJacExpr[:((($b,$niter),$i))]= ScopedEquation(helperAssignments,jacEntry )
+      else
+        exactJacExpr[:(($niter,$i))]=ScopedEquation(helperAssignments,jacEntry )
+      end
+    end
+ 
+
+   #useNumber_inFuncalls(rhs)  # prevent using taylor0 in helper function calls because their body was not changed to zero-allocation ops.
+   #rhs
+end
 
 """
     createJacVect(jac:: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},::Val{T}) where {T}
@@ -221,7 +246,8 @@ function extractZCJacDep(counter::Int,zcf::Expr,zcjac :: Vector{Vector{Int}},SZ 
   push!(zcjac,collect(zcjacSet))#convert set to vector
 end
 
-
+function extractZCJacDep(counter::Int,zcf::Symbol,zcjac :: Vector{Vector{Int}},SZ ::Dict{Int,Set{Int}},dZ :: Dict{Int,Set{Int}}) # case if t>0
+end
 
 
 
@@ -271,6 +297,7 @@ string(dDVect)
 """
 function createdDVect(dD::Dict{Union{Int64,Symbol,Expr}, Set{Union{Int64, Expr, Symbol}}},::Val{D}) where {D}
   dDVect = Vector{Vector{Int}}(undef, D)
+  @show dDVect, D
   for ii=1:D
       dDVect[ii]=Vector{Int}()# define it so i can push elements as i find them below
   end
@@ -317,8 +344,8 @@ Handles events in the quantized system solver.
 
 """
 function handleEvents(argI::Expr,eventequs::Vector{Expr},length_zcequs::Int64,evsArr::Vector{EventDependencyStruct})
-                      
-            # each 'if-statmets' has 2 events (arg[2]=posEv and arg[3]=NegEv) each pos or neg event has a function...later i can try one event for zc
+                      # argI.args[2] is the condition, which we do not handle here (already handled as zcf in qssProblem)
+            # each 'if-statmets' has 2 events (arg[2]=posEv and arg[3]=NegEv) each pos or neg event has a function...
               if length(argI.args)==2  #if user only wrote the positive evnt, here I added the negative event wich does nothing
                 #nothingexpr = quote nothing end # neg dummy event 
                 nothingexpr = Expr(:block,nothing) # does not require remove_linenums
@@ -328,12 +355,14 @@ function handleEvents(argI::Expr,eventequs::Vector{Expr},length_zcequs::Int64,ev
                 nothingexpr = Expr(:block,nothing)
             end 
             #pos event
-            newPosEventExprToFunc=changeEventExprToFirstValue(argI.args[2])  #change u[1] to u[1][0]  # pos ev can't be a symbol ...later maybe add check anyway
-           #@show newPosEventExprToFunc
+            newPosEventExprToFunc=changeExprToFirstValue(argI.args[2])  #change u[1] to u[1][0]  # pos ev can't be a symbol ...later maybe add check anyway
+           newPosEventExprToFunc=changeT(newPosEventExprToFunc) # t -> t[0]
+            #@show newPosEventExprToFunc
             push!(eventequs,newPosEventExprToFunc) 
             #neg eve
             if argI.args[3].args[1] isa Expr # argI.args[3] isa expr and is either an equation or :block symbol end ...so lets check .args[1]
-                newNegEventExprToFunc=changeEventExprToFirstValue(argI.args[3])
+                newNegEventExprToFunc=changeExprToFirstValue(argI.args[3])
+                newNegEventExprToFunc=changeT(newNegEventExprToFunc) # t -> t[0]
                 push!(eventequs,newNegEventExprToFunc) 
             else
                 push!(eventequs,argI.args[3]) #symbol nothing

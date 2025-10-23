@@ -1,3 +1,25 @@
+function process_du_rhs(rhs::Union{Number,Symbol,Expr},b::Int,niter::Int,helperAssignments::Vector{AbstractODEStatement}, equs::Dict{Union{Int,Symbol,Expr},ScopedEquation},exactJacExpr :: Dict{Expr,ScopedEquation},symDict::Dict{Symbol,Expr},jac :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},dD :: Dict{Union{Int,Symbol,Expr},Set{Union{Int,Symbol,Expr}}},jac_mode::Symbol)
+    newCacheSize = 1 # default cache size
+    if rhs isa Number || rhs isa Symbol
+        rhs=transformFSimplecase(rhs)
+    elseif rhs isa Expr && (rhs.head == :ref  || (rhs.head == :call && is_custom_function(rhs)))
+        jacset=extractJacDep(b,niter, rhs, jac,  dD)
+        if jac_mode==:symbolic extractJacExpression(b,niter, rhs, jacset, exactJacExpr, helperAssignments,symDict) end
+        rhs=transformFSimplecase(rhs)
+    else
+        
+        jacset=extractJacDep(b,niter, rhs, jac,  dD)
+        if jac_mode==:symbolic extractJacExpression(b,niter, rhs, jacset, exactJacExpr, helperAssignments,symDict) end
+        newCacheSize = (transformF!(:($(rhs), 1)))#.args[2]
+    end
+    if b==-1
+        equs[niter] =  ScopedEquation(helperAssignments,rhs)
+    else
+        equs[:(($b, $niter))] =  ScopedEquation(helperAssignments,rhs)
+    end
+    return newCacheSize
+end
+
 
 """
     odeProblemFunc(ir::ODEFunctionIR,::Val{T},::Val{D},::Val{Z},initCond::Vector{Float64},discrVars::Union{Vector{EM}, Tuple{Vararg{EM}}},preProcessData::PreProcessData,jac_mode ::Symbol) where {T,D,Z,EM} 
@@ -11,14 +33,14 @@ function odeProblemFunc(ir::ODEFunctionIR,::Val{T},::Val{D},::Val{Z},initCond::V
     du=preProcessData.du
     tspan= preProcessData.tspan
     fname= preProcessData.prbName
-    mod= preProcessData.mod
+    mod= preProcessData.mod 
     is_top_level= preProcessData.is_top_level
     numHelperFunCalls=preProcessData.numHelperFunCalls
     symDict=Dict{Symbol,Expr}()
-    equs=Dict{Union{Int,Expr},Union{Int,Symbol,Expr}}()
-    jac = Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}}()# set used because do not want to re-insert an existing varNum
-    dD =  Dict{Union{Int,Symbol,Expr},Set{Union{Int,Symbol,Expr}}}() # like jac but for discrete variables
-    exacteJacExpr = Dict{Expr,Union{Float64,Int,Symbol,Expr}}()
+    equs=Dict{Union{Int,Symbol,Expr},ScopedEquation}()
+    jac = Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}}()# inside-set used because do not want to re-insert an existing varNum
+    dD =  Dict{Union{Int,Symbol,Expr},Set{Union{Int,Symbol,Expr}}}() # like jac but for discrete variables (and also dependency in the other direction)
+    exactJacExpr = Dict{Expr,ScopedEquation}()
     zcequs=Vector{Expr}()#vect to collect the conditions of if-statements (zero-crossing)
     eventequs=Vector{Expr}()#vect to collect events (effect)
     ZCjac=Vector{Vector{Int}}() # the dependency of zero crossing to variables
@@ -28,91 +50,63 @@ function odeProblemFunc(ir::ODEFunctionIR,::Val{T},::Val{D},::Val{Z},initCond::V
     evsArr = EventDependencyStruct[]
     num_cache_equs=1#cachesize
     functionEx=Expr(:block) #function to be inserted inside the main function
-    otherCode=Expr(:block) #other code to be inserted inside the main function
+    modelHelperCode=Expr(:block) #other code to be inserted inside the main function
+    helperAssignments=AbstractODEStatement[] # vect of helper assignments to be used in model scope. kept empty because modelHelperCode already does that. it is used merely to match function signature in handling other local scopes
     for statement in ir.statements
         if statement isa AssignStatement
             lhs = statement.lhs
             rhs = statement.rhs
-
+            keep_assignment = statement.keep_assignment         
             if lhs isa Expr && lhs.head == :ref && lhs.args[1] == du
                 varNum = lhs.args[2]
-                if rhs isa Number || rhs isa Symbol
-                    equs[varNum] = transformFSimplecase(rhs)
-                elseif rhs isa Expr && rhs.head == :ref
-                    rhs = extractJacDep(-1,varNum, rhs, jac, exacteJacExpr, jac_mode, symDict, dD)
-                    equs[varNum] = transformFSimplecase(rhs)
-                elseif rhs isa Expr && rhs.head == :call && is_custom_function(rhs)
-                    rhs = extractJacDep(-1,varNum, rhs, jac, exacteJacExpr, jac_mode, symDict, dD)
-                    equs[varNum] = transformFSimplecase(rhs)
-                else
-                   # @show rhs
-                    rhs = extractJacDep(-1,varNum, rhs, jac, exacteJacExpr, jac_mode, symDict, dD)
-                   # @show "after", rhs
-                    temp = (transformF(:($(rhs), 1))).args[2]
-                    num_cache_equs = max(num_cache_equs, temp)
-                    equs[varNum] = rhs
-                end
-
-          #=   elseif lhs isa Symbol && rhs isa Expr && rhs.head in [:call, :ref]
-                # Already processed in normalize_ir
-                continue
-            elseif lhs isa Expr && lhs.head == :tuple && rhs isa Symbol
-                # Already processed
-                continue
-            elseif lhs isa Symbol && rhs isa Number
-                continue =#
+                newCacheSize=process_du_rhs(rhs,-1,varNum,helperAssignments, equs,exactJacExpr,symDict,jac,dD,jac_mode)
+                num_cache_equs = max(num_cache_equs, newCacheSize)
             else
-                push!(otherCode.args, Expr(:(=), lhs, rhs))
+                if keep_assignment# If the assignment is kept, add it to modelHelperCode
+                    push!(modelHelperCode.args, Expr(:(=), lhs, rhs))
+                end
             end
-
         elseif statement isa ForStatement
+            localHelperAssignments=AbstractODEStatement[] 
             b = statement.start
             niter = statement.stop
-            specRHS = statement.body[1] isa AssignStatement ? statement.body[1].rhs : nothing  # Simplified assumption
-
-            if specRHS isa Number || specRHS isa Symbol
-                equs[:(($b, $niter))] = transformFSimplecase(specRHS)
-            elseif specRHS isa Expr && specRHS.head == :ref
-                specRHS = extractJacDep(b, niter, specRHS, jac, exacteJacExpr, jac_mode, symDict, dD)
-                equs[:(($b, $niter))] = transformFSimplecase(specRHS)
-            elseif specRHS isa Expr && specRHS.head == :call && is_custom_function(specRHS)
-                specRHS = extractJacDep(b, niter, specRHS, jac, exacteJacExpr, jac_mode, symDict, dD)
-                equs[:(($b, $niter))] = transformFSimplecase(specRHS)
-            else
-                specRHS = extractJacDep(b, niter, specRHS, jac, exacteJacExpr, jac_mode, symDict, dD)
-                temp = (transformF(:($(specRHS), 1))).args[2]
-                num_cache_equs = max(num_cache_equs, temp)
-                equs[:(($b, $niter))] = specRHS
+            for bodyElement in statement.body
+                if bodyElement isa AssignStatement
+                    lhs = bodyElement.lhs
+                    rhs = bodyElement.rhs
+                    keep_assignment = bodyElement.keep_assignment
+                    if lhs isa Expr && lhs.head == :ref && lhs.args[1] == du
+                        newCacheSize=process_du_rhs(rhs,b,niter,localHelperAssignments, equs,exactJacExpr,symDict,jac,dD,jac_mode)
+                        num_cache_equs = max(num_cache_equs, newCacheSize)
+                        break # currently only one diff eq inside one for loop
+                    else
+                        if keep_assignment
+                            push!(localHelperAssignments, bodyElement)
+                        end
+                    end
+                else
+                    push!(localHelperAssignments, bodyElement)
+                end
             end
 
-        elseif statement isa IfStatement
-            
+        elseif statement isa IfStatement    
             zcf = statement.condition
             ZCFCounter += 1
             extractZCJacDep(ZCFCounter, statement.condition, ZCjac, SZ, dZ)
-
-            if zcf isa Expr && zcf.head == :ref
+            if zcf isa Symbol || (zcf isa Expr && zcf.head == :ref)
                 push!(zcequs, transformFSimplecase(zcf))
             else
-                temp = (transformF(:($(zcf), 1))).args[2]
-                num_cache_equs = max(num_cache_equs, temp)
+                newCacheSize = (transformF!(:($(zcf), 1)))#.args[2]
+                num_cache_equs = max(num_cache_equs, newCacheSize)
                 push!(zcequs, zcf)
             end
-
-            # You may want to rewrite `handleEvents` to take IR-form if-bodies
-           # @show statement.body
             handleEvents(statement.body, eventequs, length(zcequs), evsArr)
-
         elseif statement isa ExprStatement && statement.expr.head == :function
             push!(functionEx.args, statement.expr)
         elseif statement isa ExprStatement
-            push!(otherCode.args, statement.expr)
+            push!(modelHelperCode.args, statement.expr)
         end
     end
-
-    #@show eventequs
-
-      #println("after second pass, otherCode=$otherCode , equs=$equs, jac=$jac, dD=$dD, exacteJacExpr=$exacteJacExpr, zcequs=$zcequs, eventequs=$eventequs, ZCjac=$ZCjac, SZ=$SZ, dZ=$dZ")
     closurefunc=0
     if length(functionEx.args)==0   
     elseif length(functionEx.args)==1
@@ -121,16 +115,12 @@ function odeProblemFunc(ir::ODEFunctionIR,::Val{T},::Val{D},::Val{Z},initCond::V
     else
         error("Error: Currently only one helper function is allowed inside the model function. Consider moving them to the top level.")
     end
- 
     if jac_mode==:symbolic        
-        exactJacfunction=createExactJacFun(otherCode,exacteJacExpr,fname,closurefunc) 
+        exactJacfunction=createExactJacFun(modelHelperCode,exactJacExpr,fname) 
     else
-        exactJacfunction=createExactJacFun(Expr(:block),exacteJacExpr,fname,closurefunc) 
+        exactJacfunction=createExactJacFun(Expr(:block),exactJacExpr,fname) 
     end
-    diffEqfunctionExpression=createEqFun(otherCode,equs,zcequs,eventequs,fname,closurefunc)   # diff equations before this are stored in a dict:: now we have a giant function that holds all diff equations
-
-
-
+    diffEqfunctionExpression=createEqFun(modelHelperCode,equs,zcequs,eventequs,fname)   # diff equations before this are stored in a dict:: now we have a giant function that holds all diff equations
 
 
     if numHelperFunCalls>length(functionEx.args)# the case when the user has defined a helper function inside the model function and one helperF outside and only called the outside helperF is considered a user mistake (either user made a typo or forgot to remove).
@@ -140,7 +130,7 @@ function odeProblemFunc(ir::ODEFunctionIR,::Val{T},::Val{D},::Val{Z},initCond::V
             exactJacfunctionF=RuntimeGeneratedFunction(mod, mod,exactJacfunction)
             diffEqfunctionF=RuntimeGeneratedFunction(mod, mod,diffEqfunctionExpression)   
         else
-            @warn("Simulation is not running on same level with helper functions. This may hurt performance. Consider placing the solve function on top level, or placing the helper function inside the model.")
+            @warn("Simulation is not running on top level with helper functions. This may hurt performance. Consider placing your code on top level, or placing the helper function inside the model.")
             exactJacfunctionF1 = Base.eval(mod, exactJacfunction)
             exactJacfunctionF = (args...) -> Base.invokelatest(exactJacfunctionF1, args...)
             diffEqfunctionF1 = Base.eval(mod, diffEqfunctionExpression)

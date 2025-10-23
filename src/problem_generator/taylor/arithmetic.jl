@@ -95,9 +95,9 @@ function /(a::Taylor0, b::Taylor0)
     ordfact, cdivfact = divfactorization(a, b)
     c = Taylor0(cdivfact, a.order - ordfact)
     for ord in eachindex(c)
-        div!(c, a, b, ord)
+        div!(c, a, b, ord) 
     end
-    return c
+    return Taylor0(c,a.order)
 end
 @inline function divfactorization(a1::Taylor0, b1::Taylor0)
     a1nz = findfirst(a1)

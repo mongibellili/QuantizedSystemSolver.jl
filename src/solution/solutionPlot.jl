@@ -15,7 +15,16 @@
                  x, y
              end
          end
- 
+     elseif isa(idxs, Integer)
+         # Plot selected variables
+         
+             x = sol.savedTimes[idxs]
+             y = sol.savedVars[idxs]
+             @series begin
+                 label := "Var $idxs"
+                 x, y
+             end
+         
      elseif isa(idxs, AbstractVector)
          # Plot selected variables
          for i in idxs
@@ -29,23 +38,20 @@
  
      elseif isa(idxs, Tuple) && length(idxs) == 2
          i, j = idxs
- 
          # Interpolate both to common time grid
          sol1 = solInterpolated(sol, i, sol.ft / 1000.0)
          sol2 = solInterpolated(sol, j, sol.ft / 1000.0)
- 
          x = sol1.savedVars[1]
          y = sol2.savedVars[1]
- 
          xlabel := "Var $i"
          ylabel := "Var $j"
- 
          @series begin
+             seriestype := :path 
              label := "Var $j vs Var $i"
              x, y
          end
  
-        elseif isa(idxs, Tuple) && length(idxs) == 3
+      elseif isa(idxs, Tuple) && length(idxs) == 3
           i, j, k = idxs
           sol1 = solInterpolated(sol, i, sol.ft / 1000.0)
           sol2 = solInterpolated(sol, j, sol.ft / 1000.0)
@@ -57,8 +63,9 @@
           ylabel := "Var $j"
           zlabel := "Var $k"
           @series begin
-              label := "3D Trajectory"
-              x, y, z
+            seriestype := :path3d 
+            label := "3D Trajectory"
+            x, y, z
           end
   
       else

@@ -5,7 +5,7 @@ The ODEProblem function is the entry point for defining a new problem to be solv
 ## Problem extension 
 Problem extension can be achieved easily via PRTYPE which is of type Val, or another subtype of this superclass can be created.
 ```@docs
- QuantizedSystemSolver.ODEProblemData{F,PRTYPE,T,D,Z,CS}
+ QuantizedSystemSolver.ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS}
 ```
 ### What is needed with a new problem:
 The more different the new problem from the `ODEContProblem`, the more functions are needed to be extended. In general the following functions need to be extended.
@@ -25,7 +25,7 @@ end
 This new problem type takes care of one differential equation. There is no need for the Jacobian nor for the dependencies. This needs an extension of the custom_Solve method that just removes the references to the `jac` and the `SD`. An extension of the integrate method is also needed since the implementation is a lot simpler than what is currently implemented.
 
 ## Further reading about the functions creating the problem
-*ODEDiscProblem{F,PRTYPE,T,D,Z,CS}:* This is the struct that holds all
+*ODEDiscProblem{JACMODE,T,D,Z,CS,F,JAC,CLS}:* This is the struct that holds all
 the necessary data for a nonlinear ordinary differential equation (ODE) 
 problem with discrete events. The structure includes various fields such
 as initial conditions, discrete variables, Jacobians, event
