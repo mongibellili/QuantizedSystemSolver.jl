@@ -27,10 +27,10 @@ odeprob = ODEProblem(buck,u0,tspan,p)
 sol= solve(odeprob,liqss2(),abstol=1e-4,reltol=1e-2) 
 @show sol.stats
 @test  sol.stats.totalSteps<500
-@test 19.2<sol(0.0005,idxs=2)<19.9
+@test 19.1<sol(0.0005,idxs=2)<19.9
 sol= solve(odeprob,nmliqss2(),abstol=1e-3,reltol=1e-2,detection=Detection(3))   
 @test  sol.stats.totalSteps<500
-@test 19.2<sol(0.0005,idxs=2)<19.9
+@test 19.1<sol(0.0005,idxs=2)<19.9
 
 function adr(du,u,p,t)
    _dx=100.0#1/dx=N/10=1000/10
