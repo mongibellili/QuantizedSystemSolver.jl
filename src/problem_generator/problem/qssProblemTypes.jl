@@ -1,7 +1,7 @@
 # with any equation, carry its helper assignments 
 struct ScopedEquation
     helperAssignments::Vector{AbstractODEStatement}
-    eqs_RHS::Union{Number,Symbol,Expr}  # later change to expr only because eqs_RHS hold rhs after transformation
+    eqs_RHS::Union{Number,Symbol,Expr}  # later change to expr only because eqs_RHS hold rhs (expr) after transformation
 end
 """
     EventDependencyStruct
@@ -44,7 +44,7 @@ A struct that holds the Problem of a system of ODEs with a set of events with ts
   -`discreteVars::Vector{Float64} `   
   -`jac::Vector{Vector{Int}}`#Jacobian dependency..I have a der and I want to know which vars affect it...opposite of SD  
   -`ZCjac::Vector{Vector{Int}}` # to update other Qs before checking ZCfunction  
-  -`eqs::Function`#function that holds all ODEs  
+  -`equations::Function`#function that holds all ODEs  
   -`eventDependencies::Vector{EventDependencyStruct} ` 
   -`SD::Vector{Vector{Int}}`#  I have a var and I want the der that are affected by it  
   -`HZ::Vector{Vector{Int}}`#  an ev occured and I want the ZC that are affected by it  
@@ -65,7 +65,7 @@ mutable  struct ODEDiscProblem{JACMODE,T,D,Z,CS,F,JAC,CLS}<: ODEProblemData{JACM
   discreteVars#::Vector{Any}  
   jac::Vector{Vector{Int}}#Jacobian dependency..I have a der and I want to know which vars affect it...opposite of SD
   ZCjac::Vector{Vector{Int}} # to update other Qs before checking ZCfunction
-  eqs::F#function that holds all ODEs
+  equations::F#function that holds all ODEs
   eventDependencies::Vector{EventDependencyStruct}# 
   SD::Vector{Vector{Int}}#  I have a var and I want the der that are affected by it
   HZ::Vector{Vector{Int}}#  an ev occured and I want the ZC that are affected by it

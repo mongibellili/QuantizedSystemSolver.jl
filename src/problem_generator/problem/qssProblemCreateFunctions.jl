@@ -182,6 +182,8 @@ function createEqFun(modelHelperCode::Expr,equs::Dict{Union{Int,Symbol,Expr},Sco
         # Add main equation RHS
         push!(body_exprs, to_expr(scoped.eqs_RHS))
 
+        push!(body_exprs, :(return nothing))
+
         push!(branches, cond_expr => Expr(:block, body_exprs...))
     end
 

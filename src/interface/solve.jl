@@ -15,7 +15,7 @@ dispatches on a specific integrator based on the algorithm provided and sends a 
 
 After the simulation, the solution is returned as a Solution object.
 """
-function solve(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS},al::QSSAlgorithm{SolverType, OrderType};detection::Val{CDM}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,absZtol::Float64=-1.0,relZtol::Float64=-1.0,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose=false::Bool) where{JACMODE,T,D,Z,CS,F,JAC,CLS,SolverType,OrderType,CDM}    
+function solve(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS},al::QSSAlgorithm{SolverType, OrderType};detection::Val{CDM}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,absZtol::Float64=-1.0,relZtol::Float64=-1.0,maxErr::Float64=1000.0,maxiters::Int=Int(1e7),verbose=false::Bool) where{JACMODE,T,D,Z,CS,F,JAC,CLS,SolverType,OrderType,CDM}    
    tspan=prob.tspan  # tspan separated before custom_solve to allow user to enter tspan with solve (not with prob)
    if absZtol==-1.0 && relZtol==-1.0 # if user does not provide absZtol and relZtol, then use the default values of reltol and abstol
         #absZtol=1e-2*abstol^2;relZtol=abstol^2
@@ -32,7 +32,7 @@ end
 
 same as the previous solve method, but with a specified time span. This method is useful when the user wants to specify the time span separately from the problem definition.
 """
-function solve(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};detection::Val{CDM}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,absZtol::Float64=-1.0,relZtol::Float64=-1.0,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose=false::Bool) where{JACMODE,T,D,Z,CS,F,JAC,CLS,SolverType,OrderType,CDM}    
+function solve(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS},al::QSSAlgorithm{SolverType, OrderType},tspan::Tuple{Float64, Float64};detection::Val{CDM}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,absZtol::Float64=-1.0,relZtol::Float64=-1.0,maxErr::Float64=1000.0,maxiters::Int=Int(1e7),verbose=false::Bool) where{JACMODE,T,D,Z,CS,F,JAC,CLS,SolverType,OrderType,CDM}    
     if absZtol==-1.0 && relZtol==-1.0 # if user does not provide absZtol and relZtol, then use the default values of reltol and abstol
         #absZtol=1e-3*abstol^2;relZtol=abstol^2
         absZtol=1e-6*abstol  
@@ -42,11 +42,11 @@ function solve(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS},al::QSSAlgorithm
 end
 
  # user does not provide solver. default mliqss2 is used. tspan provided in solve
-function solve(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS},tspan::Tuple{Float64, Float64};detection::Val{CDM}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,absZtol::Float64=-1.0,relZtol::Float64=-1.0,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose::Bool=false) where {JACMODE,T,D,Z,CS,F,JAC,CLS,CDM}    
+function solve(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS},tspan::Tuple{Float64, Float64};detection::Val{CDM}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,absZtol::Float64=-1.0,relZtol::Float64=-1.0,maxErr::Float64=1000.0,maxiters::Int=Int(1e7),verbose::Bool=false) where {JACMODE,T,D,Z,CS,F,JAC,CLS,CDM}    
    solve(prob,QSSAlgorithm(Val(:nmliqss),Val(2)),tspan;detection=detection,saveat=saveat,abstol=abstol,reltol=reltol,absZtol=absZtol,relZtol=relZtol,maxErr=maxErr,maxiters=maxiters,verbose=verbose)  
 end
 # user does not provide solver. default mliqss2 is used. tspan provided in prob
-function solve(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS};detection::Val{CDM}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,absZtol::Float64=-1.0,relZtol::Float64=-1.0,maxErr::Float64=1.0,maxiters::Int=Int(1e7),verbose::Bool=false) where{JACMODE,T,D,Z,CS,F,JAC,CLS,CDM}    
+function solve(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS};detection::Val{CDM}=Val(2),saveat::Float64=Inf,abstol::Float64=1e-3,reltol::Float64=1e-3,absZtol::Float64=-1.0,relZtol::Float64=-1.0,maxErr::Float64=1000.0,maxiters::Int=Int(1e7),verbose::Bool=false) where{JACMODE,T,D,Z,CS,F,JAC,CLS,CDM}    
    solve(prob,QSSAlgorithm(Val(:nmliqss),Val(2));detection=detection,saveat=saveat,abstol=abstol,reltol=reltol,absZtol=absZtol,relZtol=relZtol,maxErr=maxErr,maxiters=maxiters) 
 end
 
@@ -78,10 +78,10 @@ function custom_Solve(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS},al::QSSAl
      jac=getClosure(prob.jac) #if in future jac and SD are different datastructures
      SD=getClosure(prob.SD)
     if Solver==:qss
-        integrate(al,commonQSSdata,prob,prob.eqs,jac,SD) 
+        integrate(al,commonQSSdata,prob,prob.equations,jac,SD) 
     else
           liqssdata=createLiqssData(Val(JACMODE),Val(CDM),Val(T),Val(Order))
-          integrate(al,commonQSSdata,prob,prob.eqs,jac,SD,liqssdata,prob.exactJac)   
+          integrate(al,commonQSSdata,prob,prob.equations,jac,SD,liqssdata,prob.exactJac)   
     end
  end
  function getClosure(jacSD::Vector{Vector{Int}})
@@ -129,8 +129,8 @@ function createCommonData(prob::ODEProblemData{JACMODE,T,D,Z,CS,F,JAC,CLS},::Val
     d = deepcopy(prob.discreteVars) # copy the discrete vars from the problem to the common data . deepcopy needed in case running multiple simulations in the same "run"
     
     #expected_steps=Int(ceil((finalTime-initialTime)/saveat))+1
-    expected_steps=Int(ceil((finalTime-initialTime)/(Order*reltol)))+1
-    #expected_steps=500
+    #expected_steps=Int(ceil((finalTime-initialTime)/(Order*reltol)))+1
+    expected_steps=500 # these vectors are resized during the simulation if needed. the size of 500 is temporary and future work should decide how to set this value in a more principled way. the main point is that we want to avoid resizing at every step, so we need to have an initial size that is not too small.
      
     for i = 1:T
         nextInputTime[i]=Inf

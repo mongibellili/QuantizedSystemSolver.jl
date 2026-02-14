@@ -64,6 +64,7 @@ function isCycle_simulUpdate(aii::Float64,ajj::Float64,aij::Float64,aji::Float64
   iscycle=detect2(Val(M),xi1,dxi,dxithrow,xi2,ddxi,ddxithrow,βidir,βidth,xj1,dxj,xj2,ddxj,dqjplus,recentjDir,dirI) 
 
   if iscycle
+        h = ft-simt
         aiijj=aii+ajj
         aiijj_=aij*aji-aii*ajj
         coefΔh1=-8.0*aiijj
@@ -84,9 +85,8 @@ function isCycle_simulUpdate(aii::Float64,ajj::Float64,aij::Float64,aji::Float64
         coefH4j=2.0*(aiijj*(uji*aiijj_-aii*uji2+aji*uij2)-0.5*(2.0*ajj*aii-aij*aji+aii*aii)*(ajj*uji+aji*uij+uji2+2.0*xj*aiijj_)-aii*aiijj_*aiijj*xj+0.5*aji*aiijj*(aii*uij+aij*uji+uij2+2.0*xi*aiijj_)+aji*aiijj_*aiijj*xi)
         coefH5j=(2.0*ajj*aii-aij*aji+aii*aii)*(aii*uji2-uji*aiijj_-aji*uij2)-aii*aiijj_*(ajj*uji+aji*uij+uji2+2.0*xj*aiijj_)-aji*aiijj*(ajj*uij2-uij*aiijj_-aij*uji2)+aji*aiijj_*(aii*uij+aij*uji+uij2+2.0*xi*aiijj_)
         coefH6j=aii*aiijj_*(aii*uji2-uji*aiijj_-aji*uij2)-aji*aiijj_*(ajj*uij2-uij*aiijj_-aij*uji2)
-        h = ft-simt
-        Δ1=1.0-h*(aiijj)-h*h*(aiijj_)
         
+        Δ1=1.0-h*(aiijj)-h*h*(aiijj_)
         if abs(Δ1)!=0.0 
           h_2=h*h;h_3=h_2*h;h_4=h_3*h;h_5=h_4*h;h_6=h_5*h
           Δ22=4.0+h*coefΔh1+h_2*(coefΔh2)+h_3*(coefΔh3)+h_4*(coefΔh4)+h_5*coefΔh5+h_6*coefΔh6

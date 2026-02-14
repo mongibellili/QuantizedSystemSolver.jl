@@ -15,7 +15,7 @@ function rename_and_swap_lhs(element::Symbol,stateVarName::Symbol,discrParamName
                 if val.head == :ref # if symbol in lhs of event to be replaced, then allow only refs
                     element = copy(val)  # Copy if Expr to avoid IR side effects
                 end
-            else #
+            elseif !(val isa Number) #
                 element = val
             end
         end

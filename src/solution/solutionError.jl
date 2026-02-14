@@ -112,10 +112,16 @@ function getAverageErrorByRefs(sol::Sol{T,O},solRef::Vector{Any}) where{T,O}
       for i = 1:numPoints-1 #each point is a taylor
           ts=solRef[i][index]
           Ns=sol.savedVars[index][i]
-          sumDiffSqr+=(Ns-ts)*(Ns-ts)
-          sumTrueSqr+=ts*ts
+          if abs(Ns-ts)<1.0  # to avoid big errors due to discontinuities
+             if ts*ts>1e-12
+                    sumDiffSqr+=(Ns-ts)*(Ns-ts)
+                    sumTrueSqr+=ts*ts
+                end
+
+            
+          end
       end
-      if  abs(sumTrueSqr)>1e-12
+      if  abs(sumTrueSqr)>1e-6
       relerror=sqrt(sumDiffSqr/sumTrueSqr)
       else
         relerror=0.0

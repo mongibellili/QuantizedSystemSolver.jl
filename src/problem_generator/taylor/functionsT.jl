@@ -4,7 +4,7 @@
 # UNAM
 #
 # MIT Expat license
-# Modified by elmongi elbellili, 2024, to add cache to avoid allocations
+# Modified by elmongi elbellili, 2024; cache added to avoid allocations
 # FunctionsT
 
 """

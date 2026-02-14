@@ -106,7 +106,7 @@ function plot_SolSum(sol::Sol{T,O},xvars::Int...;interp=0.0001,note=" "::String,
           sumV[i]+=solInterp.savedVars[xvars[k]][i]
         end
     end
-      p1=plot!(p1,sumT, sumV,marker=(:circle),#= ,legend=:right =#)
+      p1=plot!(p1,sumT, sumV,marker=(:circle), markersize=1#= ,legend=:right =#)
   else
     println("pick idxs to plot their sum")
   end

@@ -26,12 +26,14 @@ qss1()=QSSAlgorithm(Val(:qss),Val(1))
 ```
 """
 qss1()=QSSAlgorithm(Val(:qss),Val(1))
+QSS1()=QSSAlgorithm(Val(:qss),Val(1))
 
 """
     qss2()
 calls the explicit quantized state system solver with order 2 
 """
 qss2()=QSSAlgorithm(Val(:qss),Val(2))
+QSS2()=QSSAlgorithm(Val(:qss),Val(2))
 
 """
     nmliqss1()
@@ -39,23 +41,26 @@ calls the modified imlicit quantized state system solver with order 1.
 It is efficient when the system contains large entries outside the main diagonal of the Jacobian .
 """
 nmliqss1()=QSSAlgorithm(Val(:nmliqss),Val(1))
+mLIQSS1()=QSSAlgorithm(Val(:nmliqss),Val(1))
 """
     nmliqss2()
 calls the modified imlicit quantized state system solver with order 2.
 It is efficient when the system contains large entries outside the main diagonal of the Jacobian .
 """
 nmliqss2()=QSSAlgorithm(Val(:nmliqss),Val(2))
-
+mLIQSS2()=QSSAlgorithm(Val(:nmliqss),Val(2))
 
 """
     liqss1()
 calls the  imlicit quantized state system solver with order 1.
 """
 liqss1()=QSSAlgorithm(Val(:liqss),Val(1))
+LIQSS1()=QSSAlgorithm(Val(:liqss),Val(1))
 """
     liqss2()
 calls the  imlicit quantized state system solver with order 2.
 """
 liqss2()=QSSAlgorithm(Val(:liqss),Val(2))
+LIQSS2()=QSSAlgorithm(Val(:liqss),Val(2))
 
 

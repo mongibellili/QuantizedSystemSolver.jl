@@ -1,21 +1,51 @@
-function process_du_rhs(rhs::Union{Number,Symbol,Expr},b::Int,niter::Int,helperAssignments::Vector{AbstractODEStatement}, equs::Dict{Union{Int,Symbol,Expr},ScopedEquation},exactJacExpr :: Dict{Expr,ScopedEquation},symDict::Dict{Symbol,Expr},jac :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},dD :: Dict{Union{Int,Symbol,Expr},Set{Union{Int,Symbol,Expr}}},jac_mode::Symbol)
+
+
+
+"""
+    process_du_rhs(rhs::Union{Number,Symbol,Expr}, b::Int, niter::Int, 
+                   localHelperAssignments::Vector{AbstractODEStatement}, 
+                   equs::Dict{Union{Int,Symbol,Expr},ScopedEquation},
+                   exactJacExpr::Dict{Expr,ScopedEquation},
+                   symDict::Dict{Symbol,Expr},
+                   jac::Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},
+                   dD::Dict{Union{Int,Symbol,Expr},Set{Union{Int,Symbol,Expr}}},
+                   jac_mode::Symbol)
+
+Process the right-hand side (RHS) of a differential equation term.
+
+# Arguments
+- `rhs::Union{Number,Symbol,Expr}`: The right-hand side expression to process
+- `b::Int`: Block index parameter if equation inside a loop or normal index if not inside a loop
+- `niter::Int`: Number of iterations in case there is a loop
+- `localHelperAssignments::Vector{AbstractODEStatement}`: Vector of helper assignment statements to this equation
+- `equs::Dict{Union{Int,Symbol,Expr},ScopedEquation}`: Dictionary of scoped equations
+- `exactJacExpr::Dict{Expr,ScopedEquation}`: Dictionary of exact Jacobian expressions
+- `symDict::Dict{Symbol,Expr}`: Symbol to expression mapping dictionary
+- `jac::Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}}`: Jacobian dependency dictionary
+- `dD::Dict{Union{Int,Symbol,Expr},Set{Union{Int,Symbol,Expr}}}`: Derivative dependency dictionary
+- `jac_mode::Symbol`: Jacobian computation mode
+
+# Returns
+Processed representation of the differential equation term RHS.
+"""
+function process_du_rhs(rhs::Union{Number,Symbol,Expr},b::Int,niter::Int,localHelperAssignments::Vector{AbstractODEStatement}, equs::Dict{Union{Int,Symbol,Expr},ScopedEquation},exactJacExpr :: Dict{Expr,ScopedEquation},symDict::Dict{Symbol,Expr},jac :: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},dD :: Dict{Union{Int,Symbol,Expr},Set{Union{Int,Symbol,Expr}}},jac_mode::Symbol)
     newCacheSize = 1 # default cache size
     if rhs isa Number || rhs isa Symbol
         rhs=transformFSimplecase(rhs)
     elseif rhs isa Expr && (rhs.head == :ref  || (rhs.head == :call && is_custom_function(rhs)))
         jacset=extractJacDep(b,niter, rhs, jac,  dD)
-        if jac_mode==:symbolic extractJacExpression(b,niter, rhs, jacset, exactJacExpr, helperAssignments,symDict) end
+        if jac_mode==:symbolic extractJacExpression(b,niter, rhs, jacset, exactJacExpr, localHelperAssignments,symDict) end
         rhs=transformFSimplecase(rhs)
     else
         
         jacset=extractJacDep(b,niter, rhs, jac,  dD)
-        if jac_mode==:symbolic extractJacExpression(b,niter, rhs, jacset, exactJacExpr, helperAssignments,symDict) end
-        newCacheSize = (transformF!(:($(rhs), 1)))#.args[2]
+        if jac_mode==:symbolic extractJacExpression(b,niter, rhs, jacset, exactJacExpr, localHelperAssignments,symDict) end
+        newCacheSize = (transformF!(:($(rhs), 1)))# note the expression contains rhs and 1 ...different from (:$(rhs),1)
     end
     if b==-1
-        equs[niter] =  ScopedEquation(helperAssignments,rhs)
+        equs[niter] =  ScopedEquation(localHelperAssignments,rhs) # each equation is stored in a dict with its lhs (varNum or for loop index) as key and its rhs and helper assignments as value. 
     else
-        equs[:(($b, $niter))] =  ScopedEquation(helperAssignments,rhs)
+        equs[:(($b, $niter))] =  ScopedEquation(localHelperAssignments,rhs)
     end
     return newCacheSize
 end
@@ -108,7 +138,7 @@ function odeProblemFunc(ir::ODEFunctionIR,::Val{T},::Val{D},::Val{Z},initCond::V
         end
     end
     closurefunc=0
-    if length(functionEx.args)==0   
+    if length(functionEx.args)==0   # helper functions inside the model
     elseif length(functionEx.args)==1
         closurefunc=@RuntimeGeneratedFunction(functionEx.args[1]) 
         jac_mode==:symbolic && @warn("symbolic jacobian mode is not advised with helper functions. use jac_mode = :approximate in ODEProblem.")   
@@ -123,7 +153,7 @@ function odeProblemFunc(ir::ODEFunctionIR,::Val{T},::Val{D},::Val{Z},initCond::V
     diffEqfunctionExpression=createEqFun(modelHelperCode,equs,zcequs,eventequs,fname)   # diff equations before this are stored in a dict:: now we have a giant function that holds all diff equations
 
 
-    if numHelperFunCalls>length(functionEx.args)# the case when the user has defined a helper function inside the model function and one helperF outside and only called the outside helperF is considered a user mistake (either user made a typo or forgot to remove).
+    if numHelperFunCalls>length(functionEx.args)# helper functions outside the model. the case when the user has defined a helper function inside the model function and one helperF outside and only called the outside helperF is considered a user mistake (either user made a typo or forgot to remove).
         jac_mode==:symbolic && @warn("symbolic jacobian mode is not advised with helper functions. use jac_mode = :approximate in ODEProblem.")  
         if is_top_level                    
             RuntimeGeneratedFunctions.init(Main)

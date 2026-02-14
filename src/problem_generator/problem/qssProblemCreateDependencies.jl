@@ -66,8 +66,6 @@ function extractJacDep(b::Int,niter::Int,rhs::Expr,jac :: Dict{Union{Int,Expr},S
 end
 
 function extractJacExpression(b::Int,niter::Int,rhs::Expr,jacSet::Set{Union{Int,Symbol,Expr}},exactJacExpr :: Dict{Expr,ScopedEquation},helperAssignments::Vector{AbstractODEStatement},symDict::Dict{Symbol,Expr}) 
-  
- 
     empty!(symDict) # in each equation fk, we change the symbols, find the dfk/dxi where i ∈ jacset
 
     m=postwalk(rhs) do a   #
@@ -95,7 +93,7 @@ function extractJacExpression(b::Int,niter::Int,rhs::Expr,jacSet::Set{Union{Int,
       coefExpr=Meta.parse(coefstr)#convert from basic to expression
       jacEntry=restoreRef(coefExpr,symDict)# get back ref: 
       jacEntry = changeExprToFirstValue(jacEntry)  # qi->q[i][0]
-      jacEntry=changeT(jacEntry) # t -> t[0]
+      #jacEntry=changeT(jacEntry) # t -> t[0] but only in case 
       if b!=-1
         exactJacExpr[:((($b,$niter),$i))]= ScopedEquation(helperAssignments,jacEntry )
       else
@@ -174,7 +172,7 @@ string(SD)
 ```
 """
 function createSDVect(jac:: Dict{Union{Int,Expr},Set{Union{Int,Symbol,Expr}}},::Val{T}) where {T}
-  sdVect = Vector{Vector{Int}}(undef, T)
+  sdVect = Vector{Vector{Int}}(undef, T)# future work should think about using tricks.... AI talk that i do not agree with since currently i only push dependent data ...AI said:sparse matrix for these dependencies instead of vector of vectors, since it is more efficient and we can use the existing libraries for sparse matrix operations.
   for i=1:T
       sdVect[i]=Vector{Int}()# define it so I can push elements as I find them below
   end
@@ -297,7 +295,6 @@ string(dDVect)
 """
 function createdDVect(dD::Dict{Union{Int64,Symbol,Expr}, Set{Union{Int64, Expr, Symbol}}},::Val{D}) where {D}
   dDVect = Vector{Vector{Int}}(undef, D)
-  @show dDVect, D
   for ii=1:D
       dDVect[ii]=Vector{Int}()# define it so i can push elements as i find them below
   end
@@ -471,10 +468,10 @@ function createDependencyToEventsDiscr(dD::Vector{Vector{Int}},dZ::Dict{Int64, S
     lendD=length(dD) # number of discrete variables
     HD1 = Vector{Vector{Int}}(undef, Y) # dependency of differential equations to events using only discrete variables
     HZ1 = Vector{Vector{Int}}(undef, Y) # dependency of zero-crossing functions to events using only discrete variables
-      for ii=1:Y
-        HD1[ii] =Vector{Int}()# define it so i can push elements as i find them below
-        HZ1[ii] =Vector{Int}()# define it so i can push elements as i find them below
-      end
+    for ii=1:Y
+      HD1[ii] =Vector{Int}()# define it so i can push elements as i find them below
+      HZ1[ii] =Vector{Int}()# define it so i can push elements as i find them below
+    end
     for j=1:Y #for each event j
       hdSet=Set{Int}()
       hzSet=Set{Int}()
@@ -527,10 +524,10 @@ function createDependencyToEventsCont(SD::Vector{Vector{Int}},sZ::Dict{Int64, Se
   Y=length(eventDep)
   HD2 = Vector{Vector{Int}}(undef, Y)
   HZ2 = Vector{Vector{Int}}(undef, Y)
-    for ii=1:Y
-      HD2[ii] =Vector{Int}()# define it so i can push elements as i find them below
-      HZ2[ii] =Vector{Int}()# define it so i can push elements as i find them below
-    end
+  for ii=1:Y
+    HD2[ii] =Vector{Int}()# define it so i can push elements as i find them below
+    HZ2[ii] =Vector{Int}()# define it so i can push elements as i find them below
+  end
   for j=1:Y
     hdSet=Set{Int}()
     hzSet=Set{Int}()

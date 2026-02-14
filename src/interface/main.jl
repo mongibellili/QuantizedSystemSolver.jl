@@ -68,7 +68,6 @@ function ODEProblem(f::Function, u::Vector{C}, tspan::Tuple{A,B}, p::Union{Vecto
     tspan = Float64.(tspan)
     probSize = length(u)
     discParamSize = length(p)
-    @show discParamSize
     mod = typeof(f).name.module
 
     preProcessData = PreProcessData(du, tspan, problemName, mod, is_top_level, numHelperF)
@@ -99,7 +98,8 @@ end
 
 
 
-
+# dummy macro to be used in IR generation. this is needed to allow users to inline or no_inline some expressions. the custom parsing module will act on the existence of these macros to decide whether to inline or not the expressions.
 macro _inline(expr)
-    #return Expr(:call, Symbol("_inline"), expr)
+end
+macro _noinline(expr)
 end

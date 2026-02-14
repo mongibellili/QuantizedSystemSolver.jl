@@ -29,7 +29,7 @@ end
 
 
 # Handles individual index terms
-function _idxToString(ref)
+function _idxToString(ref) # called by extractJacExpression.
     if ref isa Symbol || ref isa Int || ref isa String
         return string(ref)
     elseif ref isa Expr && ref.head == :call && length(ref.args) == 3
@@ -44,7 +44,7 @@ function _idxToString(ref)
 end
 
 # Maps operators to readable names
-function _operatorName(op::Symbol)
+#= function _operatorName(op::Symbol)
     return Dict(
         :+ => "plus",
         :- => "minus",
@@ -53,11 +53,27 @@ function _operatorName(op::Symbol)
         :^ => "pow"
     )[op]  # fallback is error if op not in Dict
 end
+ =#
+ @inline function _operatorName(op::Symbol) #called by _idxToString to change operators in index expressions to string that can be used in variable names. for example, q[i+1] will be changed to qiplus1.
+    if op === :+
+        return "plus"
+    elseif op === :-
+        return "minus"
+    elseif op === :*
+        return "times"
+    elseif op === :/
+        return "div"
+    elseif op === :^
+        return "pow"
+    else
+        error("Unsupported operator: $op inside _idxToString during Jacobian extraction. Only +, -, *, /, ^ are supported.")
+    end
+end
 
 
 
 
-function expr_to_flat_name(e)
+function expr_to_flat_name(e)  # called by extractJacExpression to change an expression to string that can be used as variable names when we call convert and diff from SymEngine. for example, if we have an expression q[i] or [i,j,k], we want to change it to qi or i_j_k.
     if e isa Expr
         if e.head == :call
             fname = expr_to_flat_name(e.args[1])
@@ -87,7 +103,7 @@ function expr_to_flat_name(e)
     end
 end
 
-function restoreRef(coefExpr,symDict)
+function restoreRef(coefExpr,symDict)  # called by extractJacExpression to restore the expression from the symbol after we get the jacobian expression in symbolic form. for example, if we have a symbol qi, we want to change it back to q[i]. it reverses the effect of expr_to_flat_name. 
   newEx=prewalk(coefExpr) do element# 
     if element isa Symbol && !(element in (:+,:-,:*,:/)) && haskey(symDict, element) 
         if String(element)[1] == 'q' 

@@ -13,6 +13,9 @@ Updates the scheduler by finding the minimum times among state, event, and input
 - A tuple containing the minimum (state index,state time), (event index, event tim, or (input index, input time).
 """
 function updateScheduler(::Val{T},nextStateTime::Vector{Float64},nextEventTime :: MVector{Z,Float64},nextInputTime :: Vector{Float64})where{T,Z}   #later MVect for nextInput
+    #future work; since we are only interested in the minimum time, for large sparse problems we can use a min heap to store the times and their corresponding indices. This way, we can get the minimum time in O(1) time and update the heap in O(log n) time when a new time is added or an existing time is updated. This would be more efficient than iterating through all the times to find the minimum.
+    
+    
     minStateTime=Inf
     minState_index=0  # what if all nextstateTime= Inf ...especially at begining????? min_index stays 0!!!
     minEventTime=Inf
@@ -53,7 +56,7 @@ function updateScheduler(::Val{T},nextStateTime::Vector{Float64},nextEventTime :
     end
     if returnedVar[1]==0
         returnedVar=(1,Inf,:ST_STATE)
-        println("null step made state step")
+        #println("null step made state step")
     end
     return returnedVar 
 end

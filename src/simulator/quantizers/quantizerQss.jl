@@ -201,7 +201,7 @@ Compute the next time for a given state variable `i` in a second-order quantized
 function computeNextTime(::Val{2}, i::Int, simt::Float64, nextTime::Vector{Float64}, x::Vector{Taylor0}, quantum::Vector{Float64})
     absDeltaT=1e-12 # minimum deltaT to protect against der=Inf coming from sqrt(0) for example...similar to min ΔQ
       if (x[i].coeffs[3]) != 0
-          tempTime=max(sqrt(abs(quantum[i] / ((x[i].coeffs[3])))),absDeltaT)
+          tempTime=max(sqrt(abs(2*quantum[i] / ((x[i].coeffs[3])))),absDeltaT)
           if tempTime!=absDeltaT #normal
               nextTime[i] = simt + tempTime#sqrt(abs(quantum[i] / ((x[i].coeffs[3])*2))) #*2 cuz coeff contains fact()
           else#usual sqrt(quant/der) is very small
@@ -210,7 +210,7 @@ function computeNextTime(::Val{2}, i::Int, simt::Float64, nextTime::Vector{Float
           end
       else
         if (x[i].coeffs[2]) != 0
-          tempTime=max(abs(quantum[i] /(x[i].coeffs[2])),absDeltaT)# i can avoid the use of max
+          tempTime=max(abs(1*quantum[i] /(x[i].coeffs[2])),absDeltaT)# i can avoid the use of max
           if tempTime!=absDeltaT #normal
               nextTime[i] = simt + tempTime#sqrt(abs(quantum[i] / ((x[i].coeffs[3])*2))) #*2 cuz coeff contains fact()
           else#usual (quant/der) is very small
@@ -234,7 +234,7 @@ similar to [`computeNextTime`](@ref) but it also account for the first derivativ
 function reComputeNextTime(::Val{1}, index::Int, simt::Float64, nextTime::Vector{Float64}, x::Vector{Taylor0},q::Vector{Taylor0}, quantum::Vector{Float64})
   absDeltaT=1e-12
   if abs(q[index].coeffs[1] - (x[index].coeffs[1])) >= quantum[index] # this happened when var i and j s turns are now...var i depends on j, j is asked here for next time
-    nextTime[index] = simt+1e-16
+    nextTime[index] = simt+1e-10
   else
     time1 =  minPosRoot(q[index].coeffs[1] - (x[index].coeffs[1]) - quantum[index],-x[index].coeffs[2], Val(1))
     time2 =  minPosRoot(q[index].coeffs[1] - (x[index].coeffs[1]) + quantum[index],-x[index].coeffs[2], Val(1))
@@ -252,12 +252,12 @@ similar to [`computeNextTime`](@ref) but it also account for the first and secon
 
 """
 function reComputeNextTime(::Val{2}, index::Int, simt::Float64, nextTime::Vector{Float64}, x::Vector{Taylor0}, q::Vector{Taylor0}, quantum::Vector{Float64})
-  absDeltaT=1e-15
-  if abs(q[index].coeffs[1] - (x[index].coeffs[1])) >= quantum[index] # this happened when var i and j s turns are now...var i depends on j, j is asked here for next time
-    nextTime[index] = simt+1e-12
+  absDeltaT=1e-10
+  if abs(q[index].coeffs[1] - (x[index].coeffs[1])) > 2*quantum[index] # this happened when var i and j s turns are now...var i depends on j, j is asked here for next time
+    nextTime[index] = simt+1e-8
   else
-    time1 =  minPosRoot(q[index].coeffs[1] - (x[index].coeffs[1]) - quantum[index], q[index].coeffs[2]-x[index].coeffs[2],-x[index].coeffs[3], Val(2))
-    time2 =  minPosRoot(q[index].coeffs[1] - (x[index].coeffs[1]) + quantum[index], q[index].coeffs[2]-x[index].coeffs[2],-x[index].coeffs[3], Val(2))
+    time1 =  minPosRoot(q[index].coeffs[1] - (x[index].coeffs[1]) - 2*quantum[index], q[index].coeffs[2]-x[index].coeffs[2],-x[index].coeffs[3], Val(2))
+    time2 =  minPosRoot(q[index].coeffs[1] - (x[index].coeffs[1]) + 2*quantum[index], q[index].coeffs[2]-x[index].coeffs[2],-x[index].coeffs[3], Val(2))
     timeTemp = time1 < time2 ? time1 : time2
     tempTime=max(timeTemp,absDeltaT)#guard against very small Δt 
     nextTime[index] = simt +tempTime   #round(tempTime, digits = 14)
@@ -332,7 +332,6 @@ function computeNextInputTime(::Val{2}, i::Int, t::Taylor0,f::F,clF::FF,d, taylo
       t[0]=simt+tempstep
       f(i, -1, -1, q, d, t, taylorOpsCache,clF)
       predictedDer=taylorOpsCache[1].coeffs[2]*2 
-     # @show predictedDer
       if abs(predictedDer-oldDerX)>abs(predictedDer+oldDerX)/2 #significant change-->bad prediction --> lower stepsize
         nextInputTime[i]=simt+tempstep/10
       else
@@ -347,7 +346,6 @@ function computeNextInputTime(::Val{2}, i::Int, t::Taylor0,f::F,clF::FF,d, taylo
       else
         nextInputTime[i] = Inf
       end
-     # @show "older==0 ",simt,t[0],predictedDer, nextInputTime[i]
     end
     t[0]=simt
   
@@ -376,10 +374,11 @@ Compute the next event time for a given zero-crossing function.
 function computeNextEventTime(::Val{O},j::Int,ZCFun::Taylor0,oldsignValue::MMatrix{Z,2} ,simt::Float64,  nextEventTime :: MVector{Z,Float64}, quantum::Vector{Float64},absZ::Float64,relZ::Float64#= ,totalSteps::Integer =#) where {O, Z}
   
   # tol_zcf= absZ + relZ*abs(ZCFun[0])
+  # future fix: no need to store sign of old: any time we can get it from oldvalue by sign()
   if abs(oldsignValue[j,2]) <= absZ  && abs(ZCFun[0]) <= absZ
 
     nextEventTime[j]=Inf
-  elseif (oldsignValue[j,1] != sign(ZCFun[0])) && abs(oldsignValue[j,2])  > 1e-15 #prevent double tapping: when zcf is leaving zero it should be considered an event
+  elseif (oldsignValue[j,1] != sign(ZCFun[0])) && abs(oldsignValue[j,2])  > 1e-15 #prevent double tapping: when zcf is leaving zero (old=1e-15) it should be considered an already occured event
     nextEventTime[j]=simt 
   elseif abs(ZCFun[0]) <= absZ && abs(oldsignValue[j,2]) > absZ 
     nextEventTime[j]=simt+(absZ / abs(ZCFun[1]))

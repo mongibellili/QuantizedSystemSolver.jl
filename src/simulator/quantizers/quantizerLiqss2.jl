@@ -38,6 +38,9 @@ function updateQ(::Val{2}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, qua
     ddx = x2
     quan = quantum[i]
     h = 0.0
+
+ 
+
     if isnan(a)
         @warn("a is NaN: The Jacobian is not defined at this instant $(simt). This may be due to an undefined operation. Consider computing the Jacobian coefficient manually.")
         a = 0.0
@@ -93,6 +96,8 @@ function updateQ(::Val{2}, i::Int, xv::Vector{Taylor0}, qv::Vector{Taylor0}, qua
             end
         end
     end
+
+ 
     qv[i][0] = q
     qv[i][1] = q1
     nextStateTime[i] = simt + h

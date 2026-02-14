@@ -40,7 +40,7 @@ tspan=(0.0,6.0)
 u = [1.0, 1.0]
 p=[0.5]
 odeprob=ODEProblem(one_t_three_events,u,tspan,p)
-#@show odeprob.eqs
+#@show odeprob.equations
 sol=solve(odeprob,qss2())
 
 

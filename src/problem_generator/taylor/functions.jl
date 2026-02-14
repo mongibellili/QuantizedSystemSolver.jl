@@ -203,7 +203,7 @@ end
     return nothing
 end
 
-@inline function sincos!(s::Taylor0, c::Taylor0, a::Taylor0, k::Int)
+@inline function sincos!(s::Taylor0, c::Taylor0, a::Taylor0, k::Int) 
     if k == 0
         a0 = constant_term(a)
         @inbounds s[0], c[0] = sincos(a0)
