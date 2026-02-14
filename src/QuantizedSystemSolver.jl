@@ -25,7 +25,8 @@ module QuantizedSystemSolver
    # import LinearAlgebra: norm
                 ##### list of public (API) 
   export ODEProblemTest,ODEProblem,IR,solve ,ODEProblemData,Detection,@_inline,@_noinline# 
-  export qss1,qss2,qss3,liqss1,liqss2,liqss3,saveat,nmliqss1,nmliqss2,nmliqss3
+  export qss1,qss2,liqss1,liqss2,saveat,nmliqss1,nmliqss2
+  export QSS1,QSS2,LIQSS1,LIQSS2,mLIQSS1,mLIQSS2
 
   export save_SolSum,solInterpolated,plot_SolSum,plot
   export getErrorByRefs,getAverageErrorByRefs,getError,getAverageError
